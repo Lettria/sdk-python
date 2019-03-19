@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="lettria",
-    version="1.0.3",
+    version="2.0.0",
     packages=find_packages(),
     description="Lettria official SDK for python",
     author="Victor",
@@ -14,5 +14,5 @@ setup(
     install_requires=[
       "requests>=2.10",
     ],
-    keywords="lettria french nlp taln"
+    keywords="lettria french nlp taln chatbot bigdata text analysis"
 )

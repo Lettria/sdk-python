@@ -2,6 +2,6 @@
 # coding: utf-8
 
 from .client import Client
-from .extract import Extract
+from .sharedClass import SharedClass
 
-__all__ = ['Client', 'Extract']
+__all__ = ['Client', 'SharedClass']

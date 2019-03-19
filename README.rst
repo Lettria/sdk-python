@@ -1,2 +1,0 @@
-Lettria for Python
-===================
