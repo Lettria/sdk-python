@@ -1,6 +1,7 @@
 
+<br/>
 
-![](https://lettria.com/images/logo.png)
+![](https://lettria.com/images/logo.png =200x40)
 
 
 # Introduction
@@ -109,8 +110,6 @@ Returns the  `API_KEY` used by the client as a `string`.
 
 Set the `API_KEY` that will be used by your client.
 
-<br/><br/>
-
 # Classes available if raw is false
 
 When the `raw` parameter is disabled, the client will return a `class Data`
@@ -132,8 +131,8 @@ Returns the `Sentence` at the given index.
 
 ### Parameters:
 
-|name|type|description|
-|--|--|--|
+|name|type| description
+|--|--|--|--|
 |`index`|`int`|Index of the `Sentence` you want to retrieve|
 
 ### Return value:
@@ -154,8 +153,8 @@ Apply a `function` to all `Sentence`elements.
 
 ### Parameters:
 
-|name|type|description|
-|--|--|--|
+|name|type| description
+|--|--|--|--|
 |`function`|`function`|The function that will be applied to all the `Sentence` elements.|
 
 ### Return value:
@@ -178,8 +177,6 @@ data.map(ma_fonction)
 ```
 
 # `class Sentence`
-
-
 
 > Inherits [SharedClass](#class-sharedclass) and [ExtractClass](#class-extractclass).
 
@@ -367,8 +364,8 @@ entities = sentence.parser_dependency.getByFilter('tag', 'ENTITY')
 
 ### Parameters:
 
-|name|type|description|
-|--|--|--|
+|name|type| description
+|--|--|--|--|
 |`role`|`string`|Role on which we will base our filter.|
 
 ### Return value:
@@ -406,8 +403,8 @@ postagger_analysis = sentence.postagger.get()
 
 ### Parameters:
 
-|name|type|description|
-|--|--|--|
+|name|type| description
+|--|--|--|--|
 |`tag`|`string` or `list`|Tag on which we will base our filter.|
 
 ### Return value:
@@ -482,8 +479,8 @@ Returns a list of objects that match the filter, based on the data that the clas
 
 ### Parameters:
 
-|name|type|description|
-|--|--|--|
+|name|type| description
+|--|--|--|--|
 |`key`|`string`|Key on which the filter will be applied to find an element.|
 |`value`|Depends on targeted key.|This value will be used to filter items by comparaison.|
 |`list`|`list`|Used if you want to find an item on a different data then the one contained by your element.
@@ -519,8 +516,8 @@ Returns the value contained by a property in an object.
 
 ### Parameters:
 
-|name|type|description|
-|--|--|--|
+|name|type| description
+|--|--|--|--|
 |`key`|`string`|Key on which the filter will be applied to find an element.|
 |`value`|Depends on targeted key.|This value will be used to filter items by comparaison.|
 |`list`|`list`|Used if you want to find an item on a different data then the one contained by your element.
@@ -530,13 +527,22 @@ Returns the value contained by a property in an object.
 Depends on the object and the key.
 
 ### Examples:
+With `shared_class` beeing an instance of `SharedClass` or of a class that inherits `SharedClass`.
 ```python
-a = SharedClass.getNested("type", {"type": 42})
+a = shared_class.getNested("type", {"type": 42})
 # a = 42
 ```
 Nested levels are accesible with this syntax:
 ```python
-a = SharedClass.getNested("data", {"type": 42})
+a = shared_class.getNested('data.person.name', {
+	"data": {
+		"person": {
+			"name": "Paul"
+		}
+	}
+})
+
+# a = "Paul"
 ```
 
 # `class ExtractClass`
