@@ -1,6 +1,6 @@
 
 
-![](https://lettria.com/images/logo.png =200x40)
+![](https://lettria.com/images/logo.png)
 
 
 # Introduction
