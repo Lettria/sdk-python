@@ -1,7 +1,7 @@
 
 <br/>
 
-![](https://lettria.com/images/logo.png =200x40)
+![](https://lettria.com/images/logo.png)
 
 
 # Introduction
@@ -65,7 +65,7 @@ Client used to perform requests to our api.
 
 ### Parameters:
 
-|name|type| description | default value
+|name|type|description | default value
 |--|--|--|--|
 |`key`|`string`| The `API_KEY` that will be used by the client.<br/>Get your [free key](https://app.lettria.com/signup).|`None`|
 |`raw`|`boolean`| Tell the client if it should return the raw json from our api or  a class [Data](#class-data) containing methods that you may want to use on the elements. More [here](#raw-disabled)|`True`
@@ -77,7 +77,7 @@ client = Client(key="API_KEY", raw=True)
 
 ### Methods:
 
-|name| description | return value|
+|name|description | return value|
 |--|--|--|
 | `request()` | Send a request to our [api](https://lettria.com)  | `list` of objects.<br />Each of these objects represents the informations collected for a sentence. More information on our format on our [documentation](https://doc.lettria.com)
 |`getKey()`|Retrieve the key used by the client|`string` representing your `API_KEY`.
@@ -90,7 +90,7 @@ Send a request to our [api](https://lettria.com/)
 
 ### Parameters:
 
-|name|type| description | default value
+|name|type|description | default value
 |--|--|--|--|
 |`text`|`string`| The text that you want to analyse|Empty string
 |`raw`|`boolean`| Tell the client if it should return the raw json from our api or a list of classes containing methods that you may want to use on the elements. It will override the client's `raw` value| The value that was previously set on the client which has `True` as default.
@@ -120,7 +120,7 @@ Contains the data for each sentences in your text input as `Sentence` instances,
 
 ### Methods:
 
-|name| description | return value|
+|name|description | return value|
 |--|--|--|
 |`getSentence()`|Returns the `Sentence` at the given index.|`class Sentence`.
 | `map()` | Apply a function to all `Sentence` elements. |`boolean` that represent the operation status:<br/>`True` for success<br/>`False` for error|
@@ -131,8 +131,8 @@ Returns the `Sentence` at the given index.
 
 ### Parameters:
 
-|name|type| description
-|--|--|--|--|
+|name|type|description|
+|--|--|--|
 |`index`|`int`|Index of the `Sentence` you want to retrieve|
 
 ### Return value:
@@ -153,8 +153,8 @@ Apply a `function` to all `Sentence`elements.
 
 ### Parameters:
 
-|name|type| description
-|--|--|--|--|
+|name|type|description|
+|--|--|--|
 |`function`|`function`|The function that will be applied to all the `Sentence` elements.|
 
 ### Return value:
@@ -296,7 +296,7 @@ Access and perform actions on the data located in the  `emoticons` key.
 
 ### Methods:
 
-|name| description | return value|
+|name|description | return value|
 |--|--|--|
 | `get_present()` | Returns the emoticon types that are present.| `list` of [emoticon types](https://www.doc.lettria.com/#emoticons)
 |`get_confidence()`| Returns the confidence of the analysis.| `float` between 0 and 1
@@ -356,7 +356,7 @@ entities = sentence.parser_dependency.getByFilter('tag', 'ENTITY')
 
 ### Methods:
 
-|name| description | return value|
+|name|description | return value|
 |--|--|--|
 | `getByRole()` | Returns the emoticon types that are present.| `list` of [emoticon types](https://www.doc.lettria.com/#emoticons)
 
@@ -364,8 +364,8 @@ entities = sentence.parser_dependency.getByFilter('tag', 'ENTITY')
 
 ### Parameters:
 
-|name|type| description
-|--|--|--|--|
+|name|type|description|
+|--|--|--|
 |`role`|`string`|Role on which we will base our filter.|
 
 ### Return value:
@@ -395,7 +395,7 @@ postagger_analysis = sentence.postagger.get()
 
 ### Methods:
 
-|name| description | return value|
+|name|description | return value|
 |--|--|--|
 | `getByTag()` | Returns the elements that match the given tag| `list` of [postagger elements](https://www.doc.lettria.com/#pos-tagger)
 
@@ -403,8 +403,8 @@ postagger_analysis = sentence.postagger.get()
 
 ### Parameters:
 
-|name|type| description
-|--|--|--|--|
+|name|type|description|
+|--|--|--|
 |`tag`|`string` or `list`|Tag on which we will base our filter.|
 
 ### Return value:
@@ -453,7 +453,7 @@ If called from one of it's child classes, these methods will be applied on the d
 
 #### Methods:
 
-|name| description | return value|
+|name|description | return value|
 |--|--|--|
 |`get()`|Returns the data that an element contains|Depends on the element's class.|
 |`getByFilter()`|Returns the item that was found based on the filter.|Depends on the element's class.
@@ -479,8 +479,8 @@ Returns a list of objects that match the filter, based on the data that the clas
 
 ### Parameters:
 
-|name|type| description
-|--|--|--|--|
+|name|type|description|
+|--|--|--|
 |`key`|`string`|Key on which the filter will be applied to find an element.|
 |`value`|Depends on targeted key.|This value will be used to filter items by comparaison.|
 |`list`|`list`|Used if you want to find an item on a different data then the one contained by your element.
@@ -516,8 +516,8 @@ Returns the value contained by a property in an object.
 
 ### Parameters:
 
-|name|type| description
-|--|--|--|--|
+|name|type|description|
+|--|--|--|
 |`key`|`string`|Key on which the filter will be applied to find an element.|
 |`value`|Depends on targeted key.|This value will be used to filter items by comparaison.|
 |`list`|`list`|Used if you want to find an item on a different data then the one contained by your element.
@@ -551,7 +551,7 @@ Used to share a group of extraction methods.
 
 
 ### Methods:
-|name| return type | description|
+|name| return type |description|
 |---|---|--|
 |`get_date_items()`|`list`| Returns items that match the `type` `date`|
 |`get_distance_items()`|`list`| Returns items that match the `type` `distance`|
