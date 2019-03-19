@@ -109,6 +109,8 @@ Returns the  `API_KEY` used by the client as a `string`.
 
 Set the `API_KEY` that will be used by your client.
 
+<br/><br/>
+
 # Classes available if raw is false
 
 When the `raw` parameter is disabled, the client will return a `class Data`
@@ -176,6 +178,8 @@ data.map(ma_fonction)
 ```
 
 # `class Sentence`
+
+
 
 > Inherits [SharedClass](#class-sharedclass) and [ExtractClass](#class-extractclass).
 
