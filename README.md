@@ -8,7 +8,9 @@
 
 # Introduction
 
-Lettria's official SDK for Python.
+Lettria edits a NLP toolkit dedicated to the understanding of french.
+
+This is our official SDK for Python.
 
 Learn more about our API and its format with our [documentation](https://doc.lettria.com) and [demo](https://lettria.com/demo).
 
@@ -153,6 +155,7 @@ Returns a `Sentence` instance.
 data = client.request(text='première phrase. deuxième phrase. troisième phrase')
 
 sentence = data.getSentence(2)
+
 # sentence.data['postagger'] = [['troisieme', 'JJ'], ['phrase', 'N']]
 ```
 <br />
