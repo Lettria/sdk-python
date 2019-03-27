@@ -31,13 +31,13 @@ class emoticons(SharedClass, ExtractClass):
 	def __init__(self, data=None):
 		self.data = data
 
-	def get_confidence(self):
+	def getConfidence(self):
 		r = []
 		if self.data and 'confidence' in self.data:
 			return self.data['confidence']
 		return None
 
-	def get_present(self):
+	def getPresent(self):
 		r = []
 		if self.data and 'emoticon' in self.data:
 			for k in self.data['emoticon']:

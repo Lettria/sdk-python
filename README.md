@@ -1,4 +1,6 @@
 
+
+
 <br/>
 
 ![](https://lettria.com/images/logo.png)
@@ -6,9 +8,9 @@
 
 # Introduction
 
-Lettria official SDK for Python.
+Lettria's official SDK for Python.
 
-Learn more about our api and it's format with our [documentation](https://doc.lettria.com) and [demo](https://lettria.com/demo).
+Learn more about our API and its format with our [documentation](https://doc.lettria.com) and [demo](https://lettria.com/demo).
 
 # Overview
 * [Introduction](#introduction)
@@ -33,7 +35,7 @@ Learn more about our api and it's format with our [documentation](https://doc.le
 
 # Installation
 
-  ### pip
+  ### pip (recommended)
 
 Install from PyPi using [pip](http://www.pip-installer.org/en/latest/), a package manager for Python.
 
@@ -61,14 +63,14 @@ response = client.request("my first sentence. my second sentence")
 
 # `class Client`
 
-Client used to perform requests to our api.
+Client used to perform requests to our API.
 
 ### Parameters:
 
-|name|type|description | default value
-|--|--|--|--|
-|`key`|`string`| The `API_KEY` that will be used by the client.<br/>Get your [free key](https://app.lettria.com/signup).|`None`|
-|`raw`|`boolean`| Tell the client if it should return the raw json from our api or  a class [Data](#class-data) containing methods that you may want to use on the elements. More [here](#raw-disabled)|`True`
+|name|type|description | mandatory| default value
+|--|--|--|--|--|
+|`key`|`string`| The `API_KEY` that will be used by the client.<br/>Get your [free key](https://app.lettria.com/signup).|Yes|`None`|
+|`raw`|`boolean`| Tell the client if it should return the raw json from our API or  a class [Data](#class-data) containing methods that you may want to use on the elements. More [here](#raw-disabled)|No|`True`
 
 ### Example
 ```
@@ -79,27 +81,27 @@ client = Client(key="API_KEY", raw=True)
 
 |name|description | return value|
 |--|--|--|
-| `request()` | Send a request to our [api](https://lettria.com)  | `list` of objects.<br />Each of these objects represents the informations collected for a sentence. More information on our format on our [documentation](https://doc.lettria.com)
+| `request()` | Send a request to our [API](https://lettria.com)  | `list` of objects.<br />Each of these objects represents the informations collected for a sentence. More information on our format on our [documentation](https://doc.lettria.com)
 |`getKey()`|Retrieve the key used by the client|`string` representing your `API_KEY`.
 |`setKey()`|Set the key that will be used bu the client| `boolean` that represent the operation status:<br/>`True` for success<br/>`False` for error
 
 
 ## `.request(text, [options...])`
 
-Send a request to our [api](https://lettria.com/)
+Send a request to our [API](https://lettria.com/)
 
 ### Parameters:
 
 |name|type|description | default value
 |--|--|--|--|
 |`text`|`string`| The text that you want to analyse|Empty string
-|`raw`|`boolean`| Tell the client if it should return the raw json from our api or a list of classes containing methods that you may want to use on the elements. It will override the client's `raw` value| The value that was previously set on the client which has `True` as default.
+|`raw`|`boolean`| Tell the client if it should return the raw json from our API or a list of classes containing methods that you may want to use on the elements. It will override the client's `raw` value| The value that was previously set on the client which has `True` as default.
 
 ### Return value:
 
 |condition|value|
 |--|--|
-|`raw=True`|`list` of objects, which is the raw return of our api. more [here](https://doc.lettria.com)|
+|`raw=True`|`list` of objects, which is the raw return of our API. more [here](https://doc.lettria.com)|
 |`raw=False`|`list` of `Sentence`. Each of them contains the data per sentence and a toolkit of methods that you may want to use on them.
 
 ## `.getKey()`
@@ -124,29 +126,67 @@ Contains the data for each sentences in your text input as `Sentence` instances,
 
 |name|description | return value|
 |--|--|--|
-|`getSentence()`|Returns the `Sentence` at the given index.|`class Sentence`.
+|`getSentence()`|Returns the `Sentence` at the given index.|`class Sentence`
+|`readSentence()`|Returns the `Sentence` classes one by one.|`class Sentence`
+|`getNumberOfSentences()`|Returns the number sentences|`int`
 | `map()` | Apply a function to all `Sentence` elements. |`boolean` that represent the operation status:<br/>`True` for success<br/>`False` for error|
 
 ## `.getSentence(index)`
 
 Returns the `Sentence` at the given index.
 
+If called without a specified index, it will return the sentence that follows the last index you called the method with.
+
 ### Parameters:
 
-|name|type|description|
-|--|--|--|
-|`index`|`int`|Index of the `Sentence` you want to retrieve|
+|name|type|description|mandatory|
+|--|--|--|--|
+|`index`|`int`|Index of the `Sentence` you want to retrieve|No|
 
 ### Return value:
 
 Returns a `Sentence` instance.
 
+### Examples:
+
+```python
+data = client.request(text='première phrase. deuxième phrase. troisième phrase')
+
+sentence = data.getSentence(2)
+# sentence.data['postagger'] = [['troisieme', 'JJ'], ['phrase', 'N']]
+```
+<br />
+
+```python
+data = client.request(text='première phrase. deuxième phrase. troisième phrase')
+
+sentence_2 = data.getSentence(1)
+sentence_3 = data.getSentence()
+
+# sentence_2.postagger.data = [['deuxieme', 'JJ'], ['phrase', 'N'], ['.', 'PUNCT']]
+# sentence_3.postagger.data = [['troisieme', 'JJ'], ['phrase', 'N']]
+```
+<br />
+
+```python
+data = client.request(text='première phrase. deuxième phrase. troisième phrase')
+
+sentence = data.getSentence()
+
+# sentence.postagger.data = [['premiere', 'JJ'], ['phrase', 'N'], ['.', 'PUNCT']]
+```
+
+
+## `.getNumberOfSentences()`
+
+Returns the number of sentences.
+
 ### Example:
 
 ```python
 data = client.request(text='première phrase. deuxième phrase')
-sentence = data.getSentence(1)
-# sentence.data['postagger'] = [['deuxième', 'JJ'], ['phrase', 'N']]
+number = data.getNumberOfSentence()
+# number = 2
 ```
 
 ## `.map(function)`
@@ -212,7 +252,7 @@ data = client.request('je pesais 76kg le 12 janvier 2017')
 sentence = data.getSentence(0)
 
 ner_analysis = sentence.ner.get()
-ner_date_items = sentence.ner.get_date_items()
+ner_date_items = sentence.ner.getDateItems()
 ner_kilo_items = sentence.ner.getByFilter('value.unit', 'kg')
 ```
 
@@ -243,7 +283,7 @@ data = client.request('je pesais 76kg le 12 janvier 2017')
 sentence = data.getSentence(0)
 
 nlp_analysis = sentence.nlp.get()
-nlp_date_items = sentence.nlp.get_date_items()
+nlp_date_items = sentence.nlp.getDateItems()
 nlp_kilo_items = sentence.nlp.getByFilter('value.unit', 'kg')
 ```
 
@@ -270,7 +310,7 @@ data = client.request("j'aime beaucoup apprendre.")
 sentence = data.getSentence(0)
 
 sentiment_analysis = sentence.sentiment.get()
-happiness_items = sentence.sentiment.list.get_happiness_items()
+happiness_items = sentence.sentiment.list.getHappinessItems()
 happiness_items = sentence.sentiment.list.getByFilter('type', 'happiness')
 ```
 
@@ -287,7 +327,7 @@ sentence = data.getSentence(0)
 
 sentiment_analysis = sentence.sentiment.get()
 group_happiness = sentence.sentiment.group.getByFilter('type', 'happiness')
-group_happiness = sentence.sentiment.group.get_happiness_items()
+group_happiness = sentence.sentiment.group.getHappinessItems()
 ```
 
 # `class emoticons`
@@ -300,10 +340,10 @@ Access and perform actions on the data located in the  `emoticons` key.
 
 |name|description | return value|
 |--|--|--|
-| `get_present()` | Returns the emoticon types that are present.| `list` of [emoticon types](https://www.doc.lettria.com/#emoticons)
-|`get_confidence()`| Returns the confidence of the analysis.| `float` between 0 and 1
+| `getPresent()` | Returns the emoticon types that are present.| `list` of [emoticon types](https://www.doc.lettria.com/#emoticons)
+|`getConfidence()`| Returns the confidence of the analysis.| `float` between 0 and 1
 
-## `.get_present()`
+## `.getPresent()`
 
 Returns the emoticon types that are present.
 
@@ -318,11 +358,11 @@ data = client.request("cool 😁😛")
 sentence = data.getSentence(0)
 
 emoticons_analysis = sentence.emoticons.get()
-present_emoticons = sentence.emoticons.get_present()
+present_emoticons = sentence.emoticons.getPresent()
 # present_emoticons = ["playful", "very_happy"]
 ```
 
-## `.get_confidence()`
+## `.getConfidence()`
 
 Returns the emoticon types that are present.
 
@@ -337,7 +377,7 @@ data = client.request("cool 😁😛")
 sentence = data.getSentence(0)
 
 emoticons_analysis = sentence.emoticons.get()
-present_emoticons = sentence.emoticons.get_confidence()
+present_emoticons = sentence.emoticons.getConfidence()
 # present_emoticons = ["playful", "very_happy"]
 ```
 
@@ -417,7 +457,7 @@ Returns a `list` of the items that match the queried tag in `postagger`.
 
 ```python
 data = client.request("j'ai pesé 76kg mais maintenant j'en pese 42")
-sentence = data.getSentence(0)
+sentence = data.getSentence()
 
 numbers = sentence.postagger.getByTag('CD')
 verbs = sentence.postagger.getByTag(['V', 'VP'])
@@ -430,7 +470,7 @@ Access and perform actions on the data located in the  `sentence_acts` key.
 ### Example:
 ```python
 data = client.request('je pesais 76kg le 12 janvier 2017')
-sentence = data.getSentence(0)
+sentence = data.getSentence()
 
 sentence_acts_analysis = sentence.sentence_acts.get()
 ```
@@ -442,7 +482,7 @@ Access and perform actions on the data located in the  `coreference` key.
 ### Example:
 ```python
 data = client.request("je pesais 76kg le 12 janvier et maintenant j'en pese 42")
-sentence = data.getSentence(0)
+sentence = data.getSentence()
 
 coreference_analysis = sentence.coreference.get()
 ```
@@ -534,7 +574,7 @@ With `shared_class` beeing an instance of `SharedClass` or of a class that inher
 a = shared_class.getNested("type", {"type": 42})
 # a = 42
 ```
-Nested levels are accesible with this syntax:
+Nested levels are accessible with this syntax:
 ```python
 a = shared_class.getNested('data.person.name', {
 	"data": {
@@ -555,38 +595,38 @@ Used to share a group of extraction methods.
 ### Methods:
 |name| return type |description|
 |---|---|--|
-|`get_date_items()`|`list`| Returns items that match the `type` `date`|
-|`get_distance_items()`|`list`| Returns items that match the `type` `distance`|
-|`get_duration_items()`|`list`| Returns items that match the `type` `duration`|
-|`get_electric_power_items()`|`list`| Returns items that match the `type` `electric power`|
-|`get_hex_color_items()`|`list`| Returns items that match the `type` `hex color`|
-|`get_interval_items()`|`list`| Returns items that match the `type` `interval`|
-|`get_ip_items()`|`list`| Returns items that match the `type` `ip`|
-|`get_ipv6_items()`|`list`| Returns items that match the `type` `ipv6`|
-|`get_light_intensity_items()`|`list`| Returns items that match the `type` `light intensity`|
-|`get_mail_items()`|`list`| Returns items that match the `type` `mail`|
-|`get_mass_items()`|`list`| Returns items that match the `type` `mass`|
-|`get_mass_by_volume_items()`|`list`| Returns items that match the `type` `mass by volume`|
-|`get_mol_items()`|`list`| Returns items that match the `type` `mol`|
-|`get_money_items()`|`list`| Returns items that match the `type` `money`|
-|`get_ordinal_items()`|`list`| Returns items that match the `type` `ordinal`|
-|`get_percent_items()`|`list`| Returns items that match the `type` `percent`|
-|`get_phone_items()`|`list`| Returns items that match the `type` `phone`|
-|`get_pressure_items()`|`list`| Returns items that match the `type` `pressure`|
-|`get_set_items()`|`list`| Returns items that match the `type` `set`|
-|`get_speed_items()`|`list`| Returns items that match the `type` `speed`|
-|`get_strength_items()`|`list`| Returns items that match the `type` `strength`|
-|`get_surface_items()`|`list`| Returns items that match the `type` `surface`|
-|`get_surface_tension_items()`|`list`| Returns items that match the `type` `surface tension`|
-|`get_temperature_items()`|`list`| Returns items that match the `type` `temperature`|
-|`get_time_items()`|`list`| Returns items that match the `type` `time`|
-|`get_url_items()`|`list`| Returns items that match the `type` `url`|
-|`get_voltage_items()`|`list`| Returns items that match the `type` `voltage`|
-|`get_volume_items()`|`list`| Returns items that match the `type` `volume`|
-|`get_happiness_items()`|`list`| Returns items that match the `type` `happiness`|
-|`get_sadness_items()`|`list`| Returns items that match the `type` `sadness`|
-|`get_fear_items()`|`list`| Returns items that match the `type` `fear`|
-|`get_disgust_items()`|`list`| Returns items that match the `type` `disgust`|
-|`get_anger_items()`|`list`| Returns items that match the `type` `anger`|
-|`get_surprise_items()`|`list`| Returns items that match the `type` `surprise`|
-|`get_judgement_items()`|`list`| Returns items that match the `type` `judgement`|
+|`getDateItems()`|`list`| Returns items that match the `type` `date`|
+|`getDistanceItems()`|`list`| Returns items that match the `type` `distance`|
+|`getDurationItems()`|`list`| Returns items that match the `type` `duration`|
+|`getElectricPowerItems()`|`list`| Returns items that match the `type` `electric power`|
+|`getHexColorItems()`|`list`| Returns items that match the `type` `hex color`|
+|`getIntervalItems()`|`list`| Returns items that match the `type` `interval`|
+|`getIpItems()`|`list`| Returns items that match the `type` `ip`|
+|`getIpv6Items()`|`list`| Returns items that match the `type` `ipv6`|
+|`getLightIntensityItems()`|`list`| Returns items that match the `type` `light intensity`|
+|`getMailItems()`|`list`| Returns items that match the `type` `mail`|
+|`getMassItems()`|`list`| Returns items that match the `type` `mass`|
+|`getMassByVolumeItems()`|`list`| Returns items that match the `type` `mass by volume`|
+|`getMolItems()`|`list`| Returns items that match the `type` `mol`|
+|`getMoneyItems()`|`list`| Returns items that match the `type` `money`|
+|`getOrdinalItems()`|`list`| Returns items that match the `type` `ordinal`|
+|`getPercentItems()`|`list`| Returns items that match the `type` `percent`|
+|`getPhoneItems()`|`list`| Returns items that match the `type` `phone`|
+|`getPressureItems()`|`list`| Returns items that match the `type` `pressure`|
+|`getSetItems()`|`list`| Returns items that match the `type` `set`|
+|`getSpeedItems()`|`list`| Returns items that match the `type` `speed`|
+|`getStrengthItems()`|`list`| Returns items that match the `type` `strength`|
+|`getSurfaceItems()`|`list`| Returns items that match the `type` `surface`|
+|`getSurfaceTensionItems()`|`list`| Returns items that match the `type` `surface tension`|
+|`getTemperatureItems()`|`list`| Returns items that match the `type` `temperature`|
+|`getTimeItems()`|`list`| Returns items that match the `type` `time`|
+|`getUrlItems()`|`list`| Returns items that match the `type` `url`|
+|`getVoltageItems()`|`list`| Returns items that match the `type` `voltage`|
+|`getVolumeItems()`|`list`| Returns items that match the `type` `volume`|
+|`getHappinessItems()`|`list`| Returns items that match the `type` `happiness`|
+|`getSadnessItems()`|`list`| Returns items that match the `type` `sadness`|
+|`getFearItems()`|`list`| Returns items that match the `type` `fear`|
+|`getDisgustItems()`|`list`| Returns items that match the `type` `disgust`|
+|`getAngerItems()`|`list`| Returns items that match the `type` `anger`|
+|`getSurpriseItems()`|`list`| Returns items that match the `type` `surprise`|
+|`getJudgementItems()`|`list`| Returns items that match the `type` `judgement`|

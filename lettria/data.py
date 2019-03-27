@@ -1,6 +1,8 @@
 class Data():
 	def __init__(self, data=None):
 		self.data = data
+		self.sentences = data
+		self.lastIndex = -1
 
 	def get(self):
 		return self.data
@@ -12,7 +14,17 @@ class Data():
 			return True
 		return False
 
-	def getSentence(self, index=0):
+	def getSentence(self, index=None):
+		if index is not None:
+			self.lastIndex = index
+		else:
+			index = self.lastIndex + 1
+			self.lastIndex = index
 		if not isinstance(self.data, type([])) or index >= len(self.data) or index < 0:
 			return None
 		return self.data[index]
+
+	def getNumberOfSentences(self):
+		if not self.data:
+			return 0
+		return len(self.data)
