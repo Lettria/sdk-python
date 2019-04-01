@@ -188,7 +188,7 @@ Returns the number of sentences.
 
 ```python
 data = client.request(text='première phrase. deuxième phrase')
-number = data.getNumberOfSentence()
+number = data.getNumberOfSentences()
 # number = 2
 ```
 
