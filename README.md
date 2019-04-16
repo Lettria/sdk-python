@@ -185,7 +185,11 @@ Returns the number of sentences.
 
 ```python
 data = client.request(text='première phrase. deuxième phrase')
+<<<<<<< HEAD
 number = data.get_number_of_sentences()
+=======
+number = data.getNumberOfSentences()
+>>>>>>> df8ab346fe19ddf3bccdd23c71bb79a26dfd739e
 # number = 2
 ```
 
