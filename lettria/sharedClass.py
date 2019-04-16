@@ -19,7 +19,7 @@ class SharedClass:
 		except:
 			return False
 
-	def getNested(self, key, obj):
+	def get_nested(self, key, obj):
 		if not isinstance(obj, dict):
 			return None
 		keys = key.split('.')
@@ -32,12 +32,12 @@ class SharedClass:
 			return self.getNested(key[:-1], obj)
 		return obj
 
-	def getByFilter(self, key, value, list=None):
+	def get_by_filter(self, key, value, list=None):
 		r = []
 		l = list if list else self.data
 		if not isinstance(l, type([])):
 			print("Lettria SDK: \033[1;33;40mWARNING:\033[0;37;40m {}".format(
-				"getByFilter() was called on something that does not contain a list format."
+				"get_by_filter() was called on something that does not contain a list format."
 			))
 			return None
 		for item in l:

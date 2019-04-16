@@ -13,17 +13,17 @@ class Client:
 		self.key = key
 		self.raw = raw
 
-	def getKey(self):
+	def get_key(self):
 		if self.key:
 			return self.key
 
-	def setKey(self, key=None):
+	def set_key(self, key=None):
 		if key:
 			self.key = key
 			return True
 		return False
 
-	def printResponseError(self, response):
+	def print_response_error(self, response):
 		if 'Error' in response:
 			print("Lettria SDK: \033[1;31;40mERROR:\033[0;37;40m {}".format(response['Error']))
 		else:
@@ -38,7 +38,7 @@ class Client:
 			print(e)
 			pass
 		if response and not isinstance(response, list):
-			self.printResponseError(response)
+			self.print_response_error(response)
 			response = None
 		return response
 

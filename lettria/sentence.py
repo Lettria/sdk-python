@@ -14,11 +14,11 @@ class Sentence(SharedClass, ExtractClass):
 		self.postagger = postagger(data['postagger']) if data and 'postagger' in data else None
 		self.sentence_acts = sentence_acts(data['sentence_acts']) if data and 'sentence_acts' in data else None
 		self.coreference = coreference(data['coreference']) if data and 'coreference' in data else None
-		self.data_global = data['global'] if data and 'global' in data else None
+		self.data_synthesis = data['synthesis'] if data and 'synthesis' in data else None
 
-	def getByFilter(self, key, value, list=None):
+	def get_by_filter(self, key, value, list=None):
 		r = []
-		l = list if list else self.data_global
+		l = list if list else self.data_synthesis
 		if not isinstance(l, type([])):
 			return None
 		for item in l:

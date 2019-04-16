@@ -14,7 +14,7 @@ class Data():
 			return True
 		return False
 
-	def getSentence(self, index=None):
+	def get_sentence(self, index=None):
 		if index is not None:
 			self.lastIndex = index
 		else:
@@ -24,7 +24,7 @@ class Data():
 			return None
 		return self.data[index]
 
-	def getNumberOfSentences(self):
+	def get_number_of_sentences(self):
 		if not self.data:
 			return 0
 		return len(self.data)

@@ -31,13 +31,13 @@ class emoticons(SharedClass, ExtractClass):
 	def __init__(self, data=None):
 		self.data = data
 
-	def getConfidence(self):
+	def get_confidence(self):
 		r = []
 		if self.data and 'confidence' in self.data:
 			return self.data['confidence']
 		return None
 
-	def getPresent(self):
+	def get_present(self):
 		r = []
 		if self.data and 'emoticon' in self.data:
 			for k in self.data['emoticon']:
@@ -50,7 +50,7 @@ class parser_dependency(SharedClass, ExtractClass):
 		self.data = data
 
 	def getByRole(self, role):
-		return self.getByFilter('dep', role)
+		return self.get_by_filter('dep', role)
 
 class postagger():
 	def __init__(self, data=None):
@@ -59,7 +59,7 @@ class postagger():
 	def get(self):
 		return self.data
 
-	def getByTag(self, tag):
+	def get_by_tag(self, tag):
 		r = []
 		if self.data:
 			for item in self.data:
