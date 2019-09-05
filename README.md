@@ -234,7 +234,7 @@ All methods inherited from [SharedClass](#class-sharedclass) and [ExtractClass](
 |[nlu](#class-nlu)|`NLU`|
 |[nlp](#class-nlp)|`NLP`|
 |[sentiment](#class-sentiment)|`sentiment`
-|[emotion](#class-emotion)|`sentiment`
+|[emotion](#class-emotion)|`emotion`
 |[emoticons](#class-emoticons)|`emoticons`
 |[parser_dependency](#class-parser_dependency)|`parser_dependency`|
 |[postagger](#class-postagger)|`postagger`|
