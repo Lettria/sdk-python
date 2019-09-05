@@ -23,6 +23,7 @@ Learn more about our API and its format with our [documentation](https://doc.let
 			* [nlu](#class-nlu)
 			* [nlp](#class-nlp)
 			* [sentiment](#class-sentiment)
+			* [emotion](#class-emotion)
 			* [emoticons](#class-emoticons)
 			* [parser_dependency](#class-parser_dependency)
 			* [postagger](#class-postagger)
@@ -233,6 +234,7 @@ All methods inherited from [SharedClass](#class-sharedclass) and [ExtractClass](
 |[nlu](#class-nlu)|`NLU`|
 |[nlp](#class-nlp)|`NLP`|
 |[sentiment](#class-sentiment)|`sentiment`
+|[emotion](#class-emotion)|`sentiment`
 |[emoticons](#class-emoticons)|`emoticons`
 |[parser_dependency](#class-parser_dependency)|`parser_dependency`|
 |[postagger](#class-postagger)|`postagger`|
