@@ -13,19 +13,33 @@ class nlp(SharedClass, ExtractClass):
 	def __init__(self, data=None):
 		self.data = data
 
-class sentiment_list(SharedClass, ExtractClass):
+class sentiment_elements(SharedClass, ExtractClass):
 	def __init__(self, data=None):
 		self.data = data
 
-class sentiment_group(SharedClass, ExtractClass):
+class sentiment_values(SharedClass, ExtractClass):
 	def __init__(self, data=None):
 		self.data = data
 
 class sentiment(SharedClass, ExtractClass):
 	def __init__(self, data=None):
 		self.data = data
-		self.list = sentiment_list(data['list']) if 'list' in data else None
-		self.group = sentiment_group(data['group']) if 'group' in data else None
+		self.elements = sentiment_elements(data['elements']) if 'elements' in data else None
+		self.values = sentiment_values(data['values']) if 'values' in data else None
+
+class emotion_elements(SharedClass, ExtractClass):
+	def __init__(self, data=None):
+		self.data = data
+
+class emotion_values(SharedClass, ExtractClass):
+	def __init__(self, data=None):
+		self.data = data
+
+class emotion(SharedClass, ExtractClass):
+	def __init__(self, data=None):
+		self.data = data
+		self.elements = emotion_elements(data['elements']) if 'elements' in data else None
+		self.values = emotion_values(data['values']) if 'values' in data else None
 
 class emoticons(SharedClass, ExtractClass):
 	def __init__(self, data=None):

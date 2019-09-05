@@ -8,7 +8,8 @@ class Sentence(SharedClass, ExtractClass):
 		self.ner = ner(data['NER']) if data and 'NER' in data else None
 		self.nlu = nlu(data['NLU']) if data and 'NLU' in data else None
 		self.nlp = nlp(data['NLP']) if data and 'NLP' in data else None
-		self.sentiment = sentiment(data['Sentiment']) if data and 'Sentiment' in data and 'list' in data['Sentiment'] else None
+		self.emotion = sentiment(data['emotion']) if data and 'emotion' in data else None
+		self.sentiment = sentiment(data['sentiment']) if data and 'sentiment' in data else None
 		self.emoticons = emoticons(data['emoticons']) if data and 'emoticons' in data else None
 		self.parser_dependency = parser_dependency(data['parser_dependency']) if data and 'parser_dependency' in data else None
 		self.postagger = postagger(data['postagger']) if data and 'postagger' in data else None

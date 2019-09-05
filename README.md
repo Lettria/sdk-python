@@ -290,32 +290,29 @@ nlp_kilo_items = sentence.nlp.get_by_filter('value.unit', 'kg')
 
 > Inherits [SharedClass](#class-sharedclass)
 
-Access and perform actions on the data located in the  `Sentiment` key.
+Access and perform actions on the data located in the  `sentiment` key.
 
-The data contained in the `Sentiment` key is divised in two keys that has their specific format:
-* `list` where the sentiments are listed.
-* `group` where the sentiments are merged into groups.
+The data contained in the `sentiment` key is divised in two keys that has their specific format:
+* `elements` where the sentiments are listed.
+* `values` where the sentiments values are set.
 
 That's why this class has two subsclass:
 
-## `class list`
+## `class elements`
 
 > Inherits [SharedClass](#class-sharedclass) and [ExtractClass](#class-extractclass).
 
 
 ### Example:
 ```python
-data = client.request("j'aime beaucoup apprendre.")
+data = client.request("j'aime beaucoup manger.")
 sentence = data.get_sentence(0)
 
 sentiment_analysis = sentence.sentiment.get()
-happiness_items = sentence.sentiment.list.get_happiness_items()
-happiness_items = sentence.sentiment.list.get_by_filter('type', 'happiness')
+sentiment_elements = sentence.sentiment.elements.get()
 ```
 
-## `class group`
-
-> Inherits [SharedClass](#class-sharedclass) and [ExtractClass](#class-extractclass).
+## `class values`
 
 
 ### Example:
@@ -325,8 +322,46 @@ data = client.request("j'aime beaucoup manger.")
 sentence = data.get_sentence(0)
 
 sentiment_analysis = sentence.sentiment.get()
-group_happiness = sentence.sentiment.group.get_by_filter('type', 'happiness')
-group_happiness = sentence.sentiment.group.get_happiness_items()
+sentiment_values = sentence.sentiment.values.get()
+```
+# `class emotion`
+
+> Inherits [SharedClass](#class-sharedclass)
+
+Access and perform actions on the data located in the  `emotion` key.
+
+The data contained in the `emotion` key is divised in two keys that has their specific format:
+* `elements` where the sentiments are listed.
+* `values` where the sentiments values are set.
+
+That's why this class has two subsclass:
+
+## `class elements`
+
+> Inherits [SharedClass](#class-sharedclass) and [ExtractClass](#class-extractclass).
+
+
+### Example:
+```python
+data = client.request("j'aime beaucoup manger.")
+sentence = data.get_sentence(0)
+
+emotion_analysis = sentence.emotion.get()
+emotion_elements = sentence.emotion.elements.get_happiness_items()
+emotion_elements = sentence.emotion.elements.get_by_filter('type', 'happiness')
+```
+
+## `class values`
+
+
+### Example:
+
+```python
+data = client.request("j'aime beaucoup manger.")
+sentence = data.get_sentence(0)
+
+emotion_analysis = sentence.emotion.get()
+emotion_values = sentence.emotion.values.get()
 ```
 
 # `class emoticons`
