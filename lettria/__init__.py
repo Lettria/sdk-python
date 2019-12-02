@@ -4,4 +4,4 @@
 from .client import Client
 from .sharedClass import SharedClass
 
-__all__ = ['Client', 'SharedClass']
+__all__ = ['Client', 'SharedClass', 'Analyzer']

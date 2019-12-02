@@ -19,6 +19,66 @@ class SharedClass:
 		except:
 			return False
 
+	def tolist(self):
+		return [d['source'] for d in self.data]
+
+	def todict(self, fields=['source']):
+		if isinstance(fields, str):
+			fields = [fields]
+		res = []
+		for d in self.data:
+			tmp = {}
+			for field in fields:
+				if field in d:
+					tmp[field] = d[field]
+				elif 'value' in d and d['value'] and field in d['value']:
+					tmp[field] = d['value'][field]
+				elif 'meaning' in d and d['meaning'] and field in d['meaning']:
+					print('AAAH')
+					tmp_lst = []
+					for d_ in d['meaning']:
+						tmp_lst += d_[field]
+					tmp[field] = tmp_lst
+			res.append(tmp)
+		# return [{field:d[field] if field in d else d['value'][field] if 'value' in d and field in d['value']\
+				# else d['meaning'][field] if 'meaning' in d and field in d['meaning'] else '' for field in fields} for d in self.data]
+		return res
+
+	def fields(self, data = None, recurse = 0):
+		if not recurse:
+			print(self.name.capitalize() + " fields.\n")
+		if not data:
+			data = self.data
+		keys = {}
+		if isinstance(data, list):
+			for d in data:
+				if isinstance(d, list):
+					return 'List of list: [[], [], []]'
+				for key in d.keys():
+					if key in keys:
+						continue
+					if isinstance(d[key], (list, dict)) and d[key]:
+						keys[key] = self.fields(d[key], 1)
+					else:
+						keys[key] = []
+					# print(keys)
+			if recurse == 0:
+				return json.dumps(keys, indent = 4, sort_keys = True)
+			else:
+				return keys
+		else:
+			for key in data.keys():
+				if key in keys:
+					continue
+				if isinstance(data[key], (list, dict)) and data[key]:
+					keys[key] = self.fields(data[key], 1)
+				else:
+					keys[key] = []
+			if recurse == 0:
+				return json.dumps(keys, indent = 4, sort_keys = True)
+			else:
+				return keys
+
 	def get_nested(self, key, obj):
 		if not isinstance(obj, dict):
 			return None

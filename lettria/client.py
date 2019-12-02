@@ -12,6 +12,7 @@ class Client:
 			key = key[14:]
 		self.key = key
 		self.raw = raw
+		self.headers = { 'Authorization': 'LettriaProKey ' + str(self.key), 'content-type': 'application/json' }
 
 	def get_key(self):
 		if self.key:
@@ -32,8 +33,7 @@ class Client:
 	def server_request(self, text=''):
 		response = None
 		try:
-			headers = { 'Authorization': 'LettriaProKey ' + str(self.key), 'content-type': 'application/json' }
-			response = requests.post('https://api.lettria.com/main', headers=headers, json={'text' : text}).json()
+			response = requests.post('https://api.lettria.com/main', headers=self.headers, json={'text' : text}).json()
 		except Exception as e:
 			print(e)
 			pass
