@@ -4,87 +4,60 @@ from .entitiesClass import *
 import json
 
 class ner(SharedClass, ExtractClass):
-	def __init__(self, data=None):
-		self.data =	data
+	def __init__(self, data=None, document_level = True):
+		self.data = data
+		super().__init__(data, document_level)
 		self.name = 'NER'
 		self.define_entities()
-		# self.entities = {
-		# 	'person':self.person,
-		# 	'location':self.location,
-		# 	'date' : self.date,
-		# 	'distance' : self.distance,
-		# 	'duration' : self.duration,
-		# 	'electric_power' : self.electric_power,
-		# 	'hex_color' : self.hex_color,
-		# 	'frequency' : self.frequency,
-		# 	'interval' : self.interval,
-		# 	'ip' : self.ip,
-		# 	'ipv6' : self.ipv6,
-		# 	'light_intensity' : self.light_intensity,
-		# 	'mail' : self.mail,
-		# 	'mass' : self.mass,
-		# 	'mass_by_volume' : self.mass_by_volume,
-		# 	'mol' : self.mol,
-		# 	'money' : self.money,
-		# 	'ordinal' : self.ordinal,
-		# 	'percent' : self.percent,
-		# 	'phone' : self.phone,
-		# 	'pressure' : self.pressure,
-		# 	'set' : self.set,
-		# 	'speed' : self.speed,
-		# 	'strength' : self.strength,
-		# 	'surface' : self.surface,
-		# 	'surface_tension' : self.surface_tension,
-		# 	'temperature' : self.temperature,
-		# 	'time' : self.time,
-		# 	'url' : self.url,
-		# 	'voltage' : self.voltage,
-		# 	'volume' : self.volume
-		# 	}
 		self.entities = {}
 		for key in self.__dict__.keys():
-			if key not in ['name', 'data', 'entities']:
+			if key not in ['name', 'data', 'entities', 'document_level']:
 				self.entities[key] = self.__dict__[key]
-		# print(self.__dict__.keys())
-		# print(self.date)
-		# print(self.entities['speed'])
+		self.scan_entities()
+
+	def scan_entities(self):
+		for seq in self.data:
+			for d in seq:
+				if d['type'].lower() not in self.__dict__.keys():
+					self.__dict__[d['type']] = Base_entity(d['type'], self.get_by_filter('type', d['type']), self.document_level)
+					self.entities[d['type']] = self.__dict__[d['type']]
 
 	def define_entities(self):
-		self.person =			Person(self.get_by_filter('type', 'PERSON'))
-		self.location =			Location(self.get_by_filter('type', 'LOCATION'))
-		self.date =             Date(self.get_by_filter('type', 'date'))
-		self.distance =         Distance(self.get_by_filter('type', 'distance'))
-		self.duration =         Duration(self.get_by_filter('type', 'duration'))
-		self.electric_power =   Electric_power(self.get_by_filter('type', 'electric power'))
-		self.hex_color =        Hex_color(self.get_by_filter('type', 'hex color'))
-		self.frequency =        Frequency(self.get_by_filter('type', 'frequency'))
-		self.interval =         Interval(self.get_by_filter('type', 'interval'))
-		self.ip =               Ip(self.get_by_filter('type', 'ip'))
-		self.ipv6 =             Ipv6(self.get_by_filter('type', 'ipv6'))
-		self.light_intensity =  Light_intensity(self.get_by_filter('type', 'light intensity'))
-		self.mail =             Mail(self.get_by_filter('type', 'mail'))
-		self.mass =             Mass(self.get_by_filter('type', 'mass'))
-		self.mass_by_volume =   Mass_by_volume(self.get_by_filter('type', 'mass by volume'))
-		self.mol =              Mol(self.get_by_filter('type', 'mol'))
-		self.money =            Money(self.get_by_filter('type', 'money'))
-		self.ordinal =          Ordinal(self.get_by_filter('type', 'ordinal'))
-		self.percent =          Percent(self.get_by_filter('type', 'percent'))
-		self.phone =            Phone(self.get_by_filter('type', 'phone'))
-		self.pressure =         Pressure(self.get_by_filter('type', 'pressure'))
-		self.set =              Set(self.get_by_filter('type', 'set'))
-		self.speed =            Speed(self.get_by_filter('type', 'speed'))
-		self.strength =         Strength(self.get_by_filter('type', 'strength'))
-		self.surface =          Surface(self.get_by_filter('type', 'surface'))
-		self.surface_tension =  Surface_tension(self.get_by_filter('type', 'surface tension'))
-		self.temperature =      Temperature(self.get_by_filter('type', 'temperature'))
-		self.time =             Time(self.get_by_filter('type', 'time'))
-		self.url =              Url(self.get_by_filter('type', 'url'))
-		self.voltage =          Voltage(self.get_by_filter('type', 'voltage'))
-		self.volume =           Volume(self.get_by_filter('type', 'volume'))
+		self.person =			Person(self.get_by_filter('type', 'PERSON'), self.document_level)
+		self.location =			Location(self.get_by_filter('type', 'LOCATION'), self.document_level)
+		self.date =			 	Date(self.get_by_filter('type', 'date'), self.document_level)
+		self.distance =		 	Distance(self.get_by_filter('type', 'distance'), self.document_level)
+		self.duration =		 	Duration(self.get_by_filter('type', 'duration'), self.document_level)
+		# self.electric_power =   Electric_power(self.get_by_filter('type', 'electric power'), self.document_level)
+		# self.hex_color =		Hex_color(self.get_by_filter('type', 'hex color'), self.document_level)
+		self.frequency =		Frequency(self.get_by_filter('type', 'frequency'), self.document_level)
+		self.interval =			Interval(self.get_by_filter('type', 'interval'), self.document_level)
+		self.ip =			 	Ip(self.get_by_filter('type', 'ip'), self.document_level)
+		self.ipv6 =			 	Ipv6(self.get_by_filter('type', 'ipv6'), self.document_level)
+		# self.light_intensity =  Light_intensity(self.get_by_filter('type', 'light intensity'), self.document_level)
+		self.mail =			 	Mail(self.get_by_filter('type', 'mail'), self.document_level)
+		self.mass =			 	Mass(self.get_by_filter('type', 'mass'), self.document_level)
+		self.mass_by_volume =   Mass_by_volume(self.get_by_filter('type', 'mass by volume'), self.document_level)
+		self.mol =			  	Mol(self.get_by_filter('type', 'mol'), self.document_level)
+		self.money =			Money(self.get_by_filter('type', 'money'), self.document_level)
+		self.ordinal =		  	Ordinal(self.get_by_filter('type', 'ordinal'), self.document_level)
+		self.percent =		  	Percent(self.get_by_filter('type', 'percent'), self.document_level)
+		self.phone =			Phone(self.get_by_filter('type', 'phone'), self.document_level)
+		self.pressure =		 	Pressure(self.get_by_filter('type', 'pressure'), self.document_level)
+		self.set =			  	Set(self.get_by_filter('type', 'set'), self.document_level)
+		self.speed =			Speed(self.get_by_filter('type', 'speed'), self.document_level)
+		self.strength =		 	Strength(self.get_by_filter('type', 'strength'), self.document_level)
+		self.surface =		  	Surface(self.get_by_filter('type', 'surface'), self.document_level)
+		self.surface_tension =  Surface_tension(self.get_by_filter('type', 'surface tension'), self.document_level)
+		self.temperature =	  	Temperature(self.get_by_filter('type', 'temperature'), self.document_level)
+		self.time =			 	Time(self.get_by_filter('type', 'time'), self.document_level)
+		self.url =			  	Url(self.get_by_filter('type', 'url'), self.document_level)
+		self.voltage =		  	Voltage(self.get_by_filter('type', 'voltage'), self.document_level)
+		self.volume =		   	Volume(self.get_by_filter('type', 'volume'), self.document_level)
 
 	def list_entities(self, detail = False):
 		for key, val in self.entities.items():
-			if val.data:
+			if val.data and not self.check_empty(val.data):
 				if not detail:
 					print("{:10s}: {}".format(key.upper(), val.__repr__()))
 				else:
@@ -95,7 +68,35 @@ class ner(SharedClass, ExtractClass):
 		if return_empty:
 			return {key.upper():val.__repr__() for key,val in self.entities.items()}
 		else:
-			return {key.upper():val.__repr__() for key,val in self.entities.items() if val.data}
+			return {key.upper():val.__repr__() for key,val in self.entities.items() if not self.check_empty(val.data)}
+
+	def print_formatted(self):
+		self.list_entities(True)
+
+	def check_empty(self, data):
+		if not data:
+			return True
+		for l in data:
+			if l:
+				return False
+		return True
+
+	def __getattribute__(self, key):
+		"Emulate type_getattro() in Objects/typeobject.c"
+		try:
+			v = object.__getattribute__(self, key)
+		except:
+			_data = [d for d in self.data if d['type'] == key]
+			if _data:
+				self.__dict__[key] = Base_entity(key, _data)
+				self.entities[key] = self.__dict__[key]
+				v = object.__getattribute__(self, key)
+			else:
+				print('No entity of type: "' + key + '" has been found.')
+				return ''
+		if hasattr(v, '__get__'):
+			return v.__get__(None, self)
+		return v
 
 class nlu(SharedClass, ExtractClass):
 	def __init__(self, data=None):
@@ -103,43 +104,123 @@ class nlu(SharedClass, ExtractClass):
 		self.name = 'NLU'
 
 class nlp(SharedClass, ExtractClass):
-	def __init__(self, data=None):
+	def __init__(self, data=None, document_level = True):
 		self.data = data
+		super().__init__(data, document_level)
 		self.name = 'NLP'
 
 class sentiment_elements(SharedClass, ExtractClass):
-	def __init__(self, data=None):
+	def __init__(self, data=None, document_level = True):
 		self.data = data
+		super().__init__(data, document_level)
+
+class sentiment_subsentences(SharedClass, ExtractClass):
+	def __init__(self, data=None, document_level = True):
+		self.data = data
+		super().__init__(data, document_level)
 
 class sentiment_values(SharedClass, ExtractClass):
-	def __init__(self, data=None):
+	def __init__(self, data=None, document_level = True):
 		self.data = data
+		super().__init__(data, document_level)
+
+	def total(self):
+		if self.document_level:
+			dico = {'total':0, 'negative':0, 'positive':0}
+			for seq in self.data:
+				for d in seq:
+					for k,v in d.items():
+						dico[k] += v
+		else:
+			dico = []
+			for seq in self.data:
+				tmp = {'total':0, 'negative':0, 'positive':0}
+				for d in seq:
+					for k,v in d.items():
+						tmp[k] += v
+				dico.append(tmp)
+		return dico
+
+	def mean(self):
+		if self.document_level:
+			length = 0
+			dico = {'total':0, 'negative':0, 'positive':0}
+			for seq in self.data:
+				for d in seq:
+					for k,v in d.items():
+						dico[k] += v
+					length += 1
+			for k,v in dico.items():
+				dico[k] = round(v / length + 1e-6, 3)
+		else:
+			dico = []
+			for seq in self.data:
+				length = 0
+				tmp = {'total':0, 'negative':0, 'positive':0}
+				for d in seq:
+					for k,v in d.items():
+						tmp[k] += v
+					length += 1
+				for k,v in tmp.items():
+					tmp[k] = round(v / length + 1e-6, 3)
+				dico.append(tmp)
+		return dico
+
+	def average(self):
+		self.mean()
+
+	def tolist(self):
+		return self.format(self.data)
+
+	def todict(self):
+		return self.tolist()
 
 class sentiment(SharedClass, ExtractClass):
-	def __init__(self, data=None):
+	def __init__(self, data=None, document_level = True):
 		self.data = data
+		# for d in data:
+		# 	print(d)
+		super().__init__(data, document_level)
 		self.name = 'sentiment'
-		self.elements = sentiment_elements(data['elements']) if 'elements' in data else None
-		self.values = sentiment_values(data['values']) if 'values' in data else None
+		self.elements = sentiment_elements([d['elements'] if 'elements' in d else None for d in self.data], document_level)
+		self.values = sentiment_values([[d['values']] if 'values' in d else None for d in self.data], document_level)
+		self.subsentences = sentiment_subsentences([d['subsentences'] if 'subsentences' in d else None for d in self.data], document_level)
+
+	def __str__(self):
+		# print(self.elements)
+		print(self.values)
+		return ''
+
+	def subsentences_sentiments(self):
+		print("{:120.120s} {:10}".format('Subsentence','Total value'))
+		print('-' * 132)
+		res = self.subsentences.todict(['sentence', 'values'])
+		for r in res:
+			# print(r)
+			print("{:120.120} {:10}".format(r['sentence'], r['values']['total']))
 
 class emotion_elements(SharedClass, ExtractClass):
-	def __init__(self, data=None):
+	def __init__(self, data=None, document_level = True):
 		self.data = data
+		super().__init__(data, document_level)
 
 class emotion_values(SharedClass, ExtractClass):
-	def __init__(self, data=None):
+	def __init__(self, data=None, document_level = True):
 		self.data = data
+		super().__init__(data, document_level)
 
 class emotion(SharedClass, ExtractClass):
-	def __init__(self, data=None):
+	def __init__(self, data=None, document_level = True):
 		self.data = data
+		super().__init__(data, document_level)
 		self.name = 'emotions'
 		self.elements = emotion_elements(data['elements']) if 'elements' in data else None
 		self.values = emotion_values(data['values']) if 'values' in data else None
 
 class emoticons(SharedClass, ExtractClass):
-	def __init__(self, data=None):
+	def __init__(self, data=None, document_level = True):
 		self.data = data
+		super().__init__(data, document_level)
 		self.name = 'emoticons'
 
 	def get_confidence(self):
@@ -160,16 +241,28 @@ class emoticons(SharedClass, ExtractClass):
 		if isinstance(fields, str):
 			fields = [fields]
 		if not fields:
-			return self.data
+			return self.format(self.data)
 		else:
-			return {k:v for k,v in self.data.items() if k in fields}
+			return self.format([{k:v for k,v in seq.items() if k in fields} for seq in self.data])
 
 	def tolist(self):
-		return [k for k,v in self.todict().items() if v > 0]
+		return self.format([k for k,v in self.todict().items() if v > 0])
+
+	def format(self, data):
+		if self.document_level:
+			emots = {k:0 for k in data[0].keys() if data[0]}
+			for d in data:
+				for k,v in d.items():
+					if v > 0:
+						emots[k] += v
+			return emots
+		else:
+			return data
 
 class parser_dependency(SharedClass, ExtractClass):
-	def __init__(self, data=None):
+	def __init__(self, data=None, document_level = True):
 		self.data = data
+		super().__init__(data, document_level)
 		self.name = 'parser_dependency'
 
 	def getByRole(self, role):
@@ -177,13 +270,14 @@ class parser_dependency(SharedClass, ExtractClass):
 
 	def tolist(self, tuple = False):
 		if not tuple:
-			return [d['dep'] for d in self.data]
+			return self.format([[sub['dep'] for sub in d] for d in self.data])
 		else:
-			return [(d['source'], d['dep']) for d in self.data]
+			return self.format([[(sub['source'], sub['dep']) for sub in d] for d in self.data])
 
 class postagger(SharedClass):
-	def __init__(self, data=None):
+	def __init__(self, data=None, document_level = True):
 		self.data = data
+		super().__init__(data, document_level)
 		self.name = 'postagger'
 
 	def get(self):
@@ -202,9 +296,9 @@ class postagger(SharedClass):
 		return r
 	def tolist(self, tuple = False):
 		if not tuple:
-			return [d[1] for d in self.data]
+			return self.format([[d[1] for d in seq] for seq in self.data])
 		else:
-			return [(d[0], d[1]) for d in self.data]
+			return self.format([[(d[0], d[1]) for d in seq] for seq in self.data])
 
 	def fields(self):
 		string = self.name.capitalize() + " fields. List of tuples (SOURCE, TAG):\n"
@@ -212,11 +306,19 @@ class postagger(SharedClass):
 		return string
 
 class sentence_acts(SharedClass, ExtractClass):
-	def __init__(self, data=None):
+	def __init__(self, data=None, document_level = True):
 		self.data = data
+		super().__init__(data, document_level)
 		self.name = 'sentence_acts'
 
 class coreference(SharedClass, ExtractClass):
-	def __init__(self, data=None):
+	def __init__(self, data=None, document_level = True):
 		self.data = data
+		super().__init__(data, document_level)
 		self.name = 'coreference'
+
+class synthesis(SharedClass, ExtractClass):
+	def __init__(self, data=None, document_level = True):
+		self.data = data
+		super().__init__(data, document_level)
+		self.name = 'synthesis'

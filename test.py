@@ -4,8 +4,11 @@ from lettria.analyzeClass import Analyzer
 api_key = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhbmFseXRpY0lkIjoiNWQ5YjczOTE2MWRjZjk0Njc3ZDM5MWQwIiwicHJvamVjdElkIjoiNWQ5YjczOTE2MWRjZjk0Njc3ZDM5MWQxIiwic3Vic2NyaXB0aW9uSWQiOiI1ZDZkMjExMjExZGM5MDMxMGQ4ZWI5OTgiLCJpYXQiOjE1NzEyMTg4NDUsImV4cCI6MTYxOTYwMjg0NX0.kjRt3Y9_TBnEy8SiGzIOTPrJLLJiyXBtP6osVc8Nikk'
 
 client = lettria.Client(key=api_key, raw=False)
-phrase1 = "Je :) mange du poulet a 4 heures du matin. 23/07/1192. 12.143.43.123 Hier, 3 km/h 12 km 145.247.145.1 Henri est vraiment devenu fou. 124.53.111.3 :-) :D XD"
-# phrase2 = "Jack Nicholson /d͡ʒæk ˈnɪkəlsən/1 est un acteur, réalisateur et scénariste américain, né le 22 avril 1937 à Neptune (New Jersey). Il a joué un grand nombre de rôles principaux ou secondaires, principalement des personnages sombres, d'anti-héros, de personnages odieux, d'éternel marginal, de vagabond sardonique, de rebelle contre la société2, voire de fou, dans de nombreux films culte du cinéma américain comme Easy Rider, Chinatown, Vol au-dessus d'un nid de coucou, Batman, Mars Attacks!, Pour le pire et pour le meilleur, Les Infiltrés, Shining, et du cinéma européen comme Profession : reporter. Avec douze nominations et trois récompenses, il fait partie des acteurs les plus nommés et récompensés aux Oscars du cinéma."
+phrase1 = "Je :) mange du poulet a 4 heures du matin. 21m/s 23/07/1192. www.google.com   www.google.fr 12.143.43.123 Hier, 3 km/h 12 km 145.247.145.1 Henri est vraiment devenu fou. 124.53.111.3 :-) :D XD"
+
+phrase1 ="J'aime beaucoup le fromage. Tu detestes la charcuterie. Ca fait vraiment chier mais bon je suis content. Ok"
+
+phrase2 = "Jack Nicholson /d͡ʒæk ˈnɪkəlsən/1 est un acteur, réalisateur et scénariste américain, né le 22 avril 1937 à Neptune (New Jersey). Il a joué un grand nombre de rôles principaux ou secondaires, principalement des personnages sombres, d'anti-héros, de personnages odieux, d'éternel marginal, de vagabond sardonique, de rebelle contre la société2, voire de fou, dans de nombreux films culte du cinéma américain comme Easy Rider, Chinatown, Vol au-dessus d'un nid de coucou, Batman, Mars Attacks!, Pour le pire et pour le meilleur, Les Infiltrés, Shining, et du cinéma européen comme Profession : reporter. Avec douze nominations et trois récompenses, il fait partie des acteurs les plus nommés et récompensés aux Oscars du cinéma."
 # ret = client.request(phrase)
 # print(ret.data[0].get_judgement_items())
 # exit()
@@ -15,40 +18,86 @@ phrase1 = "Je :) mange du poulet a 4 heures du matin. 23/07/1192. 12.143.43.123 
 analyzer = Analyzer(client)
 # ret = client.request(phrase)
 analyzer.request(phrase1)
-# analyzer.request(phrase2)
+analyzer.request(phrase2)
+
 analyzer.analyze_document()
+# analyzer.analyze_sentence()
 
 # print(analyzer.emoticons)
-# print(analyzer.emoticons.todict())
+# print(analyzer.emoticons.todict('happy'))
 # print(analyzer.emoticons.tolist())
 
 # print(analyzer.ner)
 # print(analyzer.ner.date.tolist())
 # print(analyzer.ner.ip)
 # print(analyzer.ner.ip.tolist())
-# print(analyzer.ner.ip.todict())
-
+# print(analyzer.ner.ip.fields())
+# print(analyzer.ner.ip.todict(['country', 'source']))
+# analyzer.ner.print_formatted()
+# analyzer.ner.speed
+# analyzer.ner.url.print_formatted()
+# analyzer.ner.list_entities(detail = True)
 # analyzer.ner.list_entities(detail = True)
 # analyzer.ner.date.print_formatted()
 # print(analyzer.ner.date.todict(['source', 'ISO', 'timestamp']))
-# test = analyzer.ner.get_entities()
+# entities = analyzer.ner.get_entities()
+# print(entities)
 
-print(analyzer.ner.list_entities())
+# print(analyzer.nlp)
+# print(analyzer.nlp.fields())
+# print(analyzer.nlp.fields(['test','a']))
+# print(analyzer.nlp.tolist('lemma'))
+# test = analyzer.nlp.todict(['lemma', 'infinit'])
+
+# for t in test:
+#     print(t)
+
+# print(analyzer.nlp.fields())
+# print(analyzer.nlp.todict(['source','lemma']))
+# print(analyzer.nlp.tolist('lemma'))
 
 # print(analyzer.postagger.tolist())
 # print(analyzer.postagger.tolist(tuple = True))
 
 # print(analyzer.parser_dependency)
 # print(analyzer.parser_dependency.fields())
+# print(analyzer.parser_dependency.tolist())
+# print(analyzer.parser_dependency.tolist(True))
 # print(analyzer.parser_dependency.todict(['dep', 'lemma', 'tag', 'sub']))
 
-
+# print(analyzer.postagger.tolist())
 # print(analyzer.postagger.tolist(True))
 # print(analyzer.postagger.fields())
 
 # print(analyzer.parser_dependency.tolist())
 # print(analyzer.parser_dependency.tolist(True))
 # print(analyzer.parser_dependency.todict(['source', 'dep', 'tag']))
+#
+# print(analyzer.sentiment)
+# print(analyzer.sentiment.values.total())
+# print(analyzer.sentiment.values.mean())
+# print(analyzer.sentiment.values.todict())
+
+analyzer.analyze_document()
+
+# print(analyzer.sentiment.elements)
+# print(analyzer.sentiment.elements.tolist())
+# print(analyzer.sentiment.elements.todict('target'))
+# print(analyzer.sentiment.elements.tolist('target'))
+
+# analyzer.analyze_sentence()
+
+# print(analyzer.sentiment.elements)
+# print(analyzer.sentiment.elements.tolist())
+# print(analyzer.sentiment.elements.todict('target'))
+# print(analyzer.sentiment.elements.tolist('target'))
+
+# print(analyzer.sentiment.subsentences)
+# print(analyzer.sentiment.subsentences.todict(['sentence', 'values']))
+analyzer.sentiment.subsentences_sentiments()
+
+# print(analyzer.synthesis)
+# print(analyzer.synthesis.tolist())
 
 #rajouter par sentence
 #proposer filtre par tag

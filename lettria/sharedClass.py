@@ -1,16 +1,27 @@
 import json
 
 class SharedClass:
-	def __init__(self, data=None):
-		pass
+	def __init__(self, data=None, document_level = True):
+		self.document_level = document_level
+
+	def format(self, data):
+		if self.document_level:
+			tmp = []
+			for d in data:
+				tmp += d
+			return tmp
+		else:
+			return data
+
 	def __str__(self):
 		try:
-			return json.dumps(self.data, indent=4, sort_keys=True)
-		except:
-			return str(self.data)
+			return json.dumps(self.format(self.data), indent=4, sort_keys=True)
+		except Exception as e:
+			print(e)
+			return str(self.format(self.data))
 
 	def get(self):
-		return self.data
+		return self.format(self.data)
 
 	def set(self, data=None):
 		try:
@@ -19,39 +30,110 @@ class SharedClass:
 		except:
 			return False
 
-	def tolist(self):
-		return [d['source'] for d in self.data]
+	def tolist(self, fields = None):
+		if fields:
+			if isinstance(fields, list):
+				print('Only supports string. Use todict() for multiple fields request.')
+				return ''
+			else:
+				res = []
+				result = self.todict([fields])
+				if isinstance(result, dict):
+					for d in result:
+						res += d.values()
+				else:
+					for d in result:
+						res.append(d)
+				return res
+		else:
+			return self.format([[sub['source'] for sub in d] for d in self.data])
 
 	def todict(self, fields=['source']):
 		if isinstance(fields, str):
 			fields = [fields]
 		res = []
-		for d in self.data:
-			tmp = {}
-			for field in fields:
-				if field in d:
-					tmp[field] = d[field]
-				elif 'value' in d and d['value'] and field in d['value']:
-					tmp[field] = d['value'][field]
-				elif 'meaning' in d and d['meaning'] and field in d['meaning']:
-					print('AAAH')
-					tmp_lst = []
-					for d_ in d['meaning']:
-						tmp_lst += d_[field]
-					tmp[field] = tmp_lst
-			res.append(tmp)
-		# return [{field:d[field] if field in d else d['value'][field] if 'value' in d and field in d['value']\
-				# else d['meaning'][field] if 'meaning' in d and field in d['meaning'] else '' for field in fields} for d in self.data]
-		return res
+		for sent in self.data:
+			tmp_lst = []
+			for d in sent:
+				tmp = {}
+				for field in fields:
+					if field in d:
+						tmp[field] = d[field]
+					elif 'value' in d and d['value'] and field in d['value']:
+						tmp[field] = d['value'][field]
+					elif 'lemmatizer' in d and d['lemmatizer'] and field in d['lemmatizer']:
+						tmp[field] = d['lemmatizer'][field]
+					elif 'lemmatizer' in d and isinstance(d['lemmatizer'], list) and field in d['lemmatizer'][0]:
+						tmp[field] = d['lemmatizer'][0][field]
+					elif 'meaning' in d and d['meaning'] and field in d['meaning']:
+						tmp_lst = []
+						for d_ in d['meaning']:
+							tmp_lst += d_[field]
+						tmp[field] = tmp_lst
+				tmp_lst.append(tmp)
+			res.append(tmp_lst)
+		return self.format(res)
+
+	def print_formatted(self):
+		length = 25
+		d = {}
+		seq = []
+		print("{:10s}\t{:10s}\t".format('Type','Source'), end = '')
+		# print(self.data)
+		for _seq in self.data:
+			for _seq in self.data:
+				if _seq:
+					seq = _seq
+					break
+		for d_ in seq:
+			if d_:
+				d = d_
+				break
+		if not d:
+			return
+		for key in d.keys():
+			if key not in ['type', 'source']:
+				if isinstance(d[key], dict):
+					for k in d[key].keys():
+						print("{:12s}".format(k.capitalize()), end = '\t')
+						length += 16
+				else:
+					print("{:10s}".format(key.capitalize()), end = '\t')
+					length += 16
+		print('')
+		print('-' * length)
+		for seq in self.data:
+			for d in seq:
+				print("{:10s}\t{:10s}\t".format(d['type'].upper(), d['source']), end = '')
+				for key in d.keys():
+					if key not in ['type', 'source']:
+						if isinstance(d[key], dict):
+							for k in d[key].keys():
+								print("{:12.12s}".format(str(d[key][k])), end = '\t')
+								length += 16
+						else:
+							_field = d[key] if d[key] else ''
+							print("{:10}".format(_field, end = '\t'))
+							length += 16
+				if d:
+					print('')
 
 	def fields(self, data = None, recurse = 0):
-		if not recurse:
-			print(self.name.capitalize() + " fields.\n")
+		if not recurse and self.name:
+			print(self.name.capitalize() + " fields:")
 		if not data:
 			data = self.data
 		keys = {}
+		_data = data
 		if isinstance(data, list):
-			for d in data:
+			if isinstance(data[0], list):
+				for _d in data:
+					if _d:
+						_data = _d if isinstance(_d, list) else data
+						break
+			else:
+				_data = data
+			for d in _data:
 				if isinstance(d, list):
 					return 'List of list: [[], [], []]'
 				for key in d.keys():
@@ -92,22 +174,25 @@ class SharedClass:
 			return self.getNested(key[:-1], obj)
 		return obj
 
-	def get_by_filter(self, key, value, list=None):
-		r = []
-		l = list if list else self.data
-		if not isinstance(l, type([])):
+	def get_by_filter(self, key, value, _list=None):
+		l = _list if _list else self.data
+		if not isinstance(l, list):
 			print("Lettria SDK: \033[1;33;40mWARNING:\033[0;37;40m {}".format(
 				"get_by_filter() was called on something that does not contain a list format."
 			))
 			return None
-		for item in l:
-			try:
-				if '.' in key:
-					if self.getNested(key, item) == value:
-						r.append(item)
-				else:
-					if item[key] == value:
-						r.append(item)
-			except:
-				pass
-		return r
+		r_lst = []
+		for seq in l:
+			r = []
+			for item in seq:
+				try:
+					if '.' in key:
+						if self.getNested(key, item) == value:
+							r.append(item)
+					else:
+						if item[key] == value:
+							r.append(item)
+				except:
+					pass
+			r_lst.append(r)
+		return r_lst
