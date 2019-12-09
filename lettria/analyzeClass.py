@@ -1,6 +1,8 @@
 from .subClasses import *
-import functools
-import collections
+# import functools
+# import collections
+import json
+import os
 
 class Analyzer:
     def __init__(self, client = None, data = None):
@@ -49,10 +51,10 @@ class Analyzer:
         self.emoticons = emoticons(self.concat_emoticons(document_level), document_level)
         self.parser_dependency = parser_dependency([[sub for sub in d['parser_dependency']] for d in self.result if 'parser_dependency' in d], document_level)
         self.nlp = nlp([[sub for sub in d['NLP']] for d in self.result if 'NLP' in d], document_level)
-        # self.nlu = nlu(data['NLU']) if data and 'NLU' in data else None
+        self.nlu = nlu([[sub for sub in d['NLU']] for d in self.result if 'NLU' in d], document_level)
         # self.emotion = sentiment(data['emotion']) if data and 'emotion' in data else None
         self.sentiment = sentiment([{sub:v for sub,v in d['sentiment'].items()} for d in self.result if 'sentiment' in d], document_level)
-        # self.sentence_acts = sentence_acts(data['sentence_acts']) if data and 'sentence_acts' in data else None
+        self.sentence_acts = sentence_acts([[{sub:v for sub,v in d['sentence_acts'].items()}] if 'sentence_acts' in d and d['sentence_acts'] else [{}] for d in self.result ], document_level)
         # self.coreference = coreference(data['coreference']) if data and 'coreference' in data else None
         # self.synthesis = synthesis([[sub for sub in d['synthesis']] for d in self.result if 'synthesis' in d], document_level)
         # self.synthesis = synthesis([sub for d in self.result if 'synthesis' in d for sub in d['synthesis']])
@@ -70,5 +72,101 @@ class Analyzer:
             lst_emots.append(emots)
         return lst_emots
 
-    def flatten(arg):
-        pass
+    def category_sentiment_by_subsentence(self, mode = 'average', filter = [], sample = 5):
+        cats = self.nlu.categories_unique('sub')
+        if filter:
+            cats = [cat for cat in cats if cat in filter]
+        sentiments = {cat:{'positive':0, 'negative':0, 'total':0, 'occurences':0, 'p_sentences': [], 'n_sentences':[]} for cat in cats}
+        sub_ids = self.sentiment.subsentences.todict(['start_id', 'end_id', 'sentence'], True)
+        sub_values = self.sentiment.subsentences.todict(['values'], True)
+        length = 0
+        for id_sent, (sent, sent2) in enumerate(zip(sub_ids, sub_values)):
+            for id_sub, value in zip(sent, sent2):
+                tmp = self.nlu.categories_unique('sub', id_sent, id_sub)
+                for cat in tmp:
+                    if not filter or filter and cat in filter:
+                        sentiments[cat]['negative'] += value['values']['negative']
+                        sentiments[cat]['positive'] += value['values']['positive']
+                        sentiments[cat]['total'] += value['values']['total']
+                        sentiments[cat]['occurences'] += 1
+                        if value['values']['total'] > 0.5 and len(sentiments[cat]['p_sentences']) < sample:
+                            sentiments[cat]['p_sentences'].append(id_sub['sentence'])
+                        elif value['values']['total'] < -0.5 and len(sentiments[cat]['n_sentences']) < sample:
+                            sentiments[cat]['n_sentences'].append(id_sub['sentence'])
+                length += 1
+        if mode == 'total':
+            sentiments = {k:{k1: round(v1,3) for k1, v1 in v.items()} for k,v in sentiments.items()}
+        else:
+            fields = ['negative', 'positive', 'total']
+            sentiments = {k:{k1: round(v1 / v['occurences'] + 1e-6, 3) if k1 in fields else v1 for k1, v1 in v.items()} for k,v in sentiments.items()}
+        return sentiments
+
+    def category_sentiment_by_sentence(self, mode = 'average', filter = [], sample = 5):
+        cats = self.nlu.categories_unique('sub')
+        if filter:
+            cats = [cat for cat in cats if cat in filter]
+        sentiments = {cat:{'positive':0, 'negative':0, 'total':0, 'occurences':0, 'p_sentences': [], 'n_sentences':[]} for cat in cats}
+        values = self.sentiment.values.tolist(True)
+        sentences = self.parser_dependency.tolist(None, True)
+        for id_sent, (sent, value) in enumerate(zip(sentences, values)):
+            if not value or not sent:
+                continue
+            sent = ' '.join(sent)
+            value = value[0]
+            cats = self.nlu.categories_unique('sub', id_sent)
+            for cat in cats:
+                if not filter or filter and cat in filter:
+                    sentiments[cat]['negative'] += value['negative']
+                    sentiments[cat]['positive'] += value['positive']
+                    sentiments[cat]['total'] += value['total']
+                    sentiments[cat]['occurences'] += 1
+                    if value['total'] > 0.5 and len(sentiments[cat]['p_sentences']) < sample:
+                        sentiments[cat]['p_sentences'].append(sent)
+                    elif value['total'] < -0.5 and len(sentiments[cat]['n_sentences']) < sample:
+                        sentiments[cat]['n_sentences'].append(sent)
+        if mode == 'total':
+            sentiments = {k:{k1: round(v1,3) for k1, v1 in v.items()} for k,v in sentiments.items()}
+        else:
+            fields = ['negative', 'positive', 'total']
+            sentiments = {k:{k1: round(v1 / v['occurences'] + 1e-6, 3) if k1 in fields else v1 for k1, v1 in v.items()} for k,v in sentiments.items()}
+        return sentiments
+
+    def list_questions(self):
+        types = self.sentence_acts.tolist('predict')
+        sentences = self.parser_dependency.tolist(None, True)
+        filter = ['question_yn']
+        questions = []
+        for type, sent in zip(types, sentences):
+            if type in filter:
+                questions.append(' '.join(sent))
+        return questions
+
+    def save_results(self, file = ''):
+        path_ok = 0
+        c = 0
+        if not file:
+            file = 'results'
+            while not path_ok:
+                path = file + '_' + str(c)
+                if not os.path.isfile(path + '.json'):
+                    path_ok = 1
+                else:
+                    c += 1
+        else:
+            path = file
+            if path.endswith('.json'):
+                path = path.replace('.json', '')
+        with open(path + '.json', 'w') as f:
+            json.dump(self.result, f)
+
+    def load_results(self, file = 'results_0'):
+        if file.endswith('.json'):
+            file = file.replace('.json', '')
+        with open(file + '.json', 'r') as f:
+            self.result = json.load(f)
+            self.result = [d['Retour_api'] for d in self.result]
+            tmp = []
+            for d in self.result:
+                if d:
+                    tmp += d
+            self.result = tmp

@@ -1,6 +1,8 @@
 from .sharedClass import SharedClass
 from .extractClass import ExtractClass
 from .entitiesClass import *
+from collections import Counter
+from functools import reduce
 import json
 
 class ner(SharedClass, ExtractClass):
@@ -99,9 +101,59 @@ class ner(SharedClass, ExtractClass):
 		return v
 
 class nlu(SharedClass, ExtractClass):
-	def __init__(self, data=None):
+	def __init__(self, data=None, document_level = True):
 		self.data = data
+		super().__init__(data, document_level)
 		self.name = 'NLU'
+
+	def categories_unique(self, type='sub', id_sent = '', id_sub = ''):
+		cats = []
+		if id_sub:
+			start_id = id_sub['start_id'] if id_sub['start_id'] >= 0 else 0
+			end_id = id_sub['end_id'] + 1
+		if id_sent != '' and id_sent >= 0 and id_sent <= len(self.data):
+			start_sent_id = id_sent
+			end_sent_id = id_sent + 1
+		else:
+			start_sent_id = 0
+			end_sent_id = len(self.data)
+		if type not in ['sub', 'super']:
+			print("Choose 'sub' or 'super' categories.")
+			return []
+		for sent in self.data[start_sent_id:end_sent_id]:
+			tmp = []
+			if not id_sub:
+				start_id = 0
+				end_id = len(sent)
+			# print('\n===>',start_sent_id, end_sent_id, 's',start_id, 'e',end_id, 'len',len(sent))
+			for d in sent[start_id:end_id]:
+				for mean in d['meaning']:
+					# print(mean)
+					if mean and type in mean and mean[type]:
+						tmp.append(mean[type])
+			tmp = list(set(tmp))
+			cats.append(tmp)
+		if self.document_level:
+			return list(set(reduce(lambda a,b : a + b, cats)))
+		else:
+			return cats
+
+	def categories_count(self, type='sub'):
+		cats = []
+		if type not in ['sub', 'super']:
+			print("Choose 'sub' or 'super' categories.")
+			return []
+		for sent in self.data:
+			tmp = {}
+			for d in sent:
+				for mean in d['meaning']:
+					if mean and type in mean and mean[type]:
+						tmp[mean[type]] = tmp.get(mean[type], 0) + 1
+			cats.append(tmp)
+		if self.document_level:
+			return dict(reduce(lambda a,b: Counter(a) + Counter(b), cats))
+		else:
+			return cats
 
 class nlp(SharedClass, ExtractClass):
 	def __init__(self, data=None, document_level = True):
@@ -169,11 +221,11 @@ class sentiment_values(SharedClass, ExtractClass):
 	def average(self):
 		self.mean()
 
-	def tolist(self):
-		return self.format(self.data)
+	def tolist(self, force_sentence = False):
+		return self.format(self.data, force_sentence)
 
-	def todict(self):
-		return self.tolist()
+	def todict(self, force_sentence = False):
+		return self.tolist(force_sentence)
 
 class sentiment(SharedClass, ExtractClass):
 	def __init__(self, data=None, document_level = True):
@@ -187,7 +239,8 @@ class sentiment(SharedClass, ExtractClass):
 		self.subsentences = sentiment_subsentences([d['subsentences'] if 'subsentences' in d else None for d in self.data], document_level)
 
 	def __str__(self):
-		# print(self.elements)
+		print(self.elements)
+		print(self.subsentences)
 		print(self.values)
 		return ''
 
@@ -268,11 +321,11 @@ class parser_dependency(SharedClass, ExtractClass):
 	def getByRole(self, role):
 		return self.get_by_filter('dep', role)
 
-	def tolist(self, tuple = False):
-		if not tuple:
-			return self.format([[sub['dep'] for sub in d] for d in self.data])
-		else:
-			return self.format([[(sub['source'], sub['dep']) for sub in d] for d in self.data])
+	# def tolist(self, tuple = False, force_sentence = False):
+	# 	if not tuple:
+	# 		return self.format([[sub['dep'] for sub in d] for d in self.data], force_sentence)
+	# 	else:
+	# 		return self.format([[(sub['source'], sub['dep']) for sub in d] for d in self.data], force_sentence)
 
 class postagger(SharedClass):
 	def __init__(self, data=None, document_level = True):
@@ -310,6 +363,21 @@ class sentence_acts(SharedClass, ExtractClass):
 		self.data = data
 		super().__init__(data, document_level)
 		self.name = 'sentence_acts'
+		# print(self.data)
+
+	def format(self, data, force_sentence = ''):
+		if not force_sentence and self.document_level:
+			tmp = []
+			for d in data:
+				if d:
+					tmp.append(d[0])
+				else:
+					tmp.append([])
+			print('format',len(tmp))
+			return tmp
+		else:
+			return data
+
 
 class coreference(SharedClass, ExtractClass):
 	def __init__(self, data=None, document_level = True):

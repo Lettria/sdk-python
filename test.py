@@ -1,10 +1,10 @@
 import lettria
 from lettria.analyzeClass import Analyzer
 
-api_key = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhbmFseXRpY0lkIjoiNWQ5YjczOTE2MWRjZjk0Njc3ZDM5MWQwIiwicHJvamVjdElkIjoiNWQ5YjczOTE2MWRjZjk0Njc3ZDM5MWQxIiwic3Vic2NyaXB0aW9uSWQiOiI1ZDZkMjExMjExZGM5MDMxMGQ4ZWI5OTgiLCJpYXQiOjE1NzEyMTg4NDUsImV4cCI6MTYxOTYwMjg0NX0.kjRt3Y9_TBnEy8SiGzIOTPrJLLJiyXBtP6osVc8Nikk'
+api_key = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhbmFseXRpY0lkIjoiNWRlOGRiMzBlYzY4YjA1MWNmZmZiZGRjIiwicHJvamVjdElkIjoiNWRlOGRiMzBlYzY4YjA1MWNmZmZiZGRkIiwic3Vic2NyaXB0aW9uSWQiOiI1ZDZkMjExNjExZGM5MDMxMGQ4ZWJhMzIiLCJpYXQiOjE1NzU1NDE1NTQsImV4cCI6MTYyMzkyNTU1NH0.dZCq-mv9oHGTCx6lW1GyxmYLehgD1OYg2RMObJueXH0'
 
 client = lettria.Client(key=api_key, raw=False)
-phrase1 = "Je :) mange du poulet a 4 heures du matin. 21m/s 23/07/1192. www.google.com   www.google.fr 12.143.43.123 Hier, 3 km/h 12 km 145.247.145.1 Henri est vraiment devenu fou. 124.53.111.3 :-) :D XD"
+# phrase1 = "Je :) mange du poulet a 4 heures du matin. 21m/s 23/07/1192. www.google.com   www.google.fr 12.143.43.123 Hier, 3 km/h 12 km 145.247.145.1 Henri est vraiment devenu fou. 124.53.111.3 :-) :D XD"
 
 phrase1 ="J'aime beaucoup le fromage. Tu detestes la charcuterie. Ca fait vraiment chier mais bon je suis content. Ok"
 
@@ -17,8 +17,12 @@ phrase2 = "Jack Nicholson /d͡ʒæk ˈnɪkəlsən/1 est un acteur, réalisateur 
 
 analyzer = Analyzer(client)
 # ret = client.request(phrase)
-analyzer.request(phrase1)
-analyzer.request(phrase2)
+# analyzer.request(phrase1)
+# analyzer.request(phrase2)
+
+# analyzer.save_results()
+# analyzer.load_results()
+analyzer.load_results('verbatim_api.json')
 
 analyzer.analyze_document()
 # analyzer.analyze_sentence()
@@ -26,6 +30,8 @@ analyzer.analyze_document()
 # print(analyzer.emoticons)
 # print(analyzer.emoticons.todict('happy'))
 # print(analyzer.emoticons.tolist())
+
+#NER
 
 # print(analyzer.ner)
 # print(analyzer.ner.date.tolist())
@@ -43,6 +49,8 @@ analyzer.analyze_document()
 # entities = analyzer.ner.get_entities()
 # print(entities)
 
+#NLP
+
 # print(analyzer.nlp)
 # print(analyzer.nlp.fields())
 # print(analyzer.nlp.fields(['test','a']))
@@ -56,8 +64,13 @@ analyzer.analyze_document()
 # print(analyzer.nlp.todict(['source','lemma']))
 # print(analyzer.nlp.tolist('lemma'))
 
+#POSTAGGER
+
 # print(analyzer.postagger.tolist())
 # print(analyzer.postagger.tolist(tuple = True))
+# print(analyzer.postagger.fields())
+
+#PARSER_DEP
 
 # print(analyzer.parser_dependency)
 # print(analyzer.parser_dependency.fields())
@@ -65,36 +78,53 @@ analyzer.analyze_document()
 # print(analyzer.parser_dependency.tolist(True))
 # print(analyzer.parser_dependency.todict(['dep', 'lemma', 'tag', 'sub']))
 
-# print(analyzer.postagger.tolist())
-# print(analyzer.postagger.tolist(True))
-# print(analyzer.postagger.fields())
-
 # print(analyzer.parser_dependency.tolist())
 # print(analyzer.parser_dependency.tolist(True))
 # print(analyzer.parser_dependency.todict(['source', 'dep', 'tag']))
-#
+
+#SENTIMENT
+
 # print(analyzer.sentiment)
+# print(analyzer.sentiment.values)
 # print(analyzer.sentiment.values.total())
 # print(analyzer.sentiment.values.mean())
 # print(analyzer.sentiment.values.todict())
-
-analyzer.analyze_document()
-
 # print(analyzer.sentiment.elements)
 # print(analyzer.sentiment.elements.tolist())
 # print(analyzer.sentiment.elements.todict('target'))
 # print(analyzer.sentiment.elements.tolist('target'))
-
-# analyzer.analyze_sentence()
-
-# print(analyzer.sentiment.elements)
-# print(analyzer.sentiment.elements.tolist())
-# print(analyzer.sentiment.elements.todict('target'))
-# print(analyzer.sentiment.elements.tolist('target'))
-
 # print(analyzer.sentiment.subsentences)
 # print(analyzer.sentiment.subsentences.todict(['sentence', 'values']))
-analyzer.sentiment.subsentences_sentiments()
+# analyzer.sentiment.subsentences_sentiments()
+
+#NLU
+
+# print(analyzer.nlu)
+# print(analyzer.nlu.categories_unique('sub'))
+# print(analyzer.nlu.categories_count('sub'))
+# print(analyzer.nlu)
+# print(analyzer.nlu.categories_unique('sub'))
+# print(analyzer.nlu.categories_count('sub'))
+
+test = analyzer.category_sentiment_by_subsentence('average',\
+        filter = ['General', 'personnel', 'retrait', 'paiement', 'frais'], sample = 5)
+
+for k,v  in test.items():
+    print(k,v)
+    print('')
+print('')
+
+
+#SENTENCE_ACT
+
+# print(analyzer.sentence_acts)
+# print(analyzer.sentence_acts.tolist('predict'))
+# print(analyzer.sentence_acts.todict(['predict','probabilities']))
+
+# print(analyzer.list_questions())
+
+
+# A FINIR
 
 # print(analyzer.synthesis)
 # print(analyzer.synthesis.tolist())

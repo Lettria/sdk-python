@@ -4,11 +4,14 @@ class SharedClass:
 	def __init__(self, data=None, document_level = True):
 		self.document_level = document_level
 
-	def format(self, data):
-		if self.document_level:
+	def format(self, data, force_sentence = ''):
+		if not force_sentence and self.document_level:
 			tmp = []
 			for d in data:
-				tmp += d
+				if d:
+					tmp += d
+				else:
+					tmp += []
 			return tmp
 		else:
 			return data
@@ -30,49 +33,56 @@ class SharedClass:
 		except:
 			return False
 
-	def tolist(self, fields = None):
+	def tolist(self, fields = None, force_sentence = False):
 		if fields:
+
 			if isinstance(fields, list):
 				print('Only supports string. Use todict() for multiple fields request.')
 				return ''
 			else:
 				res = []
 				result = self.todict([fields])
-				if isinstance(result, dict):
-					for d in result:
-						res += d.values()
-				else:
-					for d in result:
+				for d in result:
+					if isinstance(d, list):
 						res.append(d)
+					else:
+						if d:
+							res += d.values()
+						if not d:
+							res.append({})
 				return res
 		else:
-			return self.format([[sub['source'] for sub in d] for d in self.data])
+			return self.format([[sub['source'] for sub in d] if d else [] for d in self.data], force_sentence)
 
-	def todict(self, fields=['source']):
+	def todict(self, fields=['source'], force_sentence = False):
 		if isinstance(fields, str):
 			fields = [fields]
 		res = []
 		for sent in self.data:
 			tmp_lst = []
-			for d in sent:
-				tmp = {}
-				for field in fields:
-					if field in d:
-						tmp[field] = d[field]
-					elif 'value' in d and d['value'] and field in d['value']:
-						tmp[field] = d['value'][field]
-					elif 'lemmatizer' in d and d['lemmatizer'] and field in d['lemmatizer']:
-						tmp[field] = d['lemmatizer'][field]
-					elif 'lemmatizer' in d and isinstance(d['lemmatizer'], list) and field in d['lemmatizer'][0]:
-						tmp[field] = d['lemmatizer'][0][field]
-					elif 'meaning' in d and d['meaning'] and field in d['meaning']:
-						tmp_lst = []
-						for d_ in d['meaning']:
-							tmp_lst += d_[field]
-						tmp[field] = tmp_lst
-				tmp_lst.append(tmp)
+			if sent:
+				for d in sent:
+					tmp = {}
+					for field in fields:
+						if field in d:
+							tmp[field] = d[field]
+						elif 'value' in d and d['value'] and field in d['value']:
+							tmp[field] = d['value'][field]
+						elif 'lemmatizer' in d and d['lemmatizer'] and field in d['lemmatizer']:
+							tmp[field] = d['lemmatizer'][field]
+						elif 'lemmatizer' in d and isinstance(d['lemmatizer'], list) and field in d['lemmatizer'][0]:
+							tmp[field] = d['lemmatizer'][0][field]
+						elif 'meaning' in d and d['meaning'] and field in d['meaning']:
+							tmp_lst = []
+							for d_ in d['meaning']:
+								tmp_lst += d_[field]
+							tmp[field] = tmp_lst
+					tmp_lst.append(tmp)
 			res.append(tmp_lst)
-		return self.format(res)
+		if force_sentence:
+			return res
+		else:
+			return self.format(res)
 
 	def print_formatted(self):
 		length = 25
