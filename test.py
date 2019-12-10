@@ -24,8 +24,8 @@ analyzer = Analyzer(client)
 # analyzer.load_results()
 analyzer.load_results('verbatim_api.json')
 
-analyzer.analyze_document()
-# analyzer.analyze_sentence()
+# analyzer.analyze_document()
+analyzer.analyze_sentence()
 
 # print(analyzer.emoticons)
 # print(analyzer.emoticons.todict('happy'))
@@ -33,13 +33,14 @@ analyzer.analyze_document()
 
 #NER
 
-# print(analyzer.ner)
+# print(analyzer.ner.person)
 # print(analyzer.ner.date.tolist())
 # print(analyzer.ner.ip)
 # print(analyzer.ner.ip.tolist())
 # print(analyzer.ner.ip.fields())
 # print(analyzer.ner.ip.todict(['country', 'source']))
 # analyzer.ner.print_formatted()
+# analyzer.ner.interval.print_formatted()
 # analyzer.ner.speed
 # analyzer.ner.url.print_formatted()
 # analyzer.ner.list_entities(detail = True)
@@ -69,6 +70,8 @@ analyzer.analyze_document()
 # print(analyzer.postagger.tolist())
 # print(analyzer.postagger.tolist(tuple = True))
 # print(analyzer.postagger.fields())
+# print(analyzer.postagger.get_by_tag_exclude(['PUNCT', 'SYM', 'NP']))
+
 
 #PARSER_DEP
 
@@ -77,10 +80,6 @@ analyzer.analyze_document()
 # print(analyzer.parser_dependency.tolist())
 # print(analyzer.parser_dependency.tolist(True))
 # print(analyzer.parser_dependency.todict(['dep', 'lemma', 'tag', 'sub']))
-
-# print(analyzer.parser_dependency.tolist())
-# print(analyzer.parser_dependency.tolist(True))
-# print(analyzer.parser_dependency.todict(['source', 'dep', 'tag']))
 
 #SENTIMENT
 
@@ -95,7 +94,21 @@ analyzer.analyze_document()
 # print(analyzer.sentiment.elements.tolist('target'))
 # print(analyzer.sentiment.subsentences)
 # print(analyzer.sentiment.subsentences.todict(['sentence', 'values']))
-# analyzer.sentiment.subsentences_sentiments()
+# analyzer.sentiment.list_subsentences_sentiments()
+
+#EMOTION
+
+# print(analyzer.emotion)
+# print(analyzer.emotion.fields())
+# print(analyzer.emotion.values)
+# print(analyzer.emotion.values.total())
+# print(analyzer.emotion.values.mean())
+# print(analyzer.emotion.values.todict())
+# print(analyzer.emotion.elements)
+# print(analyzer.emotion.elements.tolist())
+# print(analyzer.emotion.elements.tolist())
+# print(analyzer.emotion.subsentences)
+# analyzer.emotion.list_subsentences_emotions()
 
 #NLU
 
@@ -106,32 +119,39 @@ analyzer.analyze_document()
 # print(analyzer.nlu.categories_unique('sub'))
 # print(analyzer.nlu.categories_count('sub'))
 
-test = analyzer.category_sentiment_by_subsentence('average',\
-        filter = ['General', 'personnel', 'retrait', 'paiement', 'frais'], sample = 5)
 
-for k,v  in test.items():
-    print(k,v)
-    print('')
-print('')
+# SENTIMENT ANALYSIS
 
+# test = analyzer.category_sentiment_by_subsentence('average',\
+#         filter = ['General', 'personnel', 'retrait', 'paiement', 'frais'], sample = 5)
+
+# test = analyzer.category_sentiment_by_sentence('average',\
+        # filter = ['General', 'personnel', 'retrait', 'paiement', 'frais'], sample = 5)
+
+# for k,v  in test.items():
+#     print(k,v)
+#     print('')
+# print('')
 
 #SENTENCE_ACT
 
 # print(analyzer.sentence_acts)
 # print(analyzer.sentence_acts.tolist('predict'))
 # print(analyzer.sentence_acts.todict(['predict','probabilities']))
+# print(analyzer.sentences_type('question_yn'))
 
-# print(analyzer.list_questions())
 
-
-# A FINIR
+# SYNTHESIS
 
 # print(analyzer.synthesis)
+# print(analyzer.synthesis.fields())
+# print(analyzer.synthesis.tolist('lemma'))
+# print(analyzer.synthesis.todict(['source', 'lemma'])[0])
+
+# print(analyzer.lemmatize())
+
 # print(analyzer.synthesis.tolist())
 
 #rajouter par sentence
 #proposer filtre par tag
 #renvoyer une liste par api + objet global
-
-#proposer analyse document et phrase par phrase
-#ressortir les questions

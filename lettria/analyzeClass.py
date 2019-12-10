@@ -1,6 +1,4 @@
 from .subClasses import *
-# import functools
-# import collections
 import json
 import os
 
@@ -46,19 +44,20 @@ class Analyzer:
             self.analyze(True)
 
     def analyze(self, document_level):
-        # self.ner = ner([[sub for sub in d['NER']] for d in self.result if 'NER' in d], document_level)
+        self.ner = ner([[sub for sub in d['NER']] for d in self.result if 'NER' in d], document_level)
         self.postagger = postagger([[sub for sub in d['postagger']] for d in self.result if 'postagger' in d], document_level)
         self.emoticons = emoticons(self.concat_emoticons(document_level), document_level)
         self.parser_dependency = parser_dependency([[sub for sub in d['parser_dependency']] for d in self.result if 'parser_dependency' in d], document_level)
         self.nlp = nlp([[sub for sub in d['NLP']] for d in self.result if 'NLP' in d], document_level)
         self.nlu = nlu([[sub for sub in d['NLU']] for d in self.result if 'NLU' in d], document_level)
-        # self.emotion = sentiment(data['emotion']) if data and 'emotion' in data else None
+        self.emotion = emotion([{sub:v for sub,v in d['emotion'].items()} for d in self.result if 'emotion' in d], document_level)
         self.sentiment = sentiment([{sub:v for sub,v in d['sentiment'].items()} for d in self.result if 'sentiment' in d], document_level)
         self.sentence_acts = sentence_acts([[{sub:v for sub,v in d['sentence_acts'].items()}] if 'sentence_acts' in d and d['sentence_acts'] else [{}] for d in self.result ], document_level)
-        # self.coreference = coreference(data['coreference']) if data and 'coreference' in data else None
-        # self.synthesis = synthesis([[sub for sub in d['synthesis']] for d in self.result if 'synthesis' in d], document_level)
-        # self.synthesis = synthesis([sub for d in self.result if 'synthesis' in d for sub in d['synthesis']])
+        self.synthesis = synthesis([[sub for sub in d['synthesis']] for d in self.result if 'synthesis' in d], document_level)
         # self.lemma = [d['lemma'] for d in self.synthesis]
+
+    def lemmatize(self):
+        return self.synthesis.tolist('lemma')
 
     def concat_emoticons(self, document_level):
         self.emoticons = [[d['emoticons']['emoticon']] for d in self.result if 'emoticons' in d]
@@ -131,10 +130,13 @@ class Analyzer:
             sentiments = {k:{k1: round(v1 / v['occurences'] + 1e-6, 3) if k1 in fields else v1 for k1, v1 in v.items()} for k,v in sentiments.items()}
         return sentiments
 
-    def list_questions(self):
+    def sentences_type(self, filter = []):
         types = self.sentence_acts.tolist('predict')
         sentences = self.parser_dependency.tolist(None, True)
-        filter = ['question_yn']
+        if filter and not isinstance(filter, list):
+            filter = [filter]
+        if not filter:
+            filter = ['question_yn', 'question_open', 'assert', 'command', 'exclam']
         questions = []
         for type, sent in zip(types, sentences):
             if type in filter:

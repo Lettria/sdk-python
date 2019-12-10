@@ -20,7 +20,7 @@ class ner(SharedClass, ExtractClass):
 	def scan_entities(self):
 		for seq in self.data:
 			for d in seq:
-				if d['type'].lower() not in self.__dict__.keys():
+				if d['type'] and d['type'].lower() not in self.__dict__.keys():
 					self.__dict__[d['type']] = Base_entity(d['type'], self.get_by_filter('type', d['type']), self.document_level)
 					self.entities[d['type']] = self.__dict__[d['type']]
 
@@ -30,13 +30,10 @@ class ner(SharedClass, ExtractClass):
 		self.date =			 	Date(self.get_by_filter('type', 'date'), self.document_level)
 		self.distance =		 	Distance(self.get_by_filter('type', 'distance'), self.document_level)
 		self.duration =		 	Duration(self.get_by_filter('type', 'duration'), self.document_level)
-		# self.electric_power =   Electric_power(self.get_by_filter('type', 'electric power'), self.document_level)
-		# self.hex_color =		Hex_color(self.get_by_filter('type', 'hex color'), self.document_level)
 		self.frequency =		Frequency(self.get_by_filter('type', 'frequency'), self.document_level)
 		self.interval =			Interval(self.get_by_filter('type', 'interval'), self.document_level)
 		self.ip =			 	Ip(self.get_by_filter('type', 'ip'), self.document_level)
 		self.ipv6 =			 	Ipv6(self.get_by_filter('type', 'ipv6'), self.document_level)
-		# self.light_intensity =  Light_intensity(self.get_by_filter('type', 'light intensity'), self.document_level)
 		self.mail =			 	Mail(self.get_by_filter('type', 'mail'), self.document_level)
 		self.mass =			 	Mass(self.get_by_filter('type', 'mass'), self.document_level)
 		self.mass_by_volume =   Mass_by_volume(self.get_by_filter('type', 'mass by volume'), self.document_level)
@@ -191,6 +188,8 @@ class sentiment_values(SharedClass, ExtractClass):
 					for k,v in d.items():
 						tmp[k] += v
 				dico.append(tmp)
+		for k,v in dico.items():
+			dico[k] = round(v, 4)
 		return dico
 
 	def mean(self):
@@ -230,8 +229,6 @@ class sentiment_values(SharedClass, ExtractClass):
 class sentiment(SharedClass, ExtractClass):
 	def __init__(self, data=None, document_level = True):
 		self.data = data
-		# for d in data:
-		# 	print(d)
 		super().__init__(data, document_level)
 		self.name = 'sentiment'
 		self.elements = sentiment_elements([d['elements'] if 'elements' in d else None for d in self.data], document_level)
@@ -244,7 +241,7 @@ class sentiment(SharedClass, ExtractClass):
 		print(self.values)
 		return ''
 
-	def subsentences_sentiments(self):
+	def list_subsentences_sentiments(self):
 		print("{:120.120s} {:10}".format('Subsentence','Total value'))
 		print('-' * 132)
 		res = self.subsentences.todict(['sentence', 'values'])
@@ -252,7 +249,52 @@ class sentiment(SharedClass, ExtractClass):
 			# print(r)
 			print("{:120.120} {:10}".format(r['sentence'], r['values']['total']))
 
+class emotion(SharedClass, ExtractClass):
+	def __init__(self, data=None, document_level = True):
+		self.data = data
+		super().__init__(data, document_level)
+		self.name = 'emotions'
+		self.elements = emotion_elements([d['elements'] if 'elements' in d else None for d in self.data], document_level)
+		self.values = emotion_values([[d['values']] if 'values' in d else None for d in self.data], document_level)
+		self.subsentences = emotion_subsentences([d['subsentences'] if 'subsentences' in d else None for d in self.data], document_level)
+		self.colors = {
+			'anger'		:'\033[31m',
+			'happiness'	:'\033[32m',
+			'surprise'	:'\033[33m',
+			'sadness'	:'\033[34m',
+			'disgust'	:'\033[35m',
+			'fear'		:'\033[36m'
+		}
+
+	def __str__(self):
+		print(self.elements)
+		print(self.subsentences)
+		print(self.values)
+		return ''
+
+	def list_subsentences_emotions(self):
+		print("{:100.100s}".format('Subsentence'), end = '\t')
+		for k in ['anger', 'disgust', 'fear', 'happiness', 'sadness', 'surprise']:
+			print("{:9}".format(k), end = '\t')
+		print('\n', '-' * 190)
+		res = self.subsentences.todict(['sentence', 'values'])
+		for r in res[:]:
+			print("{:100.100}".format(r['sentence'], r['values']), end = '\t')
+			for k,v in r['values'].items():
+				if v == 0:
+					print('{:9.4s}'.format(''), end = '\t')
+				else:
+					print(self.colors[k], end = '')
+					print('{:9.4f}'.format(v), end = '\t')
+					print('\033[0m', end = '')
+			print('')
+
 class emotion_elements(SharedClass, ExtractClass):
+	def __init__(self, data=None, document_level = True):
+		self.data = data
+		super().__init__(data, document_level)
+
+class emotion_subsentences(SharedClass, ExtractClass):
 	def __init__(self, data=None, document_level = True):
 		self.data = data
 		super().__init__(data, document_level)
@@ -262,13 +304,66 @@ class emotion_values(SharedClass, ExtractClass):
 		self.data = data
 		super().__init__(data, document_level)
 
-class emotion(SharedClass, ExtractClass):
-	def __init__(self, data=None, document_level = True):
-		self.data = data
-		super().__init__(data, document_level)
-		self.name = 'emotions'
-		self.elements = emotion_elements(data['elements']) if 'elements' in data else None
-		self.values = emotion_values(data['values']) if 'values' in data else None
+	def total(self):
+		if self.document_level:
+			dico = {'anger'	:0, 'happiness':0, 'surprise':0, 'sadness':0, 'disgust':0, 'fear' :0}
+			for seq in self.data:
+				if not seq:
+					continue
+				for d in seq:
+					for k,v in d.items():
+						dico[k] += v
+		else:
+			dico = []
+			for seq in self.data:
+				if not seq:
+					continue
+				tmp = {'anger'	:0, 'happiness':0, 'surprise':0, 'sadness':0, 'disgust':0, 'fear' :0}
+				for d in seq:
+					for k,v in d.items():
+						tmp[k] += v
+				dico.append(tmp)
+		for k,v in dico.items():
+			dico[k] = round(v, 4)
+		return dico
+
+	def mean(self):
+		if self.document_level:
+			length = 0
+			dico = {'anger'	:0, 'happiness':0, 'surprise':0, 'sadness':0, 'disgust':0, 'fear' :0}
+			for seq in self.data:
+				if not seq:
+					continue
+				for d in seq:
+					for k,v in d.items():
+						dico[k] += v
+					length += 1
+			for k,v in dico.items():
+				dico[k] = round(v / length + 1e-6, 3)
+		else:
+			dico = []
+			for seq in self.data:
+				if not seq:
+					continue
+				length = 0
+				tmp = {'anger'	:0, 'happiness':0, 'surprise':0, 'sadness':0, 'disgust':0, 'fear' :0}
+				for d in seq:
+					for k,v in d.items():
+						tmp[k] += v
+					length += 1
+				for k,v in tmp.items():
+					tmp[k] = round(v / length + 1e-6, 3)
+				dico.append(tmp)
+		return dico
+
+	def average(self):
+		self.mean()
+
+	def tolist(self, force_sentence = False):
+		return self.format(self.data, force_sentence)
+
+	def todict(self, force_sentence = False):
+		return self.tolist(force_sentence)
 
 class emoticons(SharedClass, ExtractClass):
 	def __init__(self, data=None, document_level = True):
@@ -333,25 +428,43 @@ class postagger(SharedClass):
 		super().__init__(data, document_level)
 		self.name = 'postagger'
 
-	def get(self):
-		return self.data
-
 	def get_by_tag(self, tag):
+		data = self.tolist(True, True)
 		r = []
-		if self.data:
-			for item in self.data:
-				if isinstance(tag, list):
-					if item[1] in tag:
-						r.append(item)
-				else:
-					if item[1] == tag:
-						r.append(item)
-		return r
-	def tolist(self, tuple = False):
+		if data:
+			for seq in data:
+				tmp = []
+				for item in seq:
+					if isinstance(tag, list):
+						if item[1] in tag:
+							tmp.append(item)
+					else:
+						if item[1] == tag:
+							tmp.append(item)
+				tmp.append(r)
+		return self.format(r)
+
+	def get_by_tag_exclude(self, tag):
+		data = self.tolist(True, True)
+		r = []
+		if data:
+			for seq in data:
+				tmp = []
+				for item in seq:
+					if isinstance(tag, list):
+						if item[1] not in tag:
+							tmp.append(item)
+					else:
+						if item[1] != tag:
+							tmp.append(item)
+				r.append(tmp)
+		return self.format(r)
+
+	def tolist(self, tuple = False, force_sentence = False):
 		if not tuple:
-			return self.format([[d[1] for d in seq] for seq in self.data])
+			return self.format([[d[1] for d in seq] for seq in self.data], force_sentence)
 		else:
-			return self.format([[(d[0], d[1]) for d in seq] for seq in self.data])
+			return self.format([[(d[0], d[1]) for d in seq] for seq in self.data], force_sentence)
 
 	def fields(self):
 		string = self.name.capitalize() + " fields. List of tuples (SOURCE, TAG):\n"
@@ -373,7 +486,6 @@ class sentence_acts(SharedClass, ExtractClass):
 					tmp.append(d[0])
 				else:
 					tmp.append([])
-			print('format',len(tmp))
 			return tmp
 		else:
 			return data

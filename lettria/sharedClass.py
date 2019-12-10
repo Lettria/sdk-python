@@ -35,22 +35,21 @@ class SharedClass:
 
 	def tolist(self, fields = None, force_sentence = False):
 		if fields:
-
 			if isinstance(fields, list):
 				print('Only supports string. Use todict() for multiple fields request.')
 				return ''
 			else:
 				res = []
-				result = self.todict([fields])
-				for d in result:
-					if isinstance(d, list):
-						res.append(d)
-					else:
-						if d:
-							res += d.values()
-						if not d:
-							res.append({})
-				return res
+				result = [v for v in self.todict([fields], force_sentence = True)]
+				for seq in result:
+					tmp = []
+					for d in seq:
+						if isinstance(d, dict):
+							tmp += d.values()
+						else:
+							tmp.append(d)
+					res.append(tmp)
+				return self.format(res)
 		else:
 			return self.format([[sub['source'] for sub in d] if d else [] for d in self.data], force_sentence)
 
@@ -79,16 +78,13 @@ class SharedClass:
 							tmp[field] = tmp_lst
 					tmp_lst.append(tmp)
 			res.append(tmp_lst)
-		if force_sentence:
-			return res
-		else:
-			return self.format(res)
+		return self.format(res, force_sentence)
 
 	def print_formatted(self):
 		length = 25
 		d = {}
 		seq = []
-		print("{:10s}\t{:10s}\t".format('Type','Source'), end = '')
+		print("{:15s}\t{:20s}\t".format('Type','Source'), end = '')
 		# print(self.data)
 		for _seq in self.data:
 			for _seq in self.data:
@@ -114,17 +110,18 @@ class SharedClass:
 		print('-' * length)
 		for seq in self.data:
 			for d in seq:
-				print("{:10s}\t{:10s}\t".format(d['type'].upper(), d['source']), end = '')
+				print("{:15.15s}\t{:20.20s}\t".format(d['type'].upper(), d['source']), end = '')
 				for key in d.keys():
 					if key not in ['type', 'source']:
 						if isinstance(d[key], dict):
 							for k in d[key].keys():
-								print("{:12.12s}".format(str(d[key][k])), end = '\t')
-								length += 16
+								if not isinstance(d[key][k], (str, float, int)):
+									print("{:12.12s}".format(type(d[key][k]).__name__), end = '\t')
+								else:
+									print("{:12.12s}".format(str(d[key][k])), end = '\t')
 						else:
-							_field = d[key] if d[key] else ''
-							print("{:10}".format(_field, end = '\t'))
-							length += 16
+							_field = d[key] if d[key] else 'None'
+							print("{:10}".format(_field), end = '\t')
 				if d:
 					print('')
 
@@ -146,6 +143,8 @@ class SharedClass:
 			for d in _data:
 				if isinstance(d, list):
 					return 'List of list: [[], [], []]'
+				elif isinstance(d, str):
+					return d	
 				for key in d.keys():
 					if key in keys:
 						continue
@@ -158,7 +157,7 @@ class SharedClass:
 				return json.dumps(keys, indent = 4, sort_keys = True)
 			else:
 				return keys
-		else:
+		elif isinstance(data, dict):
 			for key in data.keys():
 				if key in keys:
 					continue
@@ -170,6 +169,8 @@ class SharedClass:
 				return json.dumps(keys, indent = 4, sort_keys = True)
 			else:
 				return keys
+		else:
+			return data
 
 	def get_nested(self, key, obj):
 		if not isinstance(obj, dict):

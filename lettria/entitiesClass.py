@@ -38,12 +38,12 @@ class Date(SharedClass):
         def __repr__(self):
             return str(self.format([[d['source'] for d in seq] for seq in self.data]))
         def print_formatted(self):
-            print("{:10s}\t{:10s}\t{:20s}\t{:20s}".format('Type','Source', 'ISO', 'timestamp'))
+            print("{:10s}\t{:20s}\t{:20s}\t{:20s}".format('Type','Source', 'ISO', 'timestamp'))
             print('-' * 70)
             for seq in self.data:
                 for d in seq:
                     print("{:10s}\t".format(d['type'].upper()), end = '')
-                    print("{:10s}\t{:20s}\t{:20s}".format(d['source'], d['value']['ISO'], str(d['value']['timestamp'])))
+                    print("{:20.20s}\t{:20s}\t{:20s}".format(d['source'], d['value']['ISO'], str(d['value']['timestamp'])))
 
 class Distance(SharedClass):
         def __init__(self, data = None, document_level = True):
@@ -103,16 +103,26 @@ class Interval(SharedClass):
             return str(self.format([[d['source'] for d in seq] for seq in self.data]))
         def print_formatted(self):
             print("{:10s}\t".format('Type'), end = '')
-            print("{:10s}\t{:20s}\t{:20s}\t{:15s}\t{:15s}\t{:15s}".format('Source', 'Start', 'End', 'days', 'hours', 'minutes'))
-            print('-' * 120)
+            print("{:20s}\t{:20s}\t{:20s}\t{:15s}\t{:15s}\t{:15s}".format('Source', 'Start', 'End', 'days', 'hours', 'minutes'))
+            print('-' * 130)
             for seq in self.data:
                 for d in seq:
-                    print("{:10s}\t".format(d['type'].upper()), end = '')
-                    print("{:10s}\t{:20s}\t{:20s}\t{:15.8s}\t{:15.8s}\t{:15.8s}".format(\
-                        d['source'], d['value']['start']['ISO'], d['value']['end']['ISO'],\
-                        str(d['value']['duration']['start_end']['days']),\
-                        str(d['value']['duration']['start_end']['hours']),\
-                        str(d['value']['duration']['start_end']['minutes'])))
+                    print("{:10.10s}\t{:20.20s}\t".format(d['type'].upper(), d['source']), end = '')
+                    if d['value']['start']:
+                        print("{:20s}".format(d['value']['start']['ISO']), end = '\t')
+                    else:
+                        print("{:20s}".format(''), end = '\t')
+                    if d['value']['end']:
+                        print("{:20s}".format(d['value']['end']['ISO']), end = '\t')
+                    else:
+                        print("{:20s}".format(''), end = '\t')
+                    if d['value']['duration']['start_end']:
+                        print("{:15.5f}".format(d['value']['duration']['start_end']['days']), end = '\t')
+                        print("{:15.5f}".format(d['value']['duration']['start_end']['hours']), end = '\t')
+                        print("{:15.5f}".format(d['value']['duration']['start_end']['minutes']), end = '\t')
+                    else:
+                        print("{:15s}\t{:15s}\t{:15s}".format('', '', ''), end = '')
+                    print('')
 
 class Ip(SharedClass):
         def __init__(self, data = None, document_level = True):
