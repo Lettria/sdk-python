@@ -53,6 +53,7 @@ class Analyzer:
         self.emotion = emotion([{sub:v for sub,v in d['emotion'].items()} for d in self.result if 'emotion' in d], document_level)
         self.sentiment = sentiment([{sub:v for sub,v in d['sentiment'].items()} for d in self.result if 'sentiment' in d], document_level)
         self.sentence_acts = sentence_acts([[{sub:v for sub,v in d['sentence_acts'].items()}] if 'sentence_acts' in d and d['sentence_acts'] else [{}] for d in self.result ], document_level)
+        self.coreference = coreference([[sub for sub in d['coreference']] for d in self.result if 'coreference' in d], document_level)
         self.synthesis = synthesis([[sub for sub in d['synthesis']] for d in self.result if 'synthesis' in d], document_level)
 
     def lemmatize(self):
@@ -174,9 +175,9 @@ class Analyzer:
             file = file.replace('.json', '')
         with open(file + '.json', 'r') as f:
             self.result = json.load(f)
-            self.result = [d['Retour_api'] for d in self.result]
-            tmp = []
-            for d in self.result:
-                if d:
-                    tmp += d
-            self.result = tmp
+            # self.result = [d['Retour_api'] for d in self.result]
+            # tmp = []
+            # for d in self.result:
+            #     if d:
+            #         tmp += d
+            # self.result = tmp

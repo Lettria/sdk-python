@@ -284,7 +284,8 @@ class emotion(SharedClass, ExtractClass):
 				if v == 0:
 					print('{:9.4s}'.format(''), end = '\t')
 				else:
-					print(self.colors[k], end = '')
+					if k in self.colors:
+						print(self.colors[k], end = '')
 					print('{:9.4f}'.format(v), end = '\t')
 					print('\033[0m', end = '')
 			print('')
@@ -360,7 +361,7 @@ class emotion_values(SharedClass, ExtractClass):
 		return dico
 
 	def average(self):
-		self.mean()
+		return self.mean()
 
 	def tolist(self, force_sentence = False):
 		return self.format(self.data, force_sentence)
@@ -373,20 +374,6 @@ class emoticons(SharedClass, ExtractClass):
 		self.data = data
 		super().__init__(data, document_level)
 		self.name = 'emoticons'
-
-	def get_confidence(self):
-		r = []
-		if self.data and 'confidence' in self.data:
-			return self.data['confidence']
-		return None
-
-	def get_present(self):
-		r = []
-		if self.data and 'emoticon' in self.data:
-			for k in self.data['emoticon']:
-				if self.data['emoticon'][k]:
-					r.append(k)
-		return r
 
 	def todict(self, fields=None):
 		if isinstance(fields, str):
@@ -418,6 +405,10 @@ class parser_dependency(SharedClass, ExtractClass):
 
 	def getByRole(self, role):
 		return self.get_by_filter('dep', role)
+
+	def get_dependences(self, word):
+		idx = [v['index'] if v['source'] == word else '' for seq in self.data for v in seq]
+		print(idx)
 
 	# def tolist(self, tuple = False, force_sentence = False):
 	# 	if not tuple:

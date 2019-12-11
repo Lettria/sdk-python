@@ -76,10 +76,12 @@ analyzer.analyze_sentence()
 #PARSER_DEP
 
 # print(analyzer.parser_dependency)
+print(analyzer.parser_dependency.get_dependences('agence'))
 # print(analyzer.parser_dependency.fields())
 # print(analyzer.parser_dependency.tolist())
 # print(analyzer.parser_dependency.tolist(True))
 # print(analyzer.parser_dependency.todict(['dep', 'lemma', 'tag', 'sub']))
+
 
 #SENTIMENT
 
@@ -102,7 +104,7 @@ analyzer.analyze_sentence()
 # print(analyzer.emotion.fields())
 # print(analyzer.emotion.values)
 # print(analyzer.emotion.values.total())
-# print(analyzer.emotion.values.mean())
+# print(analyzer.emotion.values.average())
 # print(analyzer.emotion.values.todict())
 # print(analyzer.emotion.elements)
 # print(analyzer.emotion.elements.tolist())
@@ -139,6 +141,12 @@ analyzer.analyze_sentence()
 # print(analyzer.sentence_acts.tolist('predict'))
 # print(analyzer.sentence_acts.todict(['predict','probabilities']))
 # print(analyzer.sentences_type('question_yn'))
+
+# COREFERENCE
+#
+# print(analyzer.coreference)
+# print(analyzer.coreference.fields())
+# print(analyzer.coreference.todict(['source','reference']))
 
 # SYNTHESIS
 
