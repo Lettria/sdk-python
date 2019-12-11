@@ -303,34 +303,37 @@ class emotion_values(SharedClass, ExtractClass):
 	def __init__(self, data=None, document_level = True):
 		self.data = data
 		super().__init__(data, document_level)
+		self.fields = list(self.data[0][0].keys())
 
 	def total(self):
 		if self.document_level:
-			dico = {'anger'	:0, 'happiness':0, 'surprise':0, 'sadness':0, 'disgust':0, 'fear' :0}
+			dico = {k:0 for k in self.fields}
 			for seq in self.data:
 				if not seq:
 					continue
 				for d in seq:
 					for k,v in d.items():
 						dico[k] += v
+			for k,v in dico.items():
+				dico[k] = round(v, 4)
 		else:
 			dico = []
 			for seq in self.data:
 				if not seq:
 					continue
-				tmp = {'anger'	:0, 'happiness':0, 'surprise':0, 'sadness':0, 'disgust':0, 'fear' :0}
+				tmp = {k:0 for k in self.fields}
 				for d in seq:
 					for k,v in d.items():
 						tmp[k] += v
+				for k,v in tmp.items():
+					tmp[k] = round(v, 4)
 				dico.append(tmp)
-		for k,v in dico.items():
-			dico[k] = round(v, 4)
 		return dico
 
 	def mean(self):
 		if self.document_level:
 			length = 0
-			dico = {'anger'	:0, 'happiness':0, 'surprise':0, 'sadness':0, 'disgust':0, 'fear' :0}
+			dico = {k:0 for k in self.fields}
 			for seq in self.data:
 				if not seq:
 					continue
@@ -346,7 +349,7 @@ class emotion_values(SharedClass, ExtractClass):
 				if not seq:
 					continue
 				length = 0
-				tmp = {'anger'	:0, 'happiness':0, 'surprise':0, 'sadness':0, 'disgust':0, 'fear' :0}
+				tmp = {k:0 for k in self.fields}
 				for d in seq:
 					for k,v in d.items():
 						tmp[k] += v

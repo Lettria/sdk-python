@@ -54,10 +54,18 @@ class Analyzer:
         self.sentiment = sentiment([{sub:v for sub,v in d['sentiment'].items()} for d in self.result if 'sentiment' in d], document_level)
         self.sentence_acts = sentence_acts([[{sub:v for sub,v in d['sentence_acts'].items()}] if 'sentence_acts' in d and d['sentence_acts'] else [{}] for d in self.result ], document_level)
         self.synthesis = synthesis([[sub for sub in d['synthesis']] for d in self.result if 'synthesis' in d], document_level)
-        # self.lemma = [d['lemma'] for d in self.synthesis]
 
     def lemmatize(self):
         return self.synthesis.tolist('lemma')
+
+    def tokenize(self, merge = False):
+        ''' Option merge: Merge tokens according to NER patterns.
+            merge False :   ['2','km','/','/h']
+            merge True :    ['2km/h']                   '''
+        if merge:
+            return self.synthesis.tolist('source')
+        else:
+            return self.nlp.tolist('source')
 
     def concat_emoticons(self, document_level):
         self.emoticons = [[d['emoticons']['emoticon']] for d in self.result if 'emoticons' in d]

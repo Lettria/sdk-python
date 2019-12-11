@@ -140,18 +140,21 @@ analyzer.analyze_sentence()
 # print(analyzer.sentence_acts.todict(['predict','probabilities']))
 # print(analyzer.sentences_type('question_yn'))
 
-
 # SYNTHESIS
 
 # print(analyzer.synthesis)
 # print(analyzer.synthesis.fields())
-# print(analyzer.synthesis.tolist('lemma'))
+# print(analyzer.synthesis.tolist('tag'))
 # print(analyzer.synthesis.todict(['source', 'lemma'])[0])
 
 # print(analyzer.lemmatize())
-
-# print(analyzer.synthesis.tolist())
+# print(analyzer.tokenize())
+# print(analyzer.tokenize(True))
 
 #rajouter par sentence
 #proposer filtre par tag
 #renvoyer une liste par api + objet global
+
+
+#mettre un mot et chopper tous les mots qui l'ont en ref
+#et filter par tag
