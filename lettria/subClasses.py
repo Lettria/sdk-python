@@ -406,9 +406,16 @@ class parser_dependency(SharedClass, ExtractClass):
 	def getByRole(self, role):
 		return self.get_by_filter('dep', role)
 
-	def get_dependences(self, word):
-		idx = [v['index'] if v['source'] == word else '' for seq in self.data for v in seq]
-		print(idx)
+	def get_dependencies(self, word, return_empty = True, filter = []):
+		idx = [[v['index'] for v in seq if v['source'] == word] for seq in self.data]
+		if filter and isinstance(filter, list):
+			words = [[v['source'] for v in seq if v['ref'] in id and v['tag'] in filter] for seq, id in zip(self.data, idx)]
+		else:
+			words = [[v['source'] for v in seq if v['ref'] in id] for seq, id in zip(self.data, idx)]
+		if return_empty:
+			return self.format(words)
+		else:
+			return self.format([x for x in words if x])
 
 	# def tolist(self, tuple = False, force_sentence = False):
 	# 	if not tuple:

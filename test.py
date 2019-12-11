@@ -23,9 +23,11 @@ analyzer = Analyzer(client)
 # analyzer.save_results()
 # analyzer.load_results()
 analyzer.load_results('verbatim_api.json')
+# analyzer.load_results('results_0.json')
+# analyzer.save_results('results_0.json')
 
-# analyzer.analyze_document()
-analyzer.analyze_sentence()
+
+analyzer.process()
 
 # print(analyzer.emoticons)
 # print(analyzer.emoticons.todict('happy'))
@@ -75,8 +77,9 @@ analyzer.analyze_sentence()
 
 #PARSER_DEP
 
+analyzer.by_sentence()
 # print(analyzer.parser_dependency)
-print(analyzer.parser_dependency.get_dependences('agence'))
+print(analyzer.parser_dependency.get_dependencies("agence", return_empty=False, filter = ['JJ']))
 # print(analyzer.parser_dependency.fields())
 # print(analyzer.parser_dependency.tolist())
 # print(analyzer.parser_dependency.tolist(True))

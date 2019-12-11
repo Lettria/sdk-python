@@ -31,30 +31,53 @@ class Analyzer:
     def missing_client(self):
         print('Please assign a client in order to make a request.')
 
-    def analyze_sentence(self):
+    def by_sentence(self):
+        try:
+            self.ner.document_level = False
+            self.postagger.document_level = False
+            self.emoticons.document_level = False
+            self.parser_dependency.document_level = False
+            self.nlp.document_level = False
+            self.nlu.document_level = False
+            self.emotion.document_level = False
+            self.sentiment.document_level = False
+            self.sentence_acts.document_level = False
+            self.coreference.document_level = False
+            self.synthesis.document_level = False
+        except:
+            print('Error classes not initialized, process() should be called.')
+
+    def by_document(self):
+        try:
+            self.ner.document_level = True
+            self.postagger.document_level = True
+            self.emoticons.document_level = True
+            self.parser_dependency.document_level = True
+            self.nlp.document_level = True
+            self.nlu.document_level = True
+            self.emotion.document_level = True
+            self.sentiment.document_level = True
+            self.sentence_acts.document_level = True
+            self.coreference.document_level = True
+            self.synthesis.document_level = True
+        except:
+            print('Error classes not initialized, process() should be called.')
+
+    def process(self, document_level = True):
         if not self.result:
             print('No data to analyze')
         else:
-            self.analyze(False)
-
-    def analyze_document(self):
-        if not self.result:
-            print('No data to analyze')
-        else:
-            self.analyze(True)
-
-    def analyze(self, document_level):
-        self.ner = ner([[sub for sub in d['NER']] for d in self.result if 'NER' in d], document_level)
-        self.postagger = postagger([[sub for sub in d['postagger']] for d in self.result if 'postagger' in d], document_level)
-        self.emoticons = emoticons(self.concat_emoticons(document_level), document_level)
-        self.parser_dependency = parser_dependency([[sub for sub in d['parser_dependency']] for d in self.result if 'parser_dependency' in d], document_level)
-        self.nlp = nlp([[sub for sub in d['NLP']] for d in self.result if 'NLP' in d], document_level)
-        self.nlu = nlu([[sub for sub in d['NLU']] for d in self.result if 'NLU' in d], document_level)
-        self.emotion = emotion([{sub:v for sub,v in d['emotion'].items()} for d in self.result if 'emotion' in d], document_level)
-        self.sentiment = sentiment([{sub:v for sub,v in d['sentiment'].items()} for d in self.result if 'sentiment' in d], document_level)
-        self.sentence_acts = sentence_acts([[{sub:v for sub,v in d['sentence_acts'].items()}] if 'sentence_acts' in d and d['sentence_acts'] else [{}] for d in self.result ], document_level)
-        self.coreference = coreference([[sub for sub in d['coreference']] for d in self.result if 'coreference' in d], document_level)
-        self.synthesis = synthesis([[sub for sub in d['synthesis']] for d in self.result if 'synthesis' in d], document_level)
+            self.ner = ner([[sub for sub in d['NER']] for d in self.result if 'NER' in d], document_level)
+            self.postagger = postagger([[sub for sub in d['postagger']] for d in self.result if 'postagger' in d], document_level)
+            self.emoticons = emoticons(self.concat_emoticons(document_level), document_level)
+            self.parser_dependency = parser_dependency([[sub for sub in d['parser_dependency']] for d in self.result if 'parser_dependency' in d], document_level)
+            self.nlp = nlp([[sub for sub in d['NLP']] for d in self.result if 'NLP' in d], document_level)
+            self.nlu = nlu([[sub for sub in d['NLU']] for d in self.result if 'NLU' in d], document_level)
+            self.emotion = emotion([{sub:v for sub,v in d['emotion'].items()} for d in self.result if 'emotion' in d], document_level)
+            self.sentiment = sentiment([{sub:v for sub,v in d['sentiment'].items()} for d in self.result if 'sentiment' in d], document_level)
+            self.sentence_acts = sentence_acts([[{sub:v for sub,v in d['sentence_acts'].items()}] if 'sentence_acts' in d and d['sentence_acts'] else [{}] for d in self.result ], document_level)
+            self.coreference = coreference([[sub for sub in d['coreference']] for d in self.result if 'coreference' in d], document_level)
+            self.synthesis = synthesis([[sub for sub in d['synthesis']] for d in self.result if 'synthesis' in d], document_level)
 
     def lemmatize(self):
         return self.synthesis.tolist('lemma')
