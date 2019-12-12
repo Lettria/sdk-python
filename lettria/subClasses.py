@@ -6,6 +6,10 @@ from functools import reduce
 import json
 
 class ner(SharedClass, ExtractClass):
+	""" NER class
+	Provides access to entities subclasses and methods for data exploration.
+	All sublasses implement print_formatted(), tolist() and todict() for data manipulation.
+	"""
 	def __init__(self, data=None, document_level = True):
 		self.data = data
 		super().__init__(data, document_level)
@@ -18,6 +22,7 @@ class ner(SharedClass, ExtractClass):
 		self.scan_entities()
 
 	def scan_entities(self):
+		""" Create classes for non standard entities using Base_entity class."""
 		for seq in self.data:
 			for d in seq:
 				if d['type'] and d['type'].lower() not in self.__dict__.keys():
@@ -25,6 +30,7 @@ class ner(SharedClass, ExtractClass):
 					self.entities[d['type']] = self.__dict__[d['type']]
 
 	def define_entities(self):
+		""" Creates and assigns data to entities subclasses"""
 		self.person =			Person(self.get_by_filter('type', 'PERSON'), self.document_level)
 		self.location =			Location(self.get_by_filter('type', 'LOCATION'), self.document_level)
 		self.date =			 	Date(self.get_by_filter('type', 'date'), self.document_level)
@@ -55,8 +61,10 @@ class ner(SharedClass, ExtractClass):
 		self.volume =		   	Volume(self.get_by_filter('type', 'volume'), self.document_level)
 
 	def list_entities(self, detail = False):
+		""" Print all detected entities.
+			Detail: Boolean. Shows most important information for each entity"""
 		for key, val in self.entities.items():
-			if val.data and not self.check_empty(val.data):
+			if val.data and not self.__check_empty(val.data):
 				if not detail:
 					print("{:10s}: {}".format(key.upper(), val.__repr__()))
 				else:
@@ -67,12 +75,12 @@ class ner(SharedClass, ExtractClass):
 		if return_empty:
 			return {key.upper():val.__repr__() for key,val in self.entities.items()}
 		else:
-			return {key.upper():val.__repr__() for key,val in self.entities.items() if not self.check_empty(val.data)}
+			return {key.upper():val.__repr__() for key,val in self.entities.items() if not self.__check_empty(val.data)}
 
 	def print_formatted(self):
 		self.list_entities(True)
 
-	def check_empty(self, data):
+	def __check_empty(self, data):
 		if not data:
 			return True
 		for l in data:
@@ -98,12 +106,17 @@ class ner(SharedClass, ExtractClass):
 		return v
 
 class nlu(SharedClass, ExtractClass):
+	""" Subclass for NLU key.
+		Provides methods to manipulate categories.
+	 """
 	def __init__(self, data=None, document_level = True):
 		self.data = data
 		super().__init__(data, document_level)
 		self.name = 'NLU'
 
 	def categories_unique(self, type='sub', id_sent = '', id_sub = ''):
+		""" Returns a list of unique categories (sub or super)
+		Sentence and subsentence index may be provided to limit the scope of the result"""
 		cats = []
 		if id_sub:
 			start_id = id_sub['start_id'] if id_sub['start_id'] >= 0 else 0
@@ -136,6 +149,7 @@ class nlu(SharedClass, ExtractClass):
 			return cats
 
 	def categories_count(self, type='sub'):
+		""" Returns a dictionnary with categories and occurences as keys and values"""
 		cats = []
 		if type not in ['sub', 'super']:
 			print("Choose 'sub' or 'super' categories.")
@@ -159,21 +173,25 @@ class nlp(SharedClass, ExtractClass):
 		self.name = 'NLP'
 
 class sentiment_elements(SharedClass, ExtractClass):
+	"""Subclass of sentiment for manipulation of elements"""
 	def __init__(self, data=None, document_level = True):
 		self.data = data
 		super().__init__(data, document_level)
 
 class sentiment_subsentences(SharedClass, ExtractClass):
+	"""Subclass of sentiment for manipulation of subsentences"""
 	def __init__(self, data=None, document_level = True):
 		self.data = data
 		super().__init__(data, document_level)
 
 class sentiment_values(SharedClass, ExtractClass):
+	"""Subclass of sentiment for manipulation of values"""
 	def __init__(self, data=None, document_level = True):
 		self.data = data
 		super().__init__(data, document_level)
 
 	def total(self):
+		""" Merges the different sentiment values by document or by sentence"""
 		if self.document_level:
 			dico = {'total':0, 'negative':0, 'positive':0}
 			for seq in self.data:
@@ -193,6 +211,7 @@ class sentiment_values(SharedClass, ExtractClass):
 		return dico
 
 	def mean(self):
+		""" Calculates the average of the different sentiment values by document or by sentence"""
 		if self.document_level:
 			length = 0
 			dico = {'total':0, 'negative':0, 'positive':0}
@@ -227,6 +246,9 @@ class sentiment_values(SharedClass, ExtractClass):
 		return self.tolist(force_sentence)
 
 class sentiment(SharedClass, ExtractClass):
+	""" Subclass for sentiment analysis
+		Provides access to 3 subclasses, values, elements and subsentences and
+		different methods to get sentences and their associated sentiment values."""
 	def __init__(self, data=None, document_level = True):
 		self.data = data
 		super().__init__(data, document_level)
@@ -241,7 +263,7 @@ class sentiment(SharedClass, ExtractClass):
 		print(self.values)
 		return ''
 
-	def list_subsentences_sentiments(self):
+	def print_subsentences_sentiments(self):
 		print("{:120.120s} {:10}".format('Subsentence','Total value'))
 		print('-' * 132)
 		res = self.subsentences.todict(['sentence', 'values'])
@@ -249,7 +271,26 @@ class sentiment(SharedClass, ExtractClass):
 			# print(r)
 			print("{:120.120} {:10}".format(r['sentence'], r['values']['total']))
 
+	def list_subsentences_sentiments(self):
+		""" Returns list of subsentences with associated values"""
+		res = self.subsentences.todict(['sentence', 'values'], force_sentence = True)
+		return self.format([[[x['sentence'], x['values']['total']] for x in sub] for sub in res])
+
+	def list_sentences_sentiments(self):
+		""" Returns list of sentences with associated values"""
+		res = self.subsentences.todict(['sentence'], force_sentence=True)
+		vals = self.values.todict(force_sentence = True)
+		res = [[' '.join([x['sentence'] for x in sub]), val[0]['total']] if val else [' '.join([x['sentence'] for x in sub]), 0] for sub, val in zip(res, vals)]
+		return res
+
+	def tolist(self):
+		return None
+
+	def todict(self):
+		return None
+
 class emotion(SharedClass, ExtractClass):
+	""" Emotion class, similar to sentiment class"""
 	def __init__(self, data=None, document_level = True):
 		self.data = data
 		super().__init__(data, document_level)
@@ -291,22 +332,26 @@ class emotion(SharedClass, ExtractClass):
 			print('')
 
 class emotion_elements(SharedClass, ExtractClass):
+	"""Subclass of emotion for manipulation of elements"""
 	def __init__(self, data=None, document_level = True):
 		self.data = data
 		super().__init__(data, document_level)
 
 class emotion_subsentences(SharedClass, ExtractClass):
+	"""Subclass of emotion for manipulation of subsentences"""
 	def __init__(self, data=None, document_level = True):
 		self.data = data
 		super().__init__(data, document_level)
 
 class emotion_values(SharedClass, ExtractClass):
+	"""Subclass of emotion for manipulation of values"""
 	def __init__(self, data=None, document_level = True):
 		self.data = data
 		super().__init__(data, document_level)
 		self.fields = list(self.data[0][0].keys())
 
 	def total(self):
+		""" Merges the different emotion values by document or by sentence"""
 		if self.document_level:
 			dico = {k:0 for k in self.fields}
 			for seq in self.data:
@@ -332,6 +377,7 @@ class emotion_values(SharedClass, ExtractClass):
 		return dico
 
 	def mean(self):
+		""" Calculates the average of the different emotion values by document or by sentence"""
 		if self.document_level:
 			length = 0
 			dico = {k:0 for k in self.fields}
@@ -370,6 +416,7 @@ class emotion_values(SharedClass, ExtractClass):
 		return self.tolist(force_sentence)
 
 class emoticons(SharedClass, ExtractClass):
+	""" Subclass for emoticons"""
 	def __init__(self, data=None, document_level = True):
 		self.data = data
 		super().__init__(data, document_level)
@@ -398,6 +445,7 @@ class emoticons(SharedClass, ExtractClass):
 			return data
 
 class parser_dependency(SharedClass, ExtractClass):
+	""" Subclass for parser_dependency"""
 	def __init__(self, data=None, document_level = True):
 		self.data = data
 		super().__init__(data, document_level)
@@ -406,24 +454,76 @@ class parser_dependency(SharedClass, ExtractClass):
 	def getByRole(self, role):
 		return self.get_by_filter('dep', role)
 
-	def get_dependencies(self, word, return_empty = True, filter = []):
-		idx = [[v['index'] for v in seq if v['source'] == word] for seq in self.data]
-		if filter and isinstance(filter, list):
-			words = [[v['source'] for v in seq if v['ref'] in id and v['tag'] in filter] for seq, id in zip(self.data, idx)]
+	def get_dep_of_source(self, word, return_empty = True, filter_tag = [], \
+			return_category = False, return_lemma = False):
+		"""
+		Takes a token as input and retrieves the tokens that have the token as a reference.
+		return_empty : Boolean. Returns empty list if no match in a sentence.
+		filter_tag : List of string. List of tags to filter results with.
+		return_lemma : Boolean. Returns lemmatized tokens instead of original input.
+		return_category : Boolean. Returns category of tokens instead of original input.
+		"""
+		word = [word] if isinstance(word, str) else word
+		idx = [[v['index'] for v in seq if v['source'] in word] for seq in self.data]
+		type = 'lemma' if return_lemma else 'source'
+		if filter_tag and isinstance(filter_tag, list):
+			if return_category:
+				words = [{v[type]:self.__flatten_meaning(v['meaning'], 'sub') for v in seq \
+					if v['ref'] in id and v['tag'] in filter_tag} for seq, id in zip(self.data, idx)]
+			else:
+				words = [[v[type] for v in seq \
+					if v['ref'] in id and v['tag'] in filter_tag] for seq, id in zip(self.data, idx)]
 		else:
-			words = [[v['source'] for v in seq if v['ref'] in id] for seq, id in zip(self.data, idx)]
+			if return_category:
+				words = [{v[type]:self.__flatten_meaning(v['meaning'], 'sub') for v in seq \
+					if v['ref'] in id} for seq, id in zip(self.data, idx)]
+			else:
+				words = [[v[type] for v in seq if v['ref'] in id] for seq, id in zip(self.data, idx)]
 		if return_empty:
 			return self.format(words)
 		else:
 			return self.format([x for x in words if x])
 
-	# def tolist(self, tuple = False, force_sentence = False):
-	# 	if not tuple:
-	# 		return self.format([[sub['dep'] for sub in d] for d in self.data], force_sentence)
-	# 	else:
-	# 		return self.format([[(sub['source'], sub['dep']) for sub in d] for d in self.data], force_sentence)
+	def get_dep_of_category(self, category, return_empty = True, filter_tag = [],\
+	 		return_lemma = False):
+		"""
+		Takes a category as input and retrieves the tokens that have the category as a reference.
+		return_empty : Boolean. Returns empty list if no match in a sentence.
+		filter_tag : List of string. List of tags to filter results with.
+		return_lemma : Boolean. Returns lemmatized tokens instead of original input.
+		"""
+		category = [category] if isinstance(category, str) else category
+		idx = [[v['index'] for v in seq if self.__match_meaning(v['meaning'], category)] for seq in self.data]
+		type = 'lemma' if return_lemma else 'source'
+		if filter_tag and isinstance(filter_tag, list):
+			words = [[v[type] for v in seq if v['ref'] in id and v['tag'] in filter_tag] for seq, id in zip(self.data, idx)]
+		else:
+			words = [[v[type] for v in seq if v['ref'] in id] for seq, id in zip(self.data, idx)]
+		if return_empty:
+			return self.format(words)
+		else:
+			return self.format([x for x in words if x])
+
+	def __flatten_meaning(self, data, type = 'sub'):
+		lst = []
+		if type not in ['sub', 'super']:
+			return []
+		for elem in data:
+			if elem and elem[type]:
+				lst.append(elem[type])
+		return lst
+
+	def __match_meaning(self, data, category, type = 'sub'):
+		if type not in ['sub', 'super']:
+			return False
+		for elem in data:
+			if elem and elem[type] in category:
+				return True
+		return False
 
 class postagger(SharedClass):
+	""" Subclass for postagger key.
+		Allows filtering (include/exclude) and easy extraction of information."""
 	def __init__(self, data=None, document_level = True):
 		self.data = data
 		super().__init__(data, document_level)
@@ -473,6 +573,8 @@ class postagger(SharedClass):
 		return string
 
 class sentence_acts(SharedClass, ExtractClass):
+	""" Subclass fo sentence_acts key.
+		Sentence_act classifies the sentence between question, assertion etc."""
 	def __init__(self, data=None, document_level = True):
 		self.data = data
 		super().__init__(data, document_level)
@@ -493,13 +595,26 @@ class sentence_acts(SharedClass, ExtractClass):
 
 
 class coreference(SharedClass, ExtractClass):
+	""" Subclass fo coreference object."""
 	def __init__(self, data=None, document_level = True):
 		self.data = data
 		super().__init__(data, document_level)
 		self.name = 'coreference'
 
 class synthesis(SharedClass, ExtractClass):
+	""" Subclass for synthesis key.
+		Synthesis regroups key information for each token."""
 	def __init__(self, data=None, document_level = True):
 		self.data = data
 		super().__init__(data, document_level)
 		self.name = 'synthesis'
+
+from collections import Counter, OrderedDict
+
+class utils():
+	def __init__(self):
+		pass
+
+	def count_sort(self, data, reverse = True):
+		data = OrderedDict(sorted(Counter(data).items(), key = lambda v: v[1], reverse = reverse))
+		return data

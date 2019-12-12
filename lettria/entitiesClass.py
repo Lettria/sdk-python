@@ -70,21 +70,6 @@ class Duration(SharedClass):
 
         def __repr__(self):
             return str(self.format([[d['source'] for d in seq] for seq in self.data]))
-#
-# class Electric_power(SharedClass):
-#         def __init__(self, data = None, document_level = True):
-#             self.document_level = document_level
-#             self.data = data
-#         def __repr__(self):
-#             return str(self.format([[d['source'] for d in seq] for seq in self.data]))
-
-# class Hex_color(SharedClass):
-#         def __init__(self, data = None, document_level = True):
-#             self.document_level = document_level
-#             self.data = data
-#             self.name = 'Hex_color'
-#         def __repr__(self):
-#             return str(self.format([[d['source'] for d in seq] for seq in self.data]))
 
 class Frequency(SharedClass):
         def __init__(self, data = None, document_level = True):
@@ -150,13 +135,6 @@ class Ipv6(SharedClass):
             self.name = 'Ipv6'
         def __repr__(self):
             return str(self.format([[d['source'] for d in seq] for seq in self.data]))
-
-# class Light_intensity(SharedClass):
-#         def __init__(self, data = None, document_level = True):
-#             self.document_level = document_level
-#             self.data = data
-#         def __repr__(self):
-#             return str(self.format([[d['source'] for d in seq] for seq in self.data]))
 
 class Mail(SharedClass):
         def __init__(self, data = None, document_level = True):

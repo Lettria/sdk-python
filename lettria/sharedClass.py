@@ -1,6 +1,9 @@
 import json
 
 class SharedClass:
+	""" Base class for all subclasses and entity classes.
+		Provides tolist and todict methods which allows easy access to data.
+		"""
 	def __init__(self, data=None, document_level = True):
 		self.document_level = document_level
 
@@ -144,7 +147,7 @@ class SharedClass:
 				if isinstance(d, list):
 					return 'List of list: [[], [], []]'
 				elif isinstance(d, str):
-					return d	
+					return d
 				for key in d.keys():
 					if key in keys:
 						continue

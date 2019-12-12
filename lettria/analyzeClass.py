@@ -3,11 +3,17 @@ import json
 import os
 
 class Analyzer:
+    """ Class for data analysis of API return.
+        Takes a Client class as input which is used to make api requests.
+        Provides both high and low level methods to access data via specific class
+        for each key in the api result or methods designed for specific use cases.
+        """
     def __init__(self, client = None, data = None):
         self.client = client
         self.data = data
         self.result = []
         self.sentence_number = 0
+        self.utils = utils()
 
     def request(self, document = None):
         if not self.client:
@@ -32,6 +38,8 @@ class Analyzer:
         print('Please assign a client in order to make a request.')
 
     def by_sentence(self):
+        """ Change return format of all functions so that the result is returned
+            sentence by sentence"""
         try:
             self.ner.document_level = False
             self.postagger.document_level = False
@@ -48,6 +56,9 @@ class Analyzer:
             print('Error classes not initialized, process() should be called.')
 
     def by_document(self):
+        """ Change return format of all functions so that the individual sentences
+        results are merged together
+        """
         try:
             self.ner.document_level = True
             self.postagger.document_level = True
@@ -64,6 +75,12 @@ class Analyzer:
             print('Error classes not initialized, process() should be called.')
 
     def process(self, document_level = True):
+        """
+        Creates subclasses for the different keys of the api.
+        Must be used after makin a request or loading a file.
+        All classes implement common methods such as .tolist() and .todict() which
+        returns data in the specified format.
+        """
         if not self.result:
             print('No data to analyze')
         else:
@@ -80,6 +97,7 @@ class Analyzer:
             self.synthesis = synthesis([[sub for sub in d['synthesis']] for d in self.result if 'synthesis' in d], document_level)
 
     def lemmatize(self):
+        """ Returns a list of lemmatized tokens, some tokens are merged due to regex"""
         return self.synthesis.tolist('lemma')
 
     def tokenize(self, merge = False):
@@ -92,6 +110,7 @@ class Analyzer:
             return self.nlp.tolist('source')
 
     def concat_emoticons(self, document_level):
+        """ Merge different dictionnaries of emoticon occurences"""
         self.emoticons = [[d['emoticons']['emoticon']] for d in self.result if 'emoticons' in d]
         lst_emots = []
         for seq in self.emoticons:
@@ -104,6 +123,8 @@ class Analyzer:
         return lst_emots
 
     def category_sentiment_by_subsentence(self, mode = 'average', filter = [], sample = 5):
+        """ Return the sentiment associated with a category.
+            It takes the sum or average of sentiment value of each subsentence in which the category appears."""
         cats = self.nlu.categories_unique('sub')
         if filter:
             cats = [cat for cat in cats if cat in filter]
@@ -133,6 +154,8 @@ class Analyzer:
         return sentiments
 
     def category_sentiment_by_sentence(self, mode = 'average', filter = [], sample = 5):
+        """ Return the sentiment associated with a category.
+            It takes the sum or average of sentiment value of each sentence in which the category appears."""
         cats = self.nlu.categories_unique('sub')
         if filter:
             cats = [cat for cat in cats if cat in filter]
@@ -163,6 +186,8 @@ class Analyzer:
         return sentiments
 
     def sentences_type(self, filter = []):
+        """ Returns a list of all the sentences of the specified type.
+            filter argument may be a string or a list"""
         types = self.sentence_acts.tolist('predict')
         sentences = self.parser_dependency.tolist(None, True)
         if filter and not isinstance(filter, list):
@@ -176,6 +201,7 @@ class Analyzer:
         return questions
 
     def save_results(self, file = ''):
+        """ Writes json result to a file with the specified name."""
         path_ok = 0
         c = 0
         if not file:
@@ -194,13 +220,17 @@ class Analyzer:
             json.dump(self.result, f)
 
     def load_results(self, file = 'results_0'):
+        """ Loads result from a valid json file."""
         if file.endswith('.json'):
             file = file.replace('.json', '')
         with open(file + '.json', 'r') as f:
             self.result = json.load(f)
-            # self.result = [d['Retour_api'] for d in self.result]
-            # tmp = []
-            # for d in self.result:
-            #     if d:
-            #         tmp += d
-            # self.result = tmp
+
+# A REMOVE
+    def normalize(self):
+            self.result = [d['Retour_api'] for d in self.result]
+            tmp = []
+            for d in self.result:
+                if d:
+                    tmp += d
+            self.result = tmp

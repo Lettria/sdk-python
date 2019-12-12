@@ -23,6 +23,7 @@ analyzer = Analyzer(client)
 # analyzer.save_results()
 # analyzer.load_results()
 analyzer.load_results('verbatim_api.json')
+analyzer.normalize() # A NE PAS FAIRE NORMALEMENT
 # analyzer.load_results('results_0.json')
 # analyzer.save_results('results_0.json')
 
@@ -76,10 +77,17 @@ analyzer.process()
 
 
 #PARSER_DEP
-
-analyzer.by_sentence()
+# analyzer.by_sentence()
 # print(analyzer.parser_dependency)
-print(analyzer.parser_dependency.get_dependencies("agence", return_empty=False, filter = ['JJ']))
+# test = analyzer.parser_dependency.get_dep_of_source("agence", return_empty=False, filter_tag = ['JJ'])
+# print(test)
+# test = analyzer.utils.count_sort(test)
+# print(test)
+
+# test = analyzer.parser_dependency.get_dep_of_category(['Personnel'], return_empty=False, filter_tag = ['JJ'], return_lemma = True)
+# print(test)
+# test = analyzer.utils.count_sort(test)
+# print(test)
 # print(analyzer.parser_dependency.fields())
 # print(analyzer.parser_dependency.tolist())
 # print(analyzer.parser_dependency.tolist(True))
@@ -87,8 +95,8 @@ print(analyzer.parser_dependency.get_dependencies("agence", return_empty=False, 
 
 
 #SENTIMENT
-
 # print(analyzer.sentiment)
+# print(analyzer.sentiment.tolist())
 # print(analyzer.sentiment.values)
 # print(analyzer.sentiment.values.total())
 # print(analyzer.sentiment.values.mean())
@@ -99,7 +107,9 @@ print(analyzer.parser_dependency.get_dependencies("agence", return_empty=False, 
 # print(analyzer.sentiment.elements.tolist('target'))
 # print(analyzer.sentiment.subsentences)
 # print(analyzer.sentiment.subsentences.todict(['sentence', 'values']))
-# analyzer.sentiment.list_subsentences_sentiments()
+# analyzer.sentiment.print_subsentences_sentiments()
+# print(analyzer.sentiment.list_subsentences_sentiments())
+# print(analyzer.sentiment.list_sentences_sentiments())
 
 #EMOTION
 
