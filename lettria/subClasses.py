@@ -263,13 +263,41 @@ class sentiment(SharedClass, ExtractClass):
 		print(self.values)
 		return ''
 
+	def classify_sentences(self):
+		""" Returns a dictionnary with classified sentences according to their
+		given classes."""
+		values = self.list_sentences_sentiments()
+		res = {'positive':[], 'negative':[], 'neutral':[]}
+		for seq in values:
+			if seq and seq[1] == 0:
+				res['neutral'].append(seq[0])
+			elif seq and seq[1] > 0:
+				res['positive'].append(seq[0])
+			elif seq and seq[1] < 0:
+				res['negative'].append(seq[0])
+		return res
+
+	def classify_subsentences(self):
+		""" Returns a dictionnary with classified subsentences according to their
+		given classes."""
+		values = self.list_subsentences_sentiments()
+		res = {'positive':[], 'negative':[], 'neutral':[]}
+		for seq in values:
+			if seq and seq[1] == 0:
+				res['neutral'].append(seq[0])
+			elif seq and seq[1] > 0:
+				res['positive'].append(seq[0])
+			elif seq and seq[1] < 0:
+				res['negative'].append(seq[0])
+		return res
+
 	def print_subsentences_sentiments(self):
 		print("{:120.120s} {:10}".format('Subsentence','Total value'))
 		print('-' * 132)
 		res = self.subsentences.todict(['sentence', 'values'])
 		for r in res:
-			# print(r)
-			print("{:120.120} {:10}".format(r['sentence'], r['values']['total']))
+			if r:
+				print("{:120.120} {:10}".format(r['sentence'], r['values']['total']))
 
 	def list_subsentences_sentiments(self):
 		""" Returns list of subsentences with associated values"""
@@ -306,6 +334,7 @@ class emotion(SharedClass, ExtractClass):
 			'disgust'	:'\033[35m',
 			'fear'		:'\033[36m'
 		}
+		self.fields = list(self.data[0]['values'].keys())
 
 	def __str__(self):
 		print(self.elements)
@@ -314,6 +343,42 @@ class emotion(SharedClass, ExtractClass):
 		return ''
 
 	def list_subsentences_emotions(self):
+		""" Returns list of subsentences with associated values"""
+		res = self.subsentences.todict(['sentence', 'values'], force_sentence = True)
+		return self.format([[[x['sentence'], x['values']] for x in sub] for sub in res])
+
+	def list_sentences_emotions(self):
+		""" Returns list of sentences with associated values"""
+		res = self.subsentences.todict(['sentence'], force_sentence=True)
+		vals = self.values.todict(force_sentence = True)
+		res = [[' '.join([x['sentence'] for x in sub]), val[0]] if val else [' '.join([x['sentence'] for x in sub]), 0] for sub, val in zip(res, vals)]
+		return res
+
+	def classify_sentences(self):
+		""" Returns a dictionnary with classified sentences according to their
+		given classes."""
+		values = self.list_sentences_emotions()
+		res = {k:[] for k in self.fields}
+		for seq in values:
+			if seq and isinstance(seq[1], dict):
+				for key in res.keys():
+					if key in seq[1] and seq[1][key] > 0:
+						res[key].append(seq[0])
+		return res
+
+	def classify_subsentences(self):
+		""" Returns a dictionnary with classified subsentences according to their
+		given classes."""
+		values = self.list_subsentences_emotions()
+		res = {k:[] for k in self.fields}
+		for seq in values:
+			if seq and isinstance(seq[1], dict):
+				for key in res.keys():
+					if key in seq[1] and seq[1][key] > 0:
+						res[key].append(seq[0])
+		return res
+
+	def print_subsentences_emotions(self):
 		print("{:100.100s}".format('Subsentence'), end = '\t')
 		for k in ['anger', 'disgust', 'fear', 'happiness', 'sadness', 'surprise']:
 			print("{:9}".format(k), end = '\t')

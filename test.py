@@ -4,26 +4,18 @@ from lettria.analyzeClass import Analyzer
 api_key = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhbmFseXRpY0lkIjoiNWRlOGRiMzBlYzY4YjA1MWNmZmZiZGRjIiwicHJvamVjdElkIjoiNWRlOGRiMzBlYzY4YjA1MWNmZmZiZGRkIiwic3Vic2NyaXB0aW9uSWQiOiI1ZDZkMjExNjExZGM5MDMxMGQ4ZWJhMzIiLCJpYXQiOjE1NzU1NDE1NTQsImV4cCI6MTYyMzkyNTU1NH0.dZCq-mv9oHGTCx6lW1GyxmYLehgD1OYg2RMObJueXH0'
 
 client = lettria.Client(key=api_key, raw=False)
-# phrase1 = "Je :) mange du poulet a 4 heures du matin. 21m/s 23/07/1192. www.google.com   www.google.fr 12.143.43.123 Hier, 3 km/h 12 km 145.247.145.1 Henri est vraiment devenu fou. 124.53.111.3 :-) :D XD"
-
 phrase1 ="J'aime beaucoup le fromage. Tu detestes la charcuterie. Ca fait vraiment chier mais bon je suis content. Ok"
 
 phrase2 = "Jack Nicholson /d͡ʒæk ˈnɪkəlsən/1 est un acteur, réalisateur et scénariste américain, né le 22 avril 1937 à Neptune (New Jersey). Il a joué un grand nombre de rôles principaux ou secondaires, principalement des personnages sombres, d'anti-héros, de personnages odieux, d'éternel marginal, de vagabond sardonique, de rebelle contre la société2, voire de fou, dans de nombreux films culte du cinéma américain comme Easy Rider, Chinatown, Vol au-dessus d'un nid de coucou, Batman, Mars Attacks!, Pour le pire et pour le meilleur, Les Infiltrés, Shining, et du cinéma européen comme Profession : reporter. Avec douze nominations et trois récompenses, il fait partie des acteurs les plus nommés et récompensés aux Oscars du cinéma."
-# ret = client.request(phrase)
-# print(ret.data[0].get_judgement_items())
-# exit()
-
-# phrase1 = "J'ai mange un sandwich."
 
 analyzer = Analyzer(client)
-# ret = client.request(phrase)
 # analyzer.request(phrase1)
 # analyzer.request(phrase2)
 
 # analyzer.save_results()
 # analyzer.load_results()
 analyzer.load_results('verbatim_api.json')
-analyzer.normalize() # A NE PAS FAIRE NORMALEMENT
+analyzer.normalize() # A NE PAS FAIRE NORMALEMENT, VERBATIM API A UN FORMAT PARTICULIER
 # analyzer.load_results('results_0.json')
 # analyzer.save_results('results_0.json')
 
@@ -75,7 +67,6 @@ analyzer.process()
 # print(analyzer.postagger.fields())
 # print(analyzer.postagger.get_by_tag_exclude(['PUNCT', 'SYM', 'NP']))
 
-
 #PARSER_DEP
 # analyzer.by_sentence()
 # print(analyzer.parser_dependency)
@@ -110,6 +101,8 @@ analyzer.process()
 # analyzer.sentiment.print_subsentences_sentiments()
 # print(analyzer.sentiment.list_subsentences_sentiments())
 # print(analyzer.sentiment.list_sentences_sentiments())
+# print(analyzer.sentiment.classify_sentences())
+# print(analyzer.sentiment.classify_subsentences()['neutral'])
 
 #EMOTION
 
@@ -123,8 +116,11 @@ analyzer.process()
 # print(analyzer.emotion.elements.tolist())
 # print(analyzer.emotion.elements.tolist())
 # print(analyzer.emotion.subsentences)
-# analyzer.emotion.list_subsentences_emotions()
-
+# analyzer.emotion.print_subsentences_emotions()
+# print(analyzer.emotion.list_subsentences_emotions())
+# print(analyzer.emotion.list_sentences_emotions())
+# print(analyzer.emotion.classify_sentences())
+# print(analyzer.emotion.classify_subsentences()['surprise'])
 #NLU
 
 # print(analyzer.nlu)
