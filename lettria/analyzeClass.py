@@ -1,6 +1,7 @@
 from .subClasses import *
 import json
 import os
+import lettria
 
 class Analyzer:
     """ Class for data analysis of API return.
@@ -8,28 +9,33 @@ class Analyzer:
         Provides both high and low level methods to access data via specific class
         for each key in the api result or methods designed for specific use cases.
         """
-    def __init__(self, client = None, data = None):
-        self.client = client
+    def __init__(self, api_key = '', raw=True, client = None, data = None):
+        if client:
+            self.client = client
+        else:
+            self.client = lettria.Client(api_key, raw=True)
         self.data = data
         self.result = []
-        self.sentence_number = 0
         self.utils = utils()
 
-    def request(self, document = None):
+    def __str__(self):
+        return json.dumps(self.result, indent = 4)
+
+    def request(self, data = None):
         if not self.client:
             self.missing_client()
             return
-        if not document:
+        if not data:
             if self.data:
-                document = self.data
+                data = self.data
             else:
                 return
         try:
-            if isinstance(document, list):
-                for seq in document:
+            if isinstance(data, list):
+                for seq in data:
                     self.result += self.client.request(seq, raw=True)
             else:
-                self.result += self.client.request(document, raw=True)
+                self.result += self.client.request(data, raw=True)
         except Exception as e:
             print(e)
             pass
@@ -48,7 +54,13 @@ class Analyzer:
             self.nlp.document_level = False
             self.nlu.document_level = False
             self.emotion.document_level = False
+            self.emotion.values.document_level = False
+            self.emotion.subsentences.document_level = False
+            self.emotion.elements.document_level = False
             self.sentiment.document_level = False
+            self.sentiment.values.document_level = False
+            self.sentiment.subsentences.document_level = False
+            self.sentiment.elements.document_level = False
             self.sentence_acts.document_level = False
             self.coreference.document_level = False
             self.synthesis.document_level = False
@@ -67,7 +79,13 @@ class Analyzer:
             self.nlp.document_level = True
             self.nlu.document_level = True
             self.emotion.document_level = True
+            self.emotion.values.document_level = True
+            self.emotion.subsentences.document_level = True
+            self.emotion.elements.document_level = True
             self.sentiment.document_level = True
+            self.sentiment.values.document_level = True
+            self.sentiment.subsentences.document_level = True
+            self.sentiment.elements.document_level = True
             self.sentence_acts.document_level = True
             self.coreference.document_level = True
             self.synthesis.document_level = True
@@ -101,7 +119,8 @@ class Analyzer:
         return self.synthesis.tolist('lemma')
 
     def tokenize(self, merge = False):
-        ''' Option merge: Merge tokens according to NER patterns.
+        ''' Returns a list of tokens.
+            Option merge: Merge tokens according to NER patterns.
             merge False :   ['2','km','/','/h']
             merge True :    ['2km/h']                   '''
         if merge:
@@ -146,7 +165,7 @@ class Analyzer:
                         elif value['values']['total'] < -0.5 and len(sentiments[cat]['n_sentences']) < sample:
                             sentiments[cat]['n_sentences'].append(id_sub['sentence'])
                 length += 1
-        if mode == 'total':
+        if mode == 'sum':
             sentiments = {k:{k1: round(v1,3) for k1, v1 in v.items()} for k,v in sentiments.items()}
         else:
             fields = ['negative', 'positive', 'total']
@@ -178,7 +197,7 @@ class Analyzer:
                         sentiments[cat]['p_sentences'].append(sent)
                     elif value['total'] < -0.5 and len(sentiments[cat]['n_sentences']) < sample:
                         sentiments[cat]['n_sentences'].append(sent)
-        if mode == 'total':
+        if mode == 'sum':
             sentiments = {k:{k1: round(v1,3) for k1, v1 in v.items()} for k,v in sentiments.items()}
         else:
             fields = ['negative', 'positive', 'total']

@@ -83,51 +83,6 @@ class SharedClass:
 			res.append(tmp_lst)
 		return self.format(res, force_sentence)
 
-	def print_formatted(self):
-		length = 25
-		d = {}
-		seq = []
-		print("{:15s}\t{:20s}\t".format('Type','Source'), end = '')
-		# print(self.data)
-		for _seq in self.data:
-			for _seq in self.data:
-				if _seq:
-					seq = _seq
-					break
-		for d_ in seq:
-			if d_:
-				d = d_
-				break
-		if not d:
-			return
-		for key in d.keys():
-			if key not in ['type', 'source']:
-				if isinstance(d[key], dict):
-					for k in d[key].keys():
-						print("{:12s}".format(k.capitalize()), end = '\t')
-						length += 16
-				else:
-					print("{:10s}".format(key.capitalize()), end = '\t')
-					length += 16
-		print('')
-		print('-' * length)
-		for seq in self.data:
-			for d in seq:
-				print("{:15.15s}\t{:20.20s}\t".format(d['type'].upper(), d['source']), end = '')
-				for key in d.keys():
-					if key not in ['type', 'source']:
-						if isinstance(d[key], dict):
-							for k in d[key].keys():
-								if not isinstance(d[key][k], (str, float, int)):
-									print("{:12.12s}".format(type(d[key][k]).__name__), end = '\t')
-								else:
-									print("{:12.12s}".format(str(d[key][k])), end = '\t')
-						else:
-							_field = d[key] if d[key] else 'None'
-							print("{:10}".format(_field), end = '\t')
-				if d:
-					print('')
-
 	def fields(self, data = None, recurse = 0):
 		if not recurse and self.name:
 			print(self.name.capitalize() + " fields:")

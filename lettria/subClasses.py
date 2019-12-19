@@ -195,27 +195,37 @@ class sentiment_values(SharedClass, ExtractClass):
 		if self.document_level:
 			dico = {'total':0, 'negative':0, 'positive':0}
 			for seq in self.data:
+				if not seq:
+					continue
 				for d in seq:
 					for k,v in d.items():
 						dico[k] += v
+			for k,v in dico.items():
+				dico[k] = round(v / length + 1e-6, 3)
 		else:
 			dico = []
 			for seq in self.data:
+				if not seq:
+					dico.append([])
+					continue
 				tmp = {'total':0, 'negative':0, 'positive':0}
 				for d in seq:
 					for k,v in d.items():
 						tmp[k] += v
+				for k,v in tmp.items():
+					tmp[k] = round(v, 4)
 				dico.append(tmp)
-		for k,v in dico.items():
-			dico[k] = round(v, 4)
 		return dico
 
 	def mean(self):
 		""" Calculates the average of the different sentiment values by document or by sentence"""
 		if self.document_level:
+			print('a')
 			length = 0
 			dico = {'total':0, 'negative':0, 'positive':0}
 			for seq in self.data:
+				if not seq:
+					continue
 				for d in seq:
 					for k,v in d.items():
 						dico[k] += v
@@ -225,6 +235,9 @@ class sentiment_values(SharedClass, ExtractClass):
 		else:
 			dico = []
 			for seq in self.data:
+				if not seq:
+					dico.append([])
+					continue
 				length = 0
 				tmp = {'total':0, 'negative':0, 'positive':0}
 				for d in seq:
@@ -431,6 +444,7 @@ class emotion_values(SharedClass, ExtractClass):
 			dico = []
 			for seq in self.data:
 				if not seq:
+					dico.append([])
 					continue
 				tmp = {k:0 for k in self.fields}
 				for d in seq:
@@ -459,6 +473,7 @@ class emotion_values(SharedClass, ExtractClass):
 			dico = []
 			for seq in self.data:
 				if not seq:
+					dico.append([])
 					continue
 				length = 0
 				tmp = {k:0 for k in self.fields}
@@ -595,6 +610,8 @@ class postagger(SharedClass):
 		self.name = 'postagger'
 
 	def get_by_tag(self, tag):
+		"""  Filtering: include
+		Returns tuple (source, tag)"""
 		data = self.tolist(True, True)
 		r = []
 		if data:
@@ -611,6 +628,8 @@ class postagger(SharedClass):
 		return self.format(r)
 
 	def get_by_tag_exclude(self, tag):
+		"""  Filtering: exclude
+			Returns tuple (source, tag)"""
 		data = self.tolist(True, True)
 		r = []
 		if data:

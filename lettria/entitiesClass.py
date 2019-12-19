@@ -1,6 +1,62 @@
 from .sharedClass import SharedClass
 
-class Person(SharedClass):
+class Base_entity(SharedClass):
+        def __init__(self, name, data = None, document_level = True):
+            self.document_level = document_level
+            self.data = data
+            self.name = name
+        def __repr__(self):
+            if 'source' in self.format(self.data)[0]:
+                return str(self.format([[d['source'] for d in seq] for seq in self.data]))
+            else:
+                return str(self.format([d for d in self.data]))
+
+        def print_formatted(self):
+            length = 25
+            d = {}
+            seq = []
+            print("{:15s}\t{:20s}\t".format('Type','Source'), end = '')
+            for _seq in self.data:
+                for _seq in self.data:
+                    if _seq:
+                        seq = _seq
+                        break
+            for d_ in seq:
+                if d_:
+                    d = d_
+                    break
+            if not d:
+                return
+            for key in d.keys():
+                if key not in ['type', 'source']:
+                    if isinstance(d[key], dict):
+                        for k in d[key].keys():
+                            print("{:12s}".format(k.capitalize()), end = '\t')
+                            length += 16
+                    else:
+                        print("{:10s}".format(key.capitalize()), end = '\t')
+                        length += 16
+            print('')
+            print('-' * length)
+            for seq in self.data:
+                for d in seq:
+                    print("{:15.15s}\t{:20.20s}\t".format(d['type'].upper(), d['source']), end = '')
+                    for key in d.keys():
+                        if key not in ['type', 'source']:
+                            if isinstance(d[key], dict):
+                                for k in d[key].keys():
+                                    if not isinstance(d[key][k], (str, float, int)):
+                                        print("{:12.12s}".format(type(d[key][k]).__name__), end = '\t')
+                                    else:
+                                        print("{:12.12s}".format(str(d[key][k])), end = '\t')
+                            else:
+                                _field = d[key] if d[key] else 'None'
+                                print("{:10}".format(_field), end = '\t')
+                    if d:
+                        print('')
+
+
+class Person(Base_entity):
         def __init__(self, data = None, document_level = True):
             self.document_level = document_level
             self.data = data
@@ -15,7 +71,7 @@ class Person(SharedClass):
                     print("{:10s}\t".format(d['type'].upper()), end = '')
                     print("{:10s}".format(d['source']))
 
-class Location(SharedClass):
+class Location(Base_entity):
         def __init__(self, data = None, document_level = True):
             self.document_level = document_level
             self.data = data
@@ -30,7 +86,7 @@ class Location(SharedClass):
                     print("{:10s}\t".format(d['type'].upper()), end = '')
                     print("{:10s}".format(d['source']))
 
-class Date(SharedClass):
+class Date(Base_entity):
         def __init__(self, data = None, document_level = True):
             self.document_level = document_level
             self.data = data
@@ -45,7 +101,7 @@ class Date(SharedClass):
                     print("{:10s}\t".format(d['type'].upper()), end = '')
                     print("{:20.20s}\t{:20s}\t{:20s}".format(d['source'], d['value']['ISO'], str(d['value']['timestamp'])))
 
-class Distance(SharedClass):
+class Distance(Base_entity):
         def __init__(self, data = None, document_level = True):
             self.document_level = document_level
             self.data = data
@@ -62,7 +118,7 @@ class Distance(SharedClass):
                     print("{:10s}\t".format(d['type'].upper()), end = '')
                     print("{:10s}\t{:15s}\t{:15.10s}\t{:15.10s}".format(d['source'], d['value']['unit'], str(d['value']['meter']), str(d['value']['miles'])))
 
-class Duration(SharedClass):
+class Duration(Base_entity):
         def __init__(self, data = None, document_level = True):
             self.document_level = document_level
             self.data = data
@@ -71,7 +127,7 @@ class Duration(SharedClass):
         def __repr__(self):
             return str(self.format([[d['source'] for d in seq] for seq in self.data]))
 
-class Frequency(SharedClass):
+class Frequency(Base_entity):
         def __init__(self, data = None, document_level = True):
             self.document_level = document_level
             self.data = data
@@ -79,7 +135,7 @@ class Frequency(SharedClass):
         def __repr__(self):
             return str(self.format([[d['source'] for d in seq] for seq in self.data]))
 
-class Interval(SharedClass):
+class Interval(Base_entity):
         def __init__(self, data = None, document_level = True):
             self.document_level = document_level
             self.data = data
@@ -109,7 +165,7 @@ class Interval(SharedClass):
                         print("{:15s}\t{:15s}\t{:15s}".format('', '', ''), end = '')
                     print('')
 
-class Ip(SharedClass):
+class Ip(Base_entity):
         def __init__(self, data = None, document_level = True):
             self.document_level = document_level
             self.data = data
@@ -128,7 +184,7 @@ class Ip(SharedClass):
                         print("{:15s}\t{:15s}\t{:25s}".format(d['value']['country'], d['value']['city'], d['value']['org']))
                     else:
                         print("{:15s}\t{:15s}\t{:25s}".format('None', 'None', 'None'))
-class Ipv6(SharedClass):
+class Ipv6(Base_entity):
         def __init__(self, data = None, document_level = True):
             self.document_level = document_level
             self.data = data
@@ -136,7 +192,7 @@ class Ipv6(SharedClass):
         def __repr__(self):
             return str(self.format([[d['source'] for d in seq] for seq in self.data]))
 
-class Mail(SharedClass):
+class Mail(Base_entity):
         def __init__(self, data = None, document_level = True):
             self.document_level = document_level
             self.data = data
@@ -144,7 +200,7 @@ class Mail(SharedClass):
         def __repr__(self):
             return str(self.format([[d['source'] for d in seq] for seq in self.data]))
 
-class Mass(SharedClass):
+class Mass(Base_entity):
         def __init__(self, data = None, document_level = True):
             self.document_level = document_level
             self.data = data
@@ -152,7 +208,7 @@ class Mass(SharedClass):
         def __repr__(self):
             return str(self.format([[d['source'] for d in seq] for seq in self.data]))
 
-class Mass_by_volume(SharedClass):
+class Mass_by_volume(Base_entity):
         def __init__(self, data = None, document_level = True):
             self.document_level = document_level
             self.data = data
@@ -160,7 +216,7 @@ class Mass_by_volume(SharedClass):
         def __repr__(self):
             return str(self.format([[d['source'] for d in seq] for seq in self.data]))
 
-class Mol(SharedClass):
+class Mol(Base_entity):
         def __init__(self, data = None, document_level = True):
             self.document_level = document_level
             self.data = data
@@ -168,7 +224,7 @@ class Mol(SharedClass):
         def __repr__(self):
             return str(self.format([[d['source'] for d in seq] for seq in self.data]))
 
-class Money(SharedClass):
+class Money(Base_entity):
         def __init__(self, data = None, document_level = True):
             self.document_level = document_level
             self.data = data
@@ -176,7 +232,7 @@ class Money(SharedClass):
         def __repr__(self):
             return str(self.format([[d['source'] for d in seq] for seq in self.data]))
 
-class Ordinal(SharedClass):
+class Ordinal(Base_entity):
         def __init__(self, data = None, document_level = True):
             self.document_level = document_level
             self.data = data
@@ -184,7 +240,7 @@ class Ordinal(SharedClass):
         def __repr__(self):
             return str(self.format([[d['source'] for d in seq] for seq in self.data]))
 
-class Percent(SharedClass):
+class Percent(Base_entity):
         def __init__(self, data = None, document_level = True):
             self.document_level = document_level
             self.data = data
@@ -192,7 +248,7 @@ class Percent(SharedClass):
         def __repr__(self):
             return str(self.format([[d['source'] for d in seq] for seq in self.data]))
 
-class Phone(SharedClass):
+class Phone(Base_entity):
         def __init__(self, data = None, document_level = True):
             self.document_level = document_level
             self.data = data
@@ -200,7 +256,7 @@ class Phone(SharedClass):
         def __repr__(self):
             return str(self.format([[d['source'] for d in seq] for seq in self.data]))
 
-class Pressure(SharedClass):
+class Pressure(Base_entity):
         def __init__(self, data = None, document_level = True):
             self.document_level = document_level
             self.data = data
@@ -208,7 +264,7 @@ class Pressure(SharedClass):
         def __repr__(self):
             return str(self.format([[d['source'] for d in seq] for seq in self.data]))
 
-class Set(SharedClass):
+class Set(Base_entity):
         def __init__(self, data = None, document_level = True):
             self.document_level = document_level
             self.data = data
@@ -216,7 +272,7 @@ class Set(SharedClass):
         def __repr__(self):
             return str(self.format([[d['source'] for d in seq] for seq in self.data]))
 
-class Speed(SharedClass):
+class Speed(Base_entity):
         def __init__(self, data = None, document_level = True):
             self.document_level = document_level
             self.data = data
@@ -233,7 +289,7 @@ class Speed(SharedClass):
                     print("{:10s}\t{:15s}\t{:15.8s}\t{:15.8s}".format(d['source'], d['value']['unit'], str(d['value']['km/h']), str(d['value']['m/s'])))
 
 
-class Strength(SharedClass):
+class Strength(Base_entity):
         def __init__(self, data = None, document_level = True):
             self.document_level = document_level
             self.data = data
@@ -241,7 +297,7 @@ class Strength(SharedClass):
         def __repr__(self):
             return str(self.format([[d['source'] for d in seq] for seq in self.data]))
 
-class Surface(SharedClass):
+class Surface(Base_entity):
         def __init__(self, data = None, document_level = True):
             self.document_level = document_level
             self.data = data
@@ -249,7 +305,7 @@ class Surface(SharedClass):
         def __repr__(self):
             return str(self.format([[d['source'] for d in seq] for seq in self.data]))
 
-class Surface_tension(SharedClass):
+class Surface_tension(Base_entity):
         def __init__(self, data = None, document_level = True):
             self.document_level = document_level
             self.data = data
@@ -257,7 +313,7 @@ class Surface_tension(SharedClass):
         def __repr__(self):
             return str(self.format([[d['source'] for d in seq] for seq in self.data]))
 
-class Temperature(SharedClass):
+class Temperature(Base_entity):
         def __init__(self, data = None, document_level = True):
             self.document_level = document_level
             self.data = data
@@ -265,7 +321,7 @@ class Temperature(SharedClass):
         def __repr__(self):
             return str(self.format([[d['source'] for d in seq] for seq in self.data]))
 
-class Time(SharedClass):
+class Time(Base_entity):
         def __init__(self, data = None, document_level = True):
             self.document_level = document_level
             self.data = data
@@ -273,7 +329,7 @@ class Time(SharedClass):
         def __repr__(self):
             return str(self.format([[d['source'] for d in seq] for seq in self.data]))
 
-class Url(SharedClass):
+class Url(Base_entity):
         def __init__(self, data = None, document_level = True):
             self.document_level = document_level
             self.data = data
@@ -281,7 +337,7 @@ class Url(SharedClass):
         def __repr__(self):
             return str(self.format([[d['source'] for d in seq] for seq in self.data]))
 
-class Voltage(SharedClass):
+class Voltage(Base_entity):
         def __init__(self, data = None, document_level = True):
             self.document_level = document_level
             self.data = data
@@ -289,21 +345,10 @@ class Voltage(SharedClass):
         def __repr__(self):
             return str(self.format([[d['source'] for d in seq] for seq in self.data]))
 
-class Volume(SharedClass):
+class Volume(Base_entity):
         def __init__(self, data = None, document_level = True):
             self.document_level = document_level
             self.data = data
             self.name = 'Volume'
         def __repr__(self):
             return str(self.format([[d['source'] for d in seq] for seq in self.data]))
-
-class Base_entity(SharedClass):
-        def __init__(self, name, data = None, document_level = True):
-            self.document_level = document_level
-            self.data = data
-            self.name = name
-        def __repr__(self):
-            if 'source' in self.format(self.data)[0]:
-                return str(self.format([[d['source'] for d in seq] for seq in self.data]))
-            else:
-                return str(self.format([d for d in self.data]))
