@@ -7,8 +7,10 @@ class SharedClass:
 	def __init__(self, data=None, document_level = True):
 		self.document_level = document_level
 
-	def format(self, data, force_sentence = ''):
-		if not force_sentence and self.document_level:
+	def format(self, data, force = ''):
+		if force == 'sentence':
+			return data
+		elif force == 'document' or self.document_level:
 			tmp = []
 			for d in data:
 				if d:
@@ -36,14 +38,14 @@ class SharedClass:
 		except:
 			return False
 
-	def tolist(self, fields = None, force_sentence = False):
+	def tolist(self, fields = None, force = ''):
 		if fields:
 			if isinstance(fields, list):
 				print('Only supports string. Use todict() for multiple fields request.')
 				return ''
 			else:
 				res = []
-				result = [v for v in self.todict([fields], force_sentence = True)]
+				result = [v for v in self.todict([fields], force = 'sentence')]
 				for seq in result:
 					tmp = []
 					for d in seq:
@@ -52,11 +54,11 @@ class SharedClass:
 						else:
 							tmp.append(d)
 					res.append(tmp)
-				return self.format(res)
+				return self.format(res, force)
 		else:
-			return self.format([[sub['source'] for sub in d] if d else [] for d in self.data], force_sentence)
+			return self.format([[sub['source'] for sub in d] if d else [] for d in self.data], force)
 
-	def todict(self, fields=['source'], force_sentence = False):
+	def todict(self, fields=['source'], force = ''):
 		if isinstance(fields, str):
 			fields = [fields]
 		res = []
@@ -81,7 +83,7 @@ class SharedClass:
 							tmp[field] = tmp_lst
 					tmp_lst.append(tmp)
 			res.append(tmp_lst)
-		return self.format(res, force_sentence)
+		return self.format(res, force)
 
 	def fields(self, data = None, recurse = 0):
 		if not recurse and self.name:
