@@ -2,6 +2,8 @@ from .subClasses import *
 import json
 import os
 import lettria
+from collections import Counter
+import numpy as np
 
 class Analyzer:
     """ Class for data analysis of API return.
@@ -17,6 +19,7 @@ class Analyzer:
         self.data = data
         self.result = []
         self.utils = utils()
+        self.document_level = True
 
     def __str__(self):
         return json.dumps(self.result, indent = 4)
@@ -40,6 +43,9 @@ class Analyzer:
             print(e)
             pass
 
+    def reset_data(self):
+        self.result = []
+
     def missing_client(self):
         print('Please assign a client in order to make a request.')
 
@@ -47,6 +53,7 @@ class Analyzer:
         """ Change return format of all functions so that the result is returned
             sentence by sentence"""
         try:
+            self.document_level = False
             self.ner.document_level = False
             self.postagger.document_level = False
             self.emoticons.document_level = False
@@ -72,6 +79,7 @@ class Analyzer:
         results are merged together
         """
         try:
+            self.document_level = True
             self.ner.document_level = True
             self.postagger.document_level = True
             self.emoticons.document_level = True
@@ -128,6 +136,53 @@ class Analyzer:
         else:
             return self.nlp.tolist('source')
 
+    def vocabulary(self, lemma = False, lowercase = False, alphabetic = False, max_len = 40):
+        """ Returns a list of unique tokens """
+        if lemma:
+            data = self.synthesis.tolist('lemma', force = 'document')
+        else:
+            data = self.synthesis.tolist('source', force = 'document')
+        if alphabetic:
+            data = [d for d in data if d.isalpha() or d in '-_']
+        if lowercase:
+            data = [d.lower() for d in data]
+        data = [d for d in data if len(d) < max_len]
+        return sorted(list(set(data)))
+
+    def bag_of_words(self, lemma = False, return_matrix = False, vocabulary = ''):
+        """ Returns a dict or matrix of words occurences based on a vocabulary """
+        if vocabulary:
+            vocab = vocabulary
+        else:
+            vocab = self.vocabulary(lemma)
+        vocab = sorted(vocab)
+        if self.document_level:
+            if lemma:
+                data = self.synthesis.tolist('lemma', force = 'document')
+            else:
+                data = self.synthesis.tolist('source', force = 'document')
+            if not return_matrix:
+                return {voc:data.count(voc) for voc in vocab}
+            else:
+                array = np.zeros((1, len(vocab)))
+                for idx, word in enumerate(vocab):
+                    array[0][idx] = data.count(word)
+                return array
+        else:
+            if lemma:
+                data = self.synthesis.tolist('lemma', force = 'sentence')
+            else:
+                data = self.synthesis.tolist('source', force = 'sentence')
+            if not return_matrix:
+                return [{voc:sub.count(voc) for voc in vocab} for sub in data]
+            else:
+                array = np.zeros((len(data), len(vocab)))
+                for i, seq in enumerate(data):
+                    for idx, word in enumerate(vocab):
+                        array[i][idx] = seq.count(word)
+                return array
+
+
     def concat_emoticons(self, document_level):
         """ Merge different dictionnaries of emoticon occurences"""
         self.emoticons = [[d['emoticons']['emoticon']] for d in self.result if 'emoticons' in d]
@@ -148,8 +203,8 @@ class Analyzer:
         if filter:
             cats = [cat for cat in cats if cat in filter]
         sentiments = {cat:{'positive':0, 'negative':0, 'total':0, 'occurences':0, 'p_sentences': [], 'n_sentences':[]} for cat in cats}
-        sub_ids = self.sentiment.subsentences.todict(['start_id', 'end_id', 'sentence'], True)
-        sub_values = self.sentiment.subsentences.todict(['values'], True)
+        sub_ids = self.sentiment.subsentences.todict(['start_id', 'end_id', 'sentence'], 'sentence')
+        sub_values = self.sentiment.subsentences.todict(['values'], 'sentence')
         length = 0
         for id_sent, (sent, sent2) in enumerate(zip(sub_ids, sub_values)):
             for id_sub, value in zip(sent, sent2):
@@ -179,8 +234,8 @@ class Analyzer:
         if filter:
             cats = [cat for cat in cats if cat in filter]
         sentiments = {cat:{'positive':0, 'negative':0, 'total':0, 'occurences':0, 'p_sentences': [], 'n_sentences':[]} for cat in cats}
-        values = self.sentiment.values.tolist(True)
-        sentences = self.parser_dependency.tolist(None, True)
+        values = self.sentiment.values.tolist('sentence')
+        sentences = self.parser_dependency.tolist(None, 'document')
         for id_sent, (sent, value) in enumerate(zip(sentences, values)):
             if not value or not sent:
                 continue

@@ -252,11 +252,11 @@ class sentiment_values(SharedClass, ExtractClass):
 	def average(self):
 		self.mean()
 
-	def tolist(self, force_sentence = False):
-		return self.format(self.data, force_sentence)
+	def tolist(self, force = ''):
+		return self.format(self.data, force)
 
-	def todict(self, force_sentence = False):
-		return self.tolist(force_sentence)
+	def todict(self, force = ''):
+		return self.tolist(force)
 
 class sentiment(SharedClass, ExtractClass):
 	""" Subclass for sentiment analysis
@@ -314,13 +314,13 @@ class sentiment(SharedClass, ExtractClass):
 
 	def list_subsentences_sentiments(self):
 		""" Returns list of subsentences with associated values"""
-		res = self.subsentences.todict(['sentence', 'values'], force_sentence = True)
+		res = self.subsentences.todict(['sentence', 'values'], force = 'sentence')
 		return self.format([[[x['sentence'], x['values']['total']] for x in sub] for sub in res])
 
 	def list_sentences_sentiments(self):
 		""" Returns list of sentences with associated values"""
-		res = self.subsentences.todict(['sentence'], force_sentence=True)
-		vals = self.values.todict(force_sentence = True)
+		res = self.subsentences.todict(['sentence'], force='sentence')
+		vals = self.values.todict(force = 'sentence')
 		res = [[' '.join([x['sentence'] for x in sub]), val[0]['total']] if val else [' '.join([x['sentence'] for x in sub]), 0] for sub, val in zip(res, vals)]
 		return res
 
@@ -357,13 +357,13 @@ class emotion(SharedClass, ExtractClass):
 
 	def list_subsentences_emotions(self):
 		""" Returns list of subsentences with associated values"""
-		res = self.subsentences.todict(['sentence', 'values'], force_sentence = True)
+		res = self.subsentences.todict(['sentence', 'values'], force = 'sentence')
 		return self.format([[[x['sentence'], x['values']] for x in sub] for sub in res])
 
 	def list_sentences_emotions(self):
 		""" Returns list of sentences with associated values"""
-		res = self.subsentences.todict(['sentence'], force_sentence=True)
-		vals = self.values.todict(force_sentence = True)
+		res = self.subsentences.todict(['sentence'], force='sentence')
+		vals = self.values.todict(force = 'sentence')
 		res = [[' '.join([x['sentence'] for x in sub]), val[0]] if val else [' '.join([x['sentence'] for x in sub]), 0] for sub, val in zip(res, vals)]
 		return res
 
@@ -489,11 +489,11 @@ class emotion_values(SharedClass, ExtractClass):
 	def average(self):
 		return self.mean()
 
-	def tolist(self, force_sentence = False):
-		return self.format(self.data, force_sentence)
+	def tolist(self, force = ''):
+		return self.format(self.data, force)
 
-	def todict(self, force_sentence = False):
-		return self.tolist(force_sentence)
+	def todict(self, force = ''):
+		return self.tolist(force)
 
 class emoticons(SharedClass, ExtractClass):
 	""" Subclass for emoticons"""
@@ -645,11 +645,11 @@ class postagger(SharedClass):
 				r.append(tmp)
 		return self.format(r)
 
-	def tolist(self, tuple = False, force_sentence = False):
+	def tolist(self, tuple = False, force = ''):
 		if not tuple:
-			return self.format([[d[1] for d in seq] for seq in self.data], force_sentence)
+			return self.format([[d[1] for d in seq] for seq in self.data], force)
 		else:
-			return self.format([[(d[0], d[1]) for d in seq] for seq in self.data], force_sentence)
+			return self.format([[(d[0], d[1]) for d in seq] for seq in self.data], forceforce)
 
 	def fields(self):
 		string = self.name.capitalize() + " fields. List of tuples (SOURCE, TAG):\n"
@@ -665,8 +665,8 @@ class sentence_acts(SharedClass, ExtractClass):
 		self.name = 'sentence_acts'
 		# print(self.data)
 
-	def format(self, data, force_sentence = ''):
-		if not force_sentence and self.document_level:
+	def format(self, data, force = ''):
+		if force == 'document' or self.document_level:
 			tmp = []
 			for d in data:
 				if d:
