@@ -347,7 +347,8 @@ class emotion(SharedClass, ExtractClass):
 			'disgust'	:'\033[35m',
 			'fear'		:'\033[36m'
 		}
-		self.fields = list(self.data[0]['values'].keys())
+		if self.data and self.data[0] and 'values' in self.data:
+			self.fields = list(self.data[0]['values'].keys())
 
 	def __str__(self):
 		print(self.elements)
@@ -426,7 +427,8 @@ class emotion_values(SharedClass, ExtractClass):
 	def __init__(self, data=None, document_level = True):
 		self.data = data
 		super().__init__(data, document_level)
-		self.fields = list(self.data[0][0].keys())
+		if self.data and self.data[0]:
+			self.fields = list(self.data[0][0].keys())
 
 	def total(self):
 		""" Merges the different emotion values by document or by sentence"""
@@ -649,7 +651,7 @@ class postagger(SharedClass):
 		if not tuple:
 			return self.format([[d[1] for d in seq] for seq in self.data], force)
 		else:
-			return self.format([[(d[0], d[1]) for d in seq] for seq in self.data], forceforce)
+			return self.format([[(d[0], d[1]) for d in seq] for seq in self.data], force)
 
 	def fields(self):
 		string = self.name.capitalize() + " fields. List of tuples (SOURCE, TAG):\n"
