@@ -201,7 +201,7 @@ class sentiment_values(SharedClass, ExtractClass):
 					for k,v in d.items():
 						dico[k] += v
 			for k,v in dico.items():
-				dico[k] = round(v / length + 1e-6, 3)
+				dico[k] = round(v, 4)
 		else:
 			dico = []
 			for seq in self.data:
@@ -220,7 +220,6 @@ class sentiment_values(SharedClass, ExtractClass):
 	def mean(self):
 		""" Calculates the average of the different sentiment values by document or by sentence"""
 		if self.document_level:
-			print('a')
 			length = 0
 			dico = {'total':0, 'negative':0, 'positive':0}
 			for seq in self.data:
