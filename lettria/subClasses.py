@@ -1,4 +1,4 @@
-from .sharedClass import SharedClass
+from .sharedClass import SharedClass, SharedClass_A
 from .extractClass import ExtractClass
 from .entitiesClass import *
 from collections import Counter
@@ -6,6 +6,98 @@ from functools import reduce
 import json
 
 class ner(SharedClass, ExtractClass):
+	def __init__(self, data=None):
+		self.data = data
+
+class nlu(SharedClass, ExtractClass):
+	def __init__(self, data=None):
+		self.data = data
+
+class nlp(SharedClass, ExtractClass):
+	def __init__(self, data=None):
+		self.data = data
+
+class sentiment_elements(SharedClass, ExtractClass):
+	def __init__(self, data=None):
+		self.data = data
+
+class sentiment_values(SharedClass, ExtractClass):
+	def __init__(self, data=None):
+		self.data = data
+
+class sentiment(SharedClass, ExtractClass):
+	def __init__(self, data=None):
+		self.data = data
+		self.elements = sentiment_elements(data['elements']) if 'elements' in data else None
+		self.values = sentiment_values(data['values']) if 'values' in data else None
+
+class emotion_elements(SharedClass, ExtractClass):
+	def __init__(self, data=None):
+		self.data = data
+
+class emotion_values(SharedClass, ExtractClass):
+	def __init__(self, data=None):
+		self.data = data
+
+class emotion(SharedClass, ExtractClass):
+	def __init__(self, data=None):
+		self.data = data
+		self.elements = emotion_elements(data['elements']) if 'elements' in data else None
+		self.values = emotion_values(data['values']) if 'values' in data else None
+
+class emoticons(SharedClass, ExtractClass):
+	def __init__(self, data=None):
+		self.data = data
+
+	def get_confidence(self):
+		r = []
+		if self.data and 'confidence' in self.data:
+			return self.data['confidence']
+		return None
+
+	def get_present(self):
+		r = []
+		if self.data and 'emoticon' in self.data:
+			for k in self.data['emoticon']:
+				if self.data['emoticon'][k]:
+					r.append(k)
+		return r
+
+class parser_dependency(SharedClass, ExtractClass):
+	def __init__(self, data=None):
+		self.data = data
+
+	def getByRole(self, role):
+		return self.get_by_filter('dep', role)
+
+class postagger():
+	def __init__(self, data=None):
+		self.data = data
+
+	def get(self):
+		return self.data
+
+	def get_by_tag(self, tag):
+		r = []
+		if self.data:
+			for item in self.data:
+				if isinstance(tag, list):
+					if item[1] in tag:
+						r.append(item)
+				else:
+					if item[1] == tag:
+						r.append(item)
+		return r
+
+class sentence_acts(SharedClass, ExtractClass):
+	def __init__(self, data=None):
+		self.data = data
+
+class coreference(SharedClass, ExtractClass):
+	def __init__(self, data=None):
+		self.data = data
+
+class ner_Analyzer(SharedClass_A, ExtractClass):
 	""" NER class
 	Provides access to entities subclasses and methods for data exploration.
 	All sublasses implement print_formatted(), tolist() and todict() for data manipulation.
@@ -105,7 +197,7 @@ class ner(SharedClass, ExtractClass):
 			return v.__get__(None, self)
 		return v
 
-class nlu(SharedClass, ExtractClass):
+class nlu_Analyzer(SharedClass_A, ExtractClass):
 	""" Subclass for NLU key.
 		Provides methods to manipulate categories.
 	 """
@@ -166,25 +258,25 @@ class nlu(SharedClass, ExtractClass):
 		else:
 			return cats
 
-class nlp(SharedClass, ExtractClass):
+class nlp_Analyzer(SharedClass_A, ExtractClass):
 	def __init__(self, data=None, document_level = True):
 		self.data = data
 		super().__init__(data, document_level)
 		self.name = 'NLP'
 
-class sentiment_elements(SharedClass, ExtractClass):
+class sentiment_elements_Analyzer(SharedClass_A, ExtractClass):
 	"""Subclass of sentiment for manipulation of elements"""
 	def __init__(self, data=None, document_level = True):
 		self.data = data
 		super().__init__(data, document_level)
 
-class sentiment_subsentences(SharedClass, ExtractClass):
+class sentiment_subsentences_Analyzer(SharedClass_A, ExtractClass):
 	"""Subclass of sentiment for manipulation of subsentences"""
 	def __init__(self, data=None, document_level = True):
 		self.data = data
 		super().__init__(data, document_level)
 
-class sentiment_values(SharedClass, ExtractClass):
+class sentiment_values_Analyzer(SharedClass_A, ExtractClass):
 	"""Subclass of sentiment for manipulation of values"""
 	def __init__(self, data=None, document_level = True):
 		self.data = data
@@ -257,7 +349,7 @@ class sentiment_values(SharedClass, ExtractClass):
 	def todict(self, force = ''):
 		return self.tolist(force)
 
-class sentiment(SharedClass, ExtractClass):
+class sentiment_Analyzer(SharedClass_A, ExtractClass):
 	""" Subclass for sentiment analysis
 		Provides access to 3 subclasses, values, elements and subsentences and
 		different methods to get sentences and their associated sentiment values."""
@@ -265,9 +357,9 @@ class sentiment(SharedClass, ExtractClass):
 		self.data = data
 		super().__init__(data, document_level)
 		self.name = 'sentiment'
-		self.elements = sentiment_elements([d['elements'] if 'elements' in d else None for d in self.data], document_level)
-		self.values = sentiment_values([[d['values']] if 'values' in d else None for d in self.data], document_level)
-		self.subsentences = sentiment_subsentences([d['subsentences'] if 'subsentences' in d else None for d in self.data], document_level)
+		self.elements = sentiment_elements_Analyzer([d['elements'] if 'elements' in d else None for d in self.data], document_level)
+		self.values = sentiment_values_Analyzer([[d['values']] if 'values' in d else None for d in self.data], document_level)
+		self.subsentences = sentiment_subsentences_Analyzer([d['subsentences'] if 'subsentences' in d else None for d in self.data], document_level)
 
 	def __str__(self):
 		print(self.elements)
@@ -329,15 +421,15 @@ class sentiment(SharedClass, ExtractClass):
 	def todict(self):
 		return None
 
-class emotion(SharedClass, ExtractClass):
+class emotion_Analyzer(SharedClass_A, ExtractClass):
 	""" Emotion class, similar to sentiment class"""
 	def __init__(self, data=None, document_level = True):
 		self.data = data
 		super().__init__(data, document_level)
 		self.name = 'emotions'
-		self.elements = emotion_elements([d['elements'] if 'elements' in d else None for d in self.data], document_level)
-		self.values = emotion_values([[d['values']] if 'values' in d else None for d in self.data], document_level)
-		self.subsentences = emotion_subsentences([d['subsentences'] if 'subsentences' in d else None for d in self.data], document_level)
+		self.elements = emotion_elements_Analyzer([d['elements'] if 'elements' in d else None for d in self.data], document_level)
+		self.values = emotion_values_Analyzer([[d['values']] if 'values' in d else None for d in self.data], document_level)
+		self.subsentences = emotion_subsentences_Analyzer([d['subsentences'] if 'subsentences' in d else None for d in self.data], document_level)
 		self.colors = {
 			'anger'		:'\033[31m',
 			'happiness'	:'\033[32m',
@@ -409,19 +501,19 @@ class emotion(SharedClass, ExtractClass):
 					print('\033[0m', end = '')
 			print('')
 
-class emotion_elements(SharedClass, ExtractClass):
+class emotion_elements_Analyzer(SharedClass_A, ExtractClass):
 	"""Subclass of emotion for manipulation of elements"""
 	def __init__(self, data=None, document_level = True):
 		self.data = data
 		super().__init__(data, document_level)
 
-class emotion_subsentences(SharedClass, ExtractClass):
+class emotion_subsentences_Analyzer(SharedClass_A, ExtractClass):
 	"""Subclass of emotion for manipulation of subsentences"""
 	def __init__(self, data=None, document_level = True):
 		self.data = data
 		super().__init__(data, document_level)
 
-class emotion_values(SharedClass, ExtractClass):
+class emotion_values_Analyzer(SharedClass_A, ExtractClass):
 	"""Subclass of emotion for manipulation of values"""
 	def __init__(self, data=None, document_level = True):
 		self.data = data
@@ -496,7 +588,7 @@ class emotion_values(SharedClass, ExtractClass):
 	def todict(self, force = ''):
 		return self.tolist(force)
 
-class emoticons(SharedClass, ExtractClass):
+class emoticons_Analyzer(SharedClass_A, ExtractClass):
 	""" Subclass for emoticons"""
 	def __init__(self, data=None, document_level = True):
 		self.data = data
@@ -525,7 +617,7 @@ class emoticons(SharedClass, ExtractClass):
 		else:
 			return data
 
-class parser_dependency(SharedClass, ExtractClass):
+class parser_dependency_Analyzer(SharedClass_A, ExtractClass):
 	""" Subclass for parser_dependency"""
 	def __init__(self, data=None, document_level = True):
 		self.data = data
@@ -602,7 +694,7 @@ class parser_dependency(SharedClass, ExtractClass):
 				return True
 		return False
 
-class postagger(SharedClass):
+class postagger_Analyzer(SharedClass_A):
 	""" Subclass for postagger key.
 		Allows filtering (include/exclude) and easy extraction of information."""
 	def __init__(self, data=None, document_level = True):
@@ -657,7 +749,7 @@ class postagger(SharedClass):
 		string += json.dumps([('je', 'CLS'), ('ai', 'V'), ('mange', 'VP'), ('un', 'CD'), ('sandwich', 'N'), ('.', 'PUNCT')], indent=4)
 		return string
 
-class sentence_acts(SharedClass, ExtractClass):
+class sentence_acts_Analyzer(SharedClass_A, ExtractClass):
 	""" Subclass fo sentence_acts key.
 		Sentence_act classifies the sentence between question, assertion etc."""
 	def __init__(self, data=None, document_level = True):
@@ -679,14 +771,14 @@ class sentence_acts(SharedClass, ExtractClass):
 			return data
 
 
-class coreference(SharedClass, ExtractClass):
+class coreference_Analyzer(SharedClass_A, ExtractClass):
 	""" Subclass fo coreference object."""
 	def __init__(self, data=None, document_level = True):
 		self.data = data
 		super().__init__(data, document_level)
 		self.name = 'coreference'
 
-class synthesis(SharedClass, ExtractClass):
+class synthesis_Analyzer(SharedClass_A, ExtractClass):
 	""" Subclass for synthesis key.
 		Synthesis regroups key information for each token."""
 	def __init__(self, data=None, document_level = True):

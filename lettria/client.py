@@ -33,6 +33,7 @@ class Client:
 	def server_request(self, text=''):
 		response = None
 		try:
+			print("aaaaaaaaaaaaaa")
 			response = requests.post('http://51.254.207.74:4300/api/main', headers=self.headers, json={'text' : text}).json()
 		except Exception as e:
 			print(e)

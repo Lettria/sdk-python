@@ -1,6 +1,6 @@
-from .sharedClass import SharedClass
+from .sharedClass import SharedClass_A
 
-class Base_entity(SharedClass):
+class Base_entity(SharedClass_A):
         def __init__(self, name, data = None, document_level = True):
             self.document_level = document_level
             self.data = data
