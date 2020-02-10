@@ -25,7 +25,7 @@ class Sentence(SharedClass, ExtractClass):
 		for item in l:
 			try:
 				if '.' in key:
-					if self.getNested(key, item) == value:
+					if self.get_nested(key, item) == value:
 						r.append(item)
 				else:
 					if item[key] == value:

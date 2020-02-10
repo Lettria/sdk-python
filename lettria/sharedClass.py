@@ -30,7 +30,7 @@ class SharedClass:
 		key = ''
 		if len(keys) > 0:
 			for item in keys: key += item + '.'
-			return self.getNested(key[:-1], obj)
+			return self.get_nested(key[:-1], obj)
 		return obj
 
 	def get_by_filter(self, key, value, list=None):
@@ -44,7 +44,7 @@ class SharedClass:
 		for item in l:
 			try:
 				if '.' in key:
-					if self.getNested(key, item) == value:
+					if self.get_nested(key, item) == value:
 						r.append(item)
 				else:
 					if item[key] == value:
@@ -195,7 +195,7 @@ class SharedClass_A:
 		key = ''
 		if len(keys) > 0:
 			for item in keys: key += item + '.'
-			return self.getNested(key[:-1], obj)
+			return self.get_nested(key[:-1], obj)
 		return obj
 
 	def get_by_filter(self, key, value, _list=None):
@@ -211,7 +211,7 @@ class SharedClass_A:
 			for item in seq:
 				try:
 					if '.' in key:
-						if self.getNested(key, item) == value:
+						if self.get_nested(key, item) == value:
 							r.append(item)
 					else:
 						if item[key] == value:
