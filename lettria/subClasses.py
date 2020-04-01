@@ -370,7 +370,7 @@ class sentiment_Analyzer(SharedClass_A, ExtractClass):
 	def classify_sentences(self):
 		""" Returns a dictionnary with classified sentences according to their
 		given classes."""
-		values = self.list_sentences_sentiments()
+		values = self.list_sentences_sentiments(force = 'document')
 		res = {'positive':[], 'negative':[], 'neutral':[]}
 		for seq in values:
 			if seq and seq[1] == 0:
@@ -384,7 +384,7 @@ class sentiment_Analyzer(SharedClass_A, ExtractClass):
 	def classify_subsentences(self):
 		""" Returns a dictionnary with classified subsentences according to their
 		given classes."""
-		values = self.list_subsentences_sentiments()
+		values = self.list_subsentences_sentiments(force = 'document')
 		res = {'positive':[], 'negative':[], 'neutral':[]}
 		for seq in values:
 			if seq and seq[1] == 0:
@@ -403,12 +403,12 @@ class sentiment_Analyzer(SharedClass_A, ExtractClass):
 			if r:
 				print("{:120.120} {:10}".format(r['sentence'], r['values']['total']))
 
-	def list_subsentences_sentiments(self):
+	def list_subsentences_sentiments(self, force = ''):
 		""" Returns list of subsentences with associated values"""
 		res = self.subsentences.todict(['sentence', 'values'], force = 'sentence')
-		return self.format([[[x['sentence'], x['values']['total']] for x in sub] for sub in res])
+		return self.format([[[x['sentence'], x['values']['total']] for x in sub] for sub in res], force)
 
-	def list_sentences_sentiments(self):
+	def list_sentences_sentiments(self, force = ''):
 		""" Returns list of sentences with associated values"""
 		res = self.subsentences.todict(['sentence'], force='sentence')
 		vals = self.values.todict(force = 'sentence')
@@ -438,7 +438,7 @@ class emotion_Analyzer(SharedClass_A, ExtractClass):
 			'disgust'	:'\033[35m',
 			'fear'		:'\033[36m'
 		}
-		if self.data and self.data[0] and 'values' in self.data:
+		if self.data and self.data[0] and 'values' in self.data[0]:
 			self.fields = list(self.data[0]['values'].keys())
 
 	def __str__(self):
@@ -447,12 +447,12 @@ class emotion_Analyzer(SharedClass_A, ExtractClass):
 		print(self.values)
 		return ''
 
-	def list_subsentences_emotions(self):
+	def list_subsentences_emotions(self, force = ''):
 		""" Returns list of subsentences with associated values"""
 		res = self.subsentences.todict(['sentence', 'values'], force = 'sentence')
-		return self.format([[[x['sentence'], x['values']] for x in sub] for sub in res])
+		return self.format([[[x['sentence'], x['values']] for x in sub] for sub in res], force)
 
-	def list_sentences_emotions(self):
+	def list_sentences_emotions(self, force = ''):
 		""" Returns list of sentences with associated values"""
 		res = self.subsentences.todict(['sentence'], force='sentence')
 		vals = self.values.todict(force = 'sentence')
@@ -462,7 +462,8 @@ class emotion_Analyzer(SharedClass_A, ExtractClass):
 	def classify_sentences(self):
 		""" Returns a dictionnary with classified sentences according to their
 		given classes."""
-		values = self.list_sentences_emotions()
+		values = self.list_sentences_emotions(force = 'document')
+		print(values)
 		res = {k:[] for k in self.fields}
 		for seq in values:
 			if seq and isinstance(seq[1], dict):
@@ -474,7 +475,7 @@ class emotion_Analyzer(SharedClass_A, ExtractClass):
 	def classify_subsentences(self):
 		""" Returns a dictionnary with classified subsentences according to their
 		given classes."""
-		values = self.list_subsentences_emotions()
+		values = self.list_subsentences_emotions(force = 'document')
 		res = {k:[] for k in self.fields}
 		for seq in values:
 			if seq and isinstance(seq[1], dict):
