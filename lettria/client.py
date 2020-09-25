@@ -21,6 +21,7 @@ class Client:
 	def set_key(self, key=None):
 		if key:
 			self.key = key
+			self.headers = { 'Authorization': 'LettriaProKey ' + str(self.key), 'content-type': 'application/json' }
 			return True
 		return False
 
