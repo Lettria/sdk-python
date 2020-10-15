@@ -4,9 +4,10 @@ from setuptools import setup, find_packages
 
 setup(
     name="lettria",
-    version="5.0.0",
+    version="5.0.1",
     packages=find_packages(),
     description="Lettria official SDK for python",
+    long_description="Lettria official SDK for python",
     author="Maxence",
     author_email="maxence@lettria.com",
     url="https://github.com/Lettria/sdk-python",
