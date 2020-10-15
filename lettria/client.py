@@ -1,9 +1,7 @@
 import requests
-from .sentence import Sentence
-from .data import Data
 
 class Client:
-	def __init__(self, key=None, raw=True):
+	def __init__(self, key=None):
 		if not key:
 			raise Exception('Missing key for initialization')
 		if isinstance(key, str) is False:
@@ -11,19 +9,8 @@ class Client:
 		if key.startswith('LettriaProKey'):
 			key = key[14:]
 		self.key = key
-		self.raw = raw
 		self.headers = { 'Authorization': 'LettriaProKey ' + str(self.key), 'content-type': 'application/json' }
-
-	def get_key(self):
-		if self.key:
-			return self.key
-
-	def set_key(self, key=None):
-		if key:
-			self.key = key
-			self.headers = { 'Authorization': 'LettriaProKey ' + str(self.key), 'content-type': 'application/json' }
-			return True
-		return False
+		self.max_try = 5
 
 	def print_response_error(self, response):
 		if 'Error' in response:
@@ -31,24 +18,25 @@ class Client:
 		else:
 			print(response)
 
-	def server_request(self, text=''):
+	def server_request(self, text):
+		result = None
 		response = None
-		try:
-			response = requests.post('http://51.254.207.74:4300/api/main', headers=self.headers, json={'text' : text}).json()
-		except Exception as e:
-			print(e)
-			pass
-		if response and not isinstance(response, list):
-			self.print_response_error(response)
-			response = None
-		return response
+		i = 0
+		while i < self.max_try:
+			try:
+				response = requests.post('http://51.254.207.74:4300/api/main', headers=self.headers, json={'text' : text}).json()
+				if response and not isinstance(response, list):
+					raise Exception
+				result = response
+				break
+			except Exception as e:
+				i += 1
+		if result is None:
+			print(f'Request failed after {self.max_try} tries.')
+		if result and not isinstance(result, list):
+			result = None
+		return result
 
-	def request(self, text='', raw=None):
-		_raw = self.raw if raw == None else raw
+	def request(self, text):
 		sentences_json = self.server_request(text)
-		if _raw or not sentences_json:
-			return sentences_json
-		sentences = []
-		for s in sentences_json:
-			sentences.append(Sentence(s))
-		return Data(sentences)
+		return sentences_json
