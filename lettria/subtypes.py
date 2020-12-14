@@ -1,7 +1,8 @@
 from .transform_morph import transform_data
 from .utils import StrProperty, ListProperty, DictProperty
+from .SharedClass import SharedClass
 
-class Subsentence:
+class Subsentence(SharedClass):
     __slots__ = ("data", "n", "max")
 
     def __init__(self, data_sentence):
@@ -10,9 +11,6 @@ class Subsentence:
 
     def __repr__(self):
         return str(self.data)
-
-    def __str__(self):
-        return str(' '.join([t.get('source', None) for t in self.data['synthesis']]))
 
     def __iter__(self):
         self.n = 0
@@ -24,6 +22,10 @@ class Subsentence:
             return Token(self.data['synthesis'][self.n - 1])
         else:
             raise StopIteration
+    
+    @ListProperty
+    def subsentences(self):
+        return [self]
 
 class Token:
     __slots__ = ("data")

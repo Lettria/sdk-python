@@ -10,6 +10,7 @@ POSITIVE = ['positive', 'pos', '+']
 NEGATIVE = ['negative', 'neg', '-']
 NEUTRAL = ['neutral', 'neut']
 
+## DEPRECATED, Functional interface should be used instead.
 class Sentiment:
     def __init__(self, nlp):
         if not isinstance(nlp, NLP):
