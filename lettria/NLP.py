@@ -4,7 +4,7 @@ import json
 from .client import Client
 from .subtypes import Token, Subsentence
 from .utils import flatten_lst, StrProperty, ListProperty, DictProperty
-from .SharedClass import SharedClass
+from .TextChunk import TextChunk
 
 #Accepted arguments for hierarchical levels
 GLOBAL =    ['g', 'global', 'glob']
@@ -16,11 +16,11 @@ TOK =       ['t', 'token', 'tok', 'tokens']
 class PipelineError(Exception): pass
 class RequestError(Exception): pass
 
-class Sentence(SharedClass):
+class Sentence(TextChunk):
     __slots__ = ("data", "n", "max")
 
     def __init__(self, data_sentence):
-        super(SharedClass, self).__init__()
+        super(TextChunk, self).__init__()
         self.data = data_sentence
         self.max = len(self.data.get('synthesis', []))
         self._ner_fix()
@@ -157,11 +157,11 @@ class Sentence(SharedClass):
     def coreference(self):
         return [t.coreference for t in self.tokens]
 
-class Document(SharedClass):
+class Document(TextChunk):
     __slots__ = ("sentences", "data", "n", "max", "id")
     next_id = 0
     def __init__(self, sentences, id=None):
-        super(SharedClass, self).__init__()
+        super(TextChunk, self).__init__()
         self.sentences = [Sentence(s) for s in sentences]
         self.max = len(self.sentences)
         self.data = self.sentences
@@ -203,14 +203,14 @@ class Document(SharedClass):
         else:
             raise StopIteration
 
-class NLP(SharedClass):
+class NLP(TextChunk):
     """ Class for data analysis of API return.
         Takes a Client class as input which is used to make api requests.
         Provides both high and low level methods to access data via specific class
         for each key in the api result or methods designed for specific use cases.
         """
     def __init__(self, api_key = None, client = None, data = None, no_print=False):
-        super(SharedClass, self).__init__()
+        super(TextChunk, self).__init__()
         self.client = None
         if client or api_key:
             self.add_client(client, api_key)

@@ -9,7 +9,7 @@ NEUTRAL = ['neutral', 'neutre', 'neut']
 EMOTIONS = ['anger', 'fear', 'joy', 'love', 'sadness', 'surprise', 'neutral']
 SENTENCE_TYPES = ['command', 'assert', 'question_open', 'question_closed']
 
-class SharedClass:
+class TextChunk:
     def __init__(self):
         self.client = None
         if client or api_key:

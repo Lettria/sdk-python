@@ -1,8 +1,8 @@
 from .transform_morph import transform_data
 from .utils import StrProperty, ListProperty, DictProperty
-from .SharedClass import SharedClass
+from .TextChunk import TextChunk
 
-class Subsentence(SharedClass):
+class Subsentence(TextChunk):
     __slots__ = ("data", "n", "max")
 
     def __init__(self, data_sentence):
