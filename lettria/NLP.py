@@ -94,12 +94,20 @@ class Sentence(SharedClass):
         return [s.get('lemma', None) for s in self.data.get('synthesis', [])]
 
     @ListProperty
+    def lemma_detail(self):
+        return flatten_lst([s.lemma_detail for s in self.tokens])
+
+    @ListProperty
     def synthesis(self):
         return self.data.get('synthesis', [])
 
     @ListProperty
     def pos(self):
         return [s.get('tag', None) for s in self.data['synthesis']]
+
+    @ListProperty
+    def pos_detail(self):
+        return flatten_lst([s.pos_detail for s in self.tokens])
 
     @ListProperty
     def dep(self):
@@ -251,7 +259,7 @@ class NLP(SharedClass):
         for _class in [Subsentence]: #adding specific properties for subsentence
             for field in [p for p in dir(Sentence) if isinstance(getattr(Sentence, p), property)]:
                 filters = ['sentiment_target', 'morphology', 'ner', 'token', 'str', \
-                            'lemma', 'synthesis', 'pos', 'dep', 'language', 'meaning', \
+                            'lemma', 'lemma_detail', 'synthesis', 'pos', 'pos_detail', 'dep', 'language', 'meaning', \
                             'sentiment', 'sentiment_ml', 'emotion', 'emotion_ml', 'tokens']
                 if field in filters:
                     setattr(_class, field, getattr(Sentence, field))
