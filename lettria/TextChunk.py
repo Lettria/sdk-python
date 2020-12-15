@@ -21,7 +21,7 @@ class TextChunk:
         if 'token_flat' not in self.fields:
             self._generate_properties()
     
-    def vocabulary(self, filter_pos = None, lemma=False, level='global'):
+    def vocabulary(self, filter_pos = None, lemma=False):
         """ Generates vocabulary list of words"""
         vocabulary = []
         tokens = self.token_flat if not lemma else self.lemma_flat
@@ -32,8 +32,8 @@ class TextChunk:
                     vocabulary.append((t, p))
         return vocabulary
     
-    def list_entities(self, level='global'):
-        """ Returns dictionary (or list of dict) of ner entities at the specified level"""
+    def list_entities(self):
+        """ Returns dictionary (or list of dict) of ner entities"""
         entities = []
         tmp = {}
         for t, e in zip(self.token_flat, self.ner_flat):
@@ -46,7 +46,7 @@ class TextChunk:
         entities.append(tmp)
         return entities
 
-    def word_count(self, filter_pos = None, lemma=False, level='global'):
+    def word_count(self, filter_pos = None, lemma=False):
         """ Generates word count, document or global level """
         word_count = []
         tokens = self.token_flat if not lemma else self.lemma_flat
@@ -57,7 +57,7 @@ class TextChunk:
                 word_count[(t, p)] = word_count.get((t,p), 0) + 1
         return word_count
 
-    def word_frequency(self, filter_pos = None, lemma=False, level='global'):
+    def word_frequency(self, filter_pos = None, lemma=False):
         """ Generates frequency list of words """
         vocab = self.word_count(filter_pos=filter_pos, lemma=lemma)
         total = sum(self.word_count().values())
@@ -176,19 +176,19 @@ class TextChunk:
         _iter = self.subsentences if granularity in SUB else self.sentences
         return [s for s in _iter if check_emotion(s.emotion, emotions)]
 
-    def filter_type(self, s_type):
+    def filter_type(self, sentence_type):
         """ Returns sentence objects with the specified type"""
-        if isinstance(s_type, str):
-            s_type = [s_type]
+        if isinstance(sentence_type, str):
+            sentence_type = [s_type]
         class_name = self.__class__.__name__
         if class_name == 'Subsentence':
             print("Sentence type is not available for subsentences.")
             return []
-        for p in s_type:
+        for p in sentence_type:
             if p not in SENTENCE_TYPES:
                 print("Error, available types are :", ' '.join(SENTENCE_TYPES))
                 return []
-        return [s for s in self.sentences if s.sentence_type in s_type]
+        return [s for s in self.sentences if s.sentence_type in sentence_type]
 
     def word_sentiment(self, granularity = 'sentence', lemma = False, filter_pos = None, average=True):
         """ Returns sentiment associated with word"""
