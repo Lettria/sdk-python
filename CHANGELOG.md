@@ -9,7 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sentiment methods are now accessible through the functional interface (get_sentiment(), word_sentiment() etc.).
 - Methods list_entities(), word_frequency(), word_count(), statistics(), and vocabulary() are accessible through the functional interface.
 - split_results() to split a result file into multiple files
--
+- filter_type() for filtering sentences based on their type (command, assert, question_open, question_closed).
+- pos_detail, lemma_detail properties accessible at all levels through functional interface.
 ### Changed
 ### Deprecated
 - Sentiment module is deprecated and will be removed in a future release.
@@ -28,7 +29,6 @@ Before: self.nlp.vocabulary(level='documents') => After: [doc.vocabulary() for d
 - New document system that allows you to classify and name your data the way you want.
 - Sentiment class provides additional functionalities for sentiment and emotion analysis
 - Easy to save and load results from the API.
-
 ### Changed
 ### Deprecated
 ### Removed
