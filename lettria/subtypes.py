@@ -61,8 +61,8 @@ class Token:
 
     @ListProperty
     def pos_detail(self):
-        if self.data['nlp_items']:
-            return [l.get('tag', None) for l in self.data['nlp_items']]
+        if self.data['nlp']:
+            return [l.get('tag', None) for l in self.data['nlp']]
         else:
             return [self.data.get('tag', None)]
 

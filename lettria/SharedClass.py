@@ -7,6 +7,7 @@ POSITIVE = ['positive', 'positif', 'pos', '+']
 NEGATIVE = ['negative', 'negatif', 'neg', '-']
 NEUTRAL = ['neutral', 'neutre', 'neut']
 EMOTIONS = ['anger', 'fear', 'joy', 'love', 'sadness', 'surprise', 'neutral']
+SENTENCE_TYPES = ['command', 'assert', 'question_open', 'question_closed']
 
 class SharedClass:
     def __init__(self):
@@ -124,6 +125,7 @@ class SharedClass:
         return sentiments
     
     def filter_polarity(self, polarity, granularity='sentence'):
+        """ Returns sentence or subsentence objects with the specified sentiment polarity"""
         if isinstance(polarity, str):
             polarity = [polarity]
         for p in polarity:
@@ -152,6 +154,7 @@ class SharedClass:
         return [s for s in _iter if check_polarity(s.sentiment.get('total', 0), polarity)]
 
     def filter_emotion(self, emotions, granularity='sentence'):
+        """ Returns sentence or subsentence objects with the specified emotion """
         if isinstance(emotions, str):
             emotions = [emotions]
         for p in emotions:
@@ -172,6 +175,20 @@ class SharedClass:
             return False
         _iter = self.subsentences if granularity in SUB else self.sentences
         return [s for s in _iter if check_emotion(s.emotion, emotions)]
+
+    def filter_type(self, s_type):
+        """ Returns sentence objects with the specified type"""
+        if isinstance(s_type, str):
+            s_type = [s_type]
+        class_name = self.__class__.__name__
+        if class_name == 'Subsentence':
+            print("Sentence type is not available for subsentences.")
+            return []
+        for p in s_type:
+            if p not in SENTENCE_TYPES:
+                print("Error, available types are :", ' '.join(SENTENCE_TYPES))
+                return []
+        return [s for s in self.sentences if s.sentence_type in s_type]
 
     def word_sentiment(self, granularity = 'sentence', lemma = False, filter_pos = None, average=True):
         """ Returns sentiment associated with word"""
