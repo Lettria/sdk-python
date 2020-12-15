@@ -6,6 +6,7 @@ TOK = ['t', 'token', 'tok', 'tokens']
 POSITIVE = ['positive', 'positif', 'pos', '+']
 NEGATIVE = ['negative', 'negatif', 'neg', '-']
 NEUTRAL = ['neutral', 'neutre', 'neut']
+EMOTIONS = ['anger', 'fear', 'joy', 'love', 'sadness', 'surprise', 'neutral']
 
 class SharedClass:
     def __init__(self):
@@ -147,61 +148,94 @@ class SharedClass:
                     return True
             else:
                 return False
-        _iter = self.subsentences if granularity == 'subsentence' else self.sentences
-        # print([s for s in _iter if check_polarity(s.sentiment.get('total', 0), polarity)])
+        _iter = self.subsentences if granularity in SUB else self.sentences
         return [s for s in _iter if check_polarity(s.sentiment.get('total', 0), polarity)]
 
     def filter_emotion(self, emotions, granularity='sentence'):
         if isinstance(emotions, str):
             emotions = [emotions]
+        for p in emotions:
+            if p not in EMOTIONS:
+                print("Available emotions are :", ' '.join(EMOTIONS))
+                return []
         if granularity not in SENT + SUB:
             print("granularity argument should be 'sentence' or 'subsentence'")
             return None
+        class_name = self.__class__.__name__
+        if class_name == 'Subsentence':
+            granularity = 'subsentence'
         def check_emotion(emotion_lst, filter):
             emotions = [e[0] for e in emotion_lst]
             for e in emotions:
                 if e in filter:
                     return True
             return False
-        _iter = self.nlp.subsentences if granularity in SUB else self.nlp.sentences
+        _iter = self.subsentences if granularity in SUB else self.sentences
         return [s for s in _iter if check_emotion(s.emotion, emotions)]
 
-    def word_sentiment(self, granularity = 'sentence', lemma = False, filter_pos = None):
+    def word_sentiment(self, granularity = 'sentence', lemma = False, filter_pos = None, average=True):
         """ Returns sentiment associated with word"""
         if granularity not in SENT + SUB:
             print("granularity argument should be 'sentence' or 'subsentence'")
             return None
-        tokens = self.nlp.vocabulary(filter_pos=filter_pos, lemma=lemma)
-        res = {t:{'val':0, 'occ':0} for t in tokens}
-        _iter = self.nlp.subsentences if granularity in SUB else self.nlp.sentences
-        for sentence in _iter:
-            val = sentence.sentiment.get('total', 0)
-            tmp_iter = sentence.lemma if lemma else sentence.token
-            for t, p in zip(tmp_iter, sentence.pos):
-                if not filter_pos or p in filter_pos:
-                    res[(t,p)]['val'] += val
-                    res[(t,p)]['occ'] += 1
-        res = {t: round(res[t]['val'] / (res[t]['occ'] + 1e-8), 4) for t in res.keys()}
+        class_name = self.__class__.__name__
+        if class_name == 'Subsentence':
+            granularity = 'subsentence'
+        tokens = self.vocabulary(filter_pos=filter_pos, lemma=lemma)
+        _iter = self.subsentences if granularity in SUB else self.sentences
+        if average:
+            res = {t:{'values':0, 'occurences':0} for t in tokens}
+            for sentence in _iter:
+                val = sentence.sentiment.get('total', 0)
+                tmp_iter = sentence.lemma if lemma else sentence.token
+                for t, p in zip(tmp_iter, sentence.pos):
+                    if not filter_pos or p in filter_pos:
+                        res[(t,p)]['values'] += val
+                        res[(t,p)]['occurences'] += 1
+            res = {t: round(res[t]['values'] / (res[t]['occurences'] + 1e-8), 4) for t in res.keys()}
+        else:
+            res = {t:{'values':[], 'occurences':0} for t in tokens}
+            for sentence in _iter:
+                val = sentence.sentiment.get('total', 0)
+                tmp_iter = sentence.lemma if lemma else sentence.token
+                for t, p in zip(tmp_iter, sentence.pos):
+                    if not filter_pos or p in filter_pos:
+                        res[(t,p)]['values'].append(val)
+                        res[(t,p)]['occurences'] += 1
         return res
 
-    def meaning_sentiment(self, granularity='sentence', filter_meaning=None):
+    def meaning_sentiment(self, granularity='sentence', filter_meaning=None, average=True):
         """ Returns sentiment associated with meaning"""
+        if isinstance(filter_meaning, str):
+            filter_meaning = [filter_meaning]
         if granularity not in SENT + SUB:
             print("granularity argument should be 'sentence' or 'subsentence'")
             return None
-        if isinstance(filter_meaning, str):
-            filter_meaning = [filter_meaning]
-        meanings = list(set([m[1] for m in self.nlp.meaning_flat if m[1]]))
+        class_name = self.__class__.__name__
+        if class_name == 'Subsentence':
+            granularity = 'subsentence'
         if filter_meaning and isinstance(filter_meaning, list):
             meanings = filter_meaning
-        res = {t:{'val':0, 'occ':0} for t in meanings}
-        _iter = self.nlp.subsentences if granularity == 'subsentence' else self.nlp.sentences
-        for sentence in _iter:
-            val = sentence.sentiment.get('total',0)
-            tmp_iter = list(set([m[1] for m in sentence.meaning_flat if m[1]]))
-            for m in tmp_iter:
-                if not filter_meaning or m in filter_meaning:
-                    res[m]['val'] += val
-                    res[m]['occ'] += 1
-        res = {t: round(res[t]['val'] / (res[t]['occ'] + 1e-8), 4) for t in res.keys()}
+        else:
+            meanings = list(set([m[1] for m in self.meaning_flat if m[1]]))
+        _iter = self.subsentences if granularity == 'subsentence' else self.sentences
+        if average:
+            res = {t:{'values':0, 'occurences':0} for t in meanings}
+            for sentence in _iter:
+                val = sentence.sentiment.get('total',0)
+                tmp_iter = list(set([m[1] for m in sentence.meaning_flat if m[1]]))
+                for m in tmp_iter:
+                    if not filter_meaning or m in filter_meaning:
+                        res[m]['values'] += val
+                        res[m]['occurences'] += 1
+            res = {t: round(res[t]['values'] / (res[t]['occurences'] + 1e-8), 4) for t in res.keys()}
+        else:
+            res = {t:{'values':[], 'occurences':0} for t in meanings}
+            for sentence in _iter:
+                val = sentence.sentiment.get('total',0)
+                tmp_iter = list(set([m[1] for m in sentence.meaning_flat if m[1]]))
+                for m in tmp_iter:
+                    if not filter_meaning or m in filter_meaning:
+                        res[m]['values'].append(val)
+                        res[m]['occurences'] += 1
         return res

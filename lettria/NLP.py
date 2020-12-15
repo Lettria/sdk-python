@@ -433,6 +433,8 @@ class NLP(SharedClass):
                 if reset:
                     self.reset_data()
                 if isinstance(result, dict):
+                    assert len(result.get('document_ids', [])) == len(result.get('documents', [])), \
+                            "'document_ids' and 'documents' should be of similar length"
                     for id_, r in zip(result['document_ids'], result['documents']):
                         self.add_document_data(r, id=id_)
                 else:
@@ -442,6 +444,27 @@ class NLP(SharedClass):
         except Exception as e:
             print('Failure to load ' + str(path) + ': ')
             print(e, '\n')
+
+    def split_results(self, input_file, max_document_per_file, output_file=''):
+        """ Splits existing json results into multiple files """
+        if not output_file:
+            output_file = input_file
+        with open(input_file, 'r') as f:
+            results = json.load(f)
+        i = 0
+        count = 0
+        while i < len(self.documents):
+            if isinstance(results, list):
+                with open(f"{count}_{output_file}", 'w') as fw:
+                    json.dump(result[i:i + max_document_per_file], fw)
+            elif isinstance(results, dict):
+                with open(f"{count}_{output_file}", 'w') as fw:
+                    json.dump({'document_ids':results['document_ids'][i:i + max_document_per_file],\
+                             'documents':results['documents'][i:i + max_document_per_file]}, fw)
+            i += max_document_per_file
+            count += 1
+            results['document_ids']
+        # for n in number:
 
     def reset_data(self):
         """ Erase current data """
