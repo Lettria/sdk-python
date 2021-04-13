@@ -24,7 +24,7 @@ class Client:
 		i = 0
 		while i < self.max_try:
 			try:
-				response = requests.post('http://51.254.207.74:4300/api/main', headers=self.headers, json={'text' : text}).json()
+				response = requests.post('https://api.lettria.com/main', headers=self.headers, json={'text' : text}).json()
 				if response and not isinstance(response, list):
 					raise Exception
 				result = response
