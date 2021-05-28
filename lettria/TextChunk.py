@@ -11,16 +11,61 @@ SENTENCE_TYPES = ['command', 'assert', 'question_open', 'question_closed']
 
 class TextChunk:
     def __init__(self):
-        self.client = None
-        if client or api_key:
-            self.add_client(client, api_key)
-        self.documents = []
-        self.max = len(self.documents)
-        self.data = self.documents
-        self.fields = [p for p in dir(Sentence) if isinstance(getattr(Sentence,p),property)]
-        if 'token_flat' not in self.fields:
-            self._generate_properties()
-    
+        self.class_name = self.__class__.__name__        
+        self.lambdas_cmp = {
+            'LOWER' : lambda x : x.str.lower(),
+            'LEMMA' : lambda x : x.lemma,
+            'POS' : lambda x : x.pos,
+        }
+        self.attributes = ['LOWER', 'LEMMA', 'POS']
+    def compare_attr(self, token, node):
+        for attr in self.attributes:
+            if attr in node:
+                cmp = node[attr]
+                if isinstance(cmp, str):
+                    cmp = {"IN":[cmp]}
+                if self.lambdas_cmp[attr](token) in cmp['IN']:
+                    return True
+                else:
+                    return False
+        return False
+
+    def check_pattern(self, data, pattern):
+        i = 0
+        j = 0
+        while i < len(data.tokens):
+            current_token = data.tokens[i]
+            current_node = pattern[j]
+            if self.compare_attr(current_token, current_node):
+                j += 1
+                print(current_token, current_node)
+            else:
+                j = 0
+            i += 1
+            if j == len(pattern):
+                return True
+        return True
+
+    def match_pattern(self, patterns_json, level = None):
+        matches = []
+        if level == None:
+            if self.class_name == 'NLP':
+                level = 'documents'
+                data = self.documents                
+            elif self.class_name == 'Document':
+                level = 'sentence'
+            elif self.class_name == 'Sentence':
+                level = 'token'
+            elif self.class_name == 'Subsentence':
+                level = 'token'
+        for element in data:
+            for sentence in element.sentences:
+                for pattern_name, patterns in patterns_json.items():
+                    if self.check_pattern(sentence, patterns):
+                        matches.append((pattern_name, sentence.str))
+        return matches
+        
+
     def vocabulary(self, filter_pos = None, lemma=False):
         """ Generates vocabulary list of words"""
         vocabulary = []
@@ -64,19 +109,17 @@ class TextChunk:
         return {k:round(v/(total + 1e-10), 10) for k,v in vocab.items()}
 
     def statistics(self):
-        class_name = self.__class__.__name__
-        return {'documents': len(self.documents) if class_name in ['NLP'] else int(class_name == 'Document'),
-        'sentences': len(self.sentences) if class_name in ['NLP', 'Document'] else int(class_name == 'Sentence'),
-        'subsentences': len(self.subsentences) if class_name in ['NLP', 'Document', 'Sentence'] else int(class_name == 'Subsentence'),
+        return {'documents': len(self.documents) if self.class_name in ['NLP'] else int(self.class_name == 'Document'),
+        'sentences': len(self.sentences) if self.class_name in ['NLP', 'Document'] else int(self.class_name == 'Sentence'),
+        'subsentences': len(self.subsentences) if self.class_name in ['NLP', 'Document', 'Sentence'] else int(self.class_name == 'Subsentence'),
         'tokens': len(self.tokens)}
     
     def get_emotion(self, granularity = 'sentence'):
         """ Returns emotion results at the specified hierarchical level """
-        class_name = self.__class__.__name__
         if granularity not in SENT + SUB:
             print("granularity argument should be 'sentence' or 'subsentence'")
             return None
-        if class_name == 'Subsentence':
+        if self.class_name == 'Subsentence':
             granularity = 'subsentence'
         emotions = {}
         _iter = self.subsentences if granularity in SUB else self.sentences

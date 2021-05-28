@@ -6,6 +6,7 @@ class Subsentence(TextChunk):
     __slots__ = ("data", "n", "max")
 
     def __init__(self, data_sentence):
+        super(Subsentence, self).__init__()
         self.data = data_sentence
         self.max = len(self.data['synthesis'])
 

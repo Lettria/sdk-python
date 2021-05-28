@@ -20,7 +20,7 @@ class Sentence(TextChunk):
     __slots__ = ("data", "n", "max")
 
     def __init__(self, data_sentence):
-        super(TextChunk, self).__init__()
+        super(Sentence, self).__init__()
         self.data = data_sentence
         self.max = len(self.data.get('synthesis', []))
         self._ner_fix()
@@ -161,7 +161,7 @@ class Document(TextChunk):
     __slots__ = ("sentences", "data", "n", "max", "id")
     next_id = 0
     def __init__(self, sentences, id=None):
-        super(TextChunk, self).__init__()
+        super(Document, self).__init__()
         self.sentences = [Sentence(s) for s in sentences]
         self.max = len(self.sentences)
         self.data = self.sentences
@@ -210,7 +210,7 @@ class NLP(TextChunk):
         for each key in the api result or methods designed for specific use cases.
         """
     def __init__(self, api_key = None, client = None, data = None, no_print=False):
-        super(TextChunk, self).__init__()
+        super(NLP, self).__init__()
         self.client = None
         if client or api_key:
             self.add_client(client, api_key)
