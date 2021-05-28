@@ -6,7 +6,7 @@ TOK = ['t', 'token', 'tok', 'tokens']
 POSITIVE = ['positive', 'positif', 'pos', '+']
 NEGATIVE = ['negative', 'negatif', 'neg', '-']
 NEUTRAL = ['neutral', 'neutre', 'neut']
-EMOTIONS = ['digust', 'anger', 'fear', 'joy', 'love', 'sadness', 'surprise', 'neutral']
+EMOTIONS = ['disgust', 'anger', 'fear', 'joy', 'love', 'sadness', 'surprise', 'neutral']
 SENTENCE_TYPES = ['command', 'assert', 'question_open', 'question_closed']
 
 class TextChunk:
