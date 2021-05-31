@@ -12,23 +12,86 @@ SENTENCE_TYPES = ['command', 'assert', 'question_open', 'question_closed']
 class TextChunk:
     def __init__(self):
         self.class_name = self.__class__.__name__        
-        self.lambdas_cmp = {
-            'LOWER' : lambda x : x.str.lower(),
-            'LEMMA' : lambda x : x.lemma,
-            'POS' : lambda x : x.pos,
+        self.cmp_str = {
+            'LOWER' :    lambda x : x.str.lower(),
+            'LEMMA' :    lambda x : x.lemma,
+            'POS' :      lambda x : x.pos,
+            'ENT_TYPE' : lambda x : x.ner,
+            'CATEGORY' : lambda x : x.meaning,
+            'DEP' :      lambda x : x.dep,
         }
-        self.attributes = ['LOWER', 'LEMMA', 'POS']
+        self.cmp_int = {
+            'LENGTH' :   lambda x : len(x.str)
+        }
+        self.cmp_bool = {
+            'IS_ALPHA':     lambda x: x.isalpha(),
+            'IS_ASCII':     lambda x: x.isascii(),
+            'IS_DIGIT':     lambda x: x.isdigit(),
+            'IS_LOWER':     lambda x: x.islower(),
+            'IS_UPPER':     lambda x: x.isupper(),
+            'IS_TITLE':     lambda x: x.istitle(),
+            'IS_PUNCT':     lambda x: True if x in ['.', '!', '?', ';'] else False,
+            'IS_SPACE':     lambda x: x.isspace(),
+            # 'IS_STOP': lambda x: x.isalpha(),
+            # 'IS_SENT_START': lambda x: x.isalpha(),
+            'LIKE_NUM':     lambda x: x.pos == 'CD',
+            'LIKE_URL':     lambda x: 'url' in x.ner.get('type', []),
+            'LIKE_EMAIL':   lambda x: 'mail' in x.ner.get('type', []),
+        }
+
+        self.quantifiers = {
+            "!":lambda x : True,
+            "?":lambda x : True,
+            "+":lambda x : True,
+            "*":lambda x : True,
+        }
+
+        self.ops = {
+            'IN':     lambda x, lst: x in lst,
+            'NOT IN': lambda x, lst: x not in lst,
+            # 'ISSUBSET': lambda x, lst: x not in LST,
+            # 'ISSUPERSET': lambda x, lst: x not in LST,
+            '==': lambda x, y: x == y,
+            '>=': lambda x, y: x >= y,
+            '<=': lambda x, y: x <= y,
+            '>':  lambda x, y: x > y,
+            '<':  lambda x, y: x < y,
+        }
+
+        # self.attributes = 
+        #     {k:('str', self.cmp_str) for k in self.cmp_str.keys()}
+        #     'LOWER', 'LEMMA', 'POS']
+
     def compare_attr(self, token, node):
-        for attr in self.attributes:
-            if attr in node:
-                cmp = node[attr]
-                if isinstance(cmp, str):
-                    cmp = {"IN":[cmp]}
-                if self.lambdas_cmp[attr](token) in cmp['IN']:
-                    return True
-                else:
-                    return False
-        return False
+        attributes = [k for k in node.keys() if k != 'OP']
+        for attribute in attributes:
+            if not isinstance(node[attribute], dict):
+                node_ops = ['==']
+                node[attribute] = {'==':node[attribute]}
+            else:
+                node_ops = node[attribute].keys()
+            if self.cmp_str.get(attribute, None):
+                res = self.cmp_str[attribute](token)
+                for op in node_ops:
+                    if not self.ops[op](res, node[attribute][op]):
+                        return False
+            elif self.cmp_int.get(attribute, None):
+                res = self.cmp_int[attribute](token)
+                for op in node_ops:
+                    if not self.ops[op](res, node[attribute][op]):
+                        return False
+        # elif self.cmp_bool.get(attribute, None):
+        
+        # for attr in self.attributes:
+        #     if attr in node:
+        #         cmp = node[attr]
+        #         if isinstance(cmp, str):
+        #             cmp = {"IN":[cmp]}
+        #         if self.lambdas_cmp[attr](token) in cmp['IN']:
+        #             return True
+        #         else:
+        #             return False
+        return True
 
     def check_pattern(self, data, pattern):
         i = 0
@@ -44,7 +107,7 @@ class TextChunk:
             i += 1
             if j == len(pattern):
                 return True
-        return True
+        return False
 
     def match_pattern(self, patterns_json, level = None):
         matches = []

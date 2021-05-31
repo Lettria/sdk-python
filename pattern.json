@@ -1,0 +1,8 @@
+{
+"likeness":
+    [
+        {"LOWER": "je", "LENGTH":{"<=":2}},
+        {"LEMMA": {"IN": ["aller", "a"]}},
+        {"POS": {"IN": ["JJ", "RB"]}, "OP": "+"}
+    ]
+}
