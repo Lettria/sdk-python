@@ -11,7 +11,7 @@ class Subsentence(TextChunk):
         self.max = len(self.data['synthesis'])
 
     def __repr__(self):
-        return str(self.data)
+        return self.str
 
     def __iter__(self):
         self.n = 0
@@ -35,7 +35,7 @@ class Token:
         self.data = data
 
     def __repr__(self):
-        return str(self.data)
+        return self.str
 
     def __str__(self):
         return self.data.get('source', None)

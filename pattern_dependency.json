@@ -1,0 +1,15 @@
+{
+    "likeness":
+        [
+            {
+            "RIGHT_ID": "rootnode",
+            "RIGHT_ATTRS": {"POS": "N"}
+            },
+            {
+            "LEFT_ID": "rootnode",
+            "REL_OP": ">",
+            "RIGHT_ID": "subject",
+            "RIGHT_ATTRS": {"POS": "D"}
+            }
+        ]
+}

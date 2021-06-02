@@ -1,6 +1,7 @@
 import sys
 import os
 import json
+import jsonlines as jsonl
 from .client import Client
 from .subtypes import Token, Subsentence
 from .utils import flatten_lst, StrProperty, ListProperty, DictProperty
@@ -16,12 +17,38 @@ TOK =       ['t', 'token', 'tok', 'tokens']
 class PipelineError(Exception): pass
 class RequestError(Exception): pass
 
+def clear_data(data_json):
+    def clean_recursif(node):
+        if isinstance(node, list):
+            for e in node:
+                clean_recursif(e)  
+        elif isinstance(node, dict):
+            keys = list(node.keys())
+            for k in keys:
+                if k == 'confidence' or node[k] in [[], {}, None]:
+                    node.pop(k)
+                elif isinstance(node[k], dict):
+                    clean_recursif(node[k])
+                    if not node[k]:
+                        node.pop(k)
+                elif isinstance(node[k], list):
+                    clean_recursif(node[k])
+                    if not node[k]:
+                        node.pop(k)
+        else:
+            return None
+
+    data_json = {k:v for k,v in data_json.items() if v and k in ['source', 'ml_sentiment', 'proposition', 'sentiment', 'sentence_acts', 'ml_emotion', 'synthesis']}
+    data_json['synthesis'] = [{k:v for k,v in i.items() if v not in [[], {}, None]} for i in data_json['synthesis']]
+    clean_recursif(data_json)
+    return data_json
+
 class Sentence(TextChunk):
     __slots__ = ("data", "n", "max")
 
     def __init__(self, data_sentence):
         super(Sentence, self).__init__()
-        self.data = data_sentence
+        self.data = clear_data(data_sentence)
         self.max = len(self.data.get('synthesis', []))
         self._ner_fix()
 
@@ -39,10 +66,11 @@ class Sentence(TextChunk):
                 if 'sub' in m and m['sub']:
                     if m['sub'] == 'number':
                         ner.append(m['sub'])
-            self.data['synthesis'][i]['type'] = ner
+            if ner:
+                self.data['synthesis'][i]['type'] = ner
 
     def __repr__(self):
-        return str(self.data)
+        return self.str
 
     def __iter__(self):
         self.n = 0
@@ -299,7 +327,7 @@ class NLP(TextChunk):
         """ Check if synthesis key is empty """
         bad_idx = []
         for i, r in enumerate(result):
-            if not r['synthesis']:
+            if not 'synthesis' in r:
                 bad_idx.append(i)
         return bad_idx
 
@@ -409,20 +437,22 @@ class NLP(TextChunk):
         if not file:
             file = 'results'
             while not path_ok:
-                path = file + '_' + str(c) + '.json'
+                path = file + '_' + str(c) + '.jsonl'
                 if not os.path.isfile(path):
                     path_ok = 1
                 else:
                     c += 1
         else:
             path = file
-            if path.endswith('.json'):
-                path = path[:-5]
-            path = path + '.json'
+            if path.endswith('.jsonl'):
+                path = path[:-6]
+            path = path + '.jsonl'
         try:
-            with open(path, 'w') as f:
-                json.dump({'document_ids': [d.id for d in self.documents],'documents':self._get_data()}, f)
-            print(f'Results saved to {path}\n')
+            with jsonl.open(path, 'w') as fw:
+                for d in self.documents:
+                    fw.write({'document_id':d.id, 'data':d._get_data()})
+                # json.dump({'document_ids': [d.id for d in self.documents],'documents':self._get_data()}, f)
+            print(f'Results saved to {path}')
         except Exception as e:
             print(e)
 
@@ -430,25 +460,31 @@ class NLP(TextChunk):
         """ Alias for load_results"""
         self.load_results(*args)
 
-    def load_results(self, path = 'results_0', reset = False):
+    def load_results(self, path = 'results_0', reset = False, chunksize = None):
         """ Loads result from a valid json file."""
-        if path.endswith('.json'):
-            path = path[:-5]
-        path = path + '.json'
+        if path.endswith('.json') or path.endswith('.jsonl'):
+            pass
+        else:
+            path = path + '.jsonl'
         try:
-            with open(path, 'r') as f:
-                result = json.load(f)
-                if reset:
-                    self.reset_data()
-                if isinstance(result, dict):
-                    assert len(result.get('document_ids', [])) == len(result.get('documents', [])), \
-                            "'document_ids' and 'documents' should be of similar length"
-                    for id_, r in zip(result['document_ids'], result['documents']):
-                        self.add_document_data(r, id=id_)
-                else:
-                    for r in result:
-                        self.add_document_data(r)
-            print(f'Loaded {path} successfully\n')
+            if reset:
+                self.reset_data()
+            if path.endswith('jsonl'):
+                with jsonl.open(path, 'r') as f:
+                    for line in f:
+                        self.add_document_data(line.get('data'), id=line.get('document_id', None))
+            elif path.endswith('json'):
+                with open(path, 'r') as f:
+                    result = json.load(f)
+                    if isinstance(result, dict):
+                        assert len(result.get('document_ids', [])) == len(result.get('documents', [])), \
+                                "'document_ids' and 'documents' should be of similar length"
+                        for id_, r in zip(result['document_ids'], result['documents']):
+                            self.add_document_data(r, id=id_)
+                    else:
+                        for r in result:
+                            self.add_document_data(r)
+            print(f'Loaded {path} successfully')
         except Exception as e:
             print('Failure to load ' + str(path) + ': ')
             print(e, '\n')

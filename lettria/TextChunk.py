@@ -1,3 +1,6 @@
+from collections import defaultdict
+from .patterns import check_pattern
+
 GLOBAL = ['g', 'global', 'glob']
 DOC = ['d', 'doc', 'document', 'documents']
 SENT = ['s', 'sentence', 'sent', 'sentences']
@@ -12,122 +15,63 @@ SENTENCE_TYPES = ['command', 'assert', 'question_open', 'question_closed']
 class TextChunk:
     def __init__(self):
         self.class_name = self.__class__.__name__        
-        self.cmp_str = {
-            'LOWER' :    lambda x : x.str.lower(),
-            'LEMMA' :    lambda x : x.lemma,
-            'POS' :      lambda x : x.pos,
-            'ENT_TYPE' : lambda x : x.ner,
-            'CATEGORY' : lambda x : x.meaning,
-            'DEP' :      lambda x : x.dep,
-        }
-        self.cmp_int = {
-            'LENGTH' :   lambda x : len(x.str)
-        }
-        self.cmp_bool = {
-            'IS_ALPHA':     lambda x: x.isalpha(),
-            'IS_ASCII':     lambda x: x.isascii(),
-            'IS_DIGIT':     lambda x: x.isdigit(),
-            'IS_LOWER':     lambda x: x.islower(),
-            'IS_UPPER':     lambda x: x.isupper(),
-            'IS_TITLE':     lambda x: x.istitle(),
-            'IS_PUNCT':     lambda x: True if x in ['.', '!', '?', ';'] else False,
-            'IS_SPACE':     lambda x: x.isspace(),
-            # 'IS_STOP': lambda x: x.isalpha(),
-            # 'IS_SENT_START': lambda x: x.isalpha(),
-            'LIKE_NUM':     lambda x: x.pos == 'CD',
-            'LIKE_URL':     lambda x: 'url' in x.ner.get('type', []),
-            'LIKE_EMAIL':   lambda x: 'mail' in x.ner.get('type', []),
-        }
-
-        self.quantifiers = {
-            "!":lambda x : True,
-            "?":lambda x : True,
-            "+":lambda x : True,
-            "*":lambda x : True,
-        }
-
-        self.ops = {
-            'IN':     lambda x, lst: x in lst,
-            'NOT IN': lambda x, lst: x not in lst,
-            # 'ISSUBSET': lambda x, lst: x not in LST,
-            # 'ISSUPERSET': lambda x, lst: x not in LST,
-            '==': lambda x, y: x == y,
-            '>=': lambda x, y: x >= y,
-            '<=': lambda x, y: x <= y,
-            '>':  lambda x, y: x > y,
-            '<':  lambda x, y: x < y,
-        }
-
-        # self.attributes = 
-        #     {k:('str', self.cmp_str) for k in self.cmp_str.keys()}
-        #     'LOWER', 'LEMMA', 'POS']
-
-    def compare_attr(self, token, node):
-        attributes = [k for k in node.keys() if k != 'OP']
-        for attribute in attributes:
-            if not isinstance(node[attribute], dict):
-                node_ops = ['==']
-                node[attribute] = {'==':node[attribute]}
-            else:
-                node_ops = node[attribute].keys()
-            if self.cmp_str.get(attribute, None):
-                res = self.cmp_str[attribute](token)
-                for op in node_ops:
-                    if not self.ops[op](res, node[attribute][op]):
-                        return False
-            elif self.cmp_int.get(attribute, None):
-                res = self.cmp_int[attribute](token)
-                for op in node_ops:
-                    if not self.ops[op](res, node[attribute][op]):
-                        return False
-        # elif self.cmp_bool.get(attribute, None):
-        
-        # for attr in self.attributes:
-        #     if attr in node:
-        #         cmp = node[attr]
-        #         if isinstance(cmp, str):
-        #             cmp = {"IN":[cmp]}
-        #         if self.lambdas_cmp[attr](token) in cmp['IN']:
-        #             return True
-        #         else:
-        #             return False
-        return True
-
-    def check_pattern(self, data, pattern):
-        i = 0
-        j = 0
-        while i < len(data.tokens):
-            current_token = data.tokens[i]
-            current_node = pattern[j]
-            if self.compare_attr(current_token, current_node):
-                j += 1
-                print(current_token, current_node)
-            else:
-                j = 0
-            i += 1
-            if j == len(pattern):
-                return True
-        return False
 
     def match_pattern(self, patterns_json, level = None):
+        matches = defaultdict(list)
+
         matches = []
-        if level == None:
-            if self.class_name == 'NLP':
+        if level != None and level not in DOC + SENT + SUB + TOK:
+            print("level argument is invalid.")
+            return None
+        if self.class_name == 'NLP':
+            if level == None:
                 level = 'documents'
-                data = self.documents                
-            elif self.class_name == 'Document':
+        elif self.class_name == 'Document':
+            if level == None:
                 level = 'sentence'
-            elif self.class_name == 'Sentence':
-                level = 'token'
-            elif self.class_name == 'Subsentence':
-                level = 'token'
-        for element in data:
-            for sentence in element.sentences:
+            elif level in DOC:
+                print("level argument " + level + " is not available for documents.")
+                return None
+        elif self.class_name == 'Sentence':
+            if level == None:
+                level = 'sentence'
+            elif level in GLOBAL + DOC + SENT:
+                print("level argument " + level + " is not available for sentences.")
+                return None
+        elif self.class_name == 'Subsentence':
+            if level in GLOBAL + DOC + SENT:
+                print("level argument " + level + " is not available for subsentences.")
+                return None
+            level = 'subsentence'
+        if level in DOC:
+            for element in self.documents:
+                tmp = {}
+                for sentence in element:
+                    for pattern_name, patterns in patterns_json.items():
+                        res_pattern = check_pattern(sentence, patterns)
+                        if res_pattern != []:
+                            tmp[pattern_name] = tmp.get(pattern_name, []) + (res_pattern)
+                if tmp:
+                    matches.append((element, tmp))
+        elif level in SENT:
+            for sentence in self.sentences:
+                tmp = {}
                 for pattern_name, patterns in patterns_json.items():
-                    if self.check_pattern(sentence, patterns):
-                        matches.append((pattern_name, sentence.str))
+                    res_pattern = check_pattern(sentence, patterns)
+                    if res_pattern != []:
+                        tmp[pattern_name] = tmp.get(pattern_name, []) + (res_pattern)
+                if tmp:
+                    matches.append((sentence, tmp))
+        elif level in SUB:
+            for sentence in self.subsentences:
+                tmp = {}
+                for pattern_name, patterns in patterns_json.items():
+                    res_pattern = check_pattern(sentence, patterns)
+                    if res_pattern != []:
+                        tmp[pattern_name] = tmp.get(pattern_name, []) + (res_pattern)
+                if tmp:
+                    matches.append((sentence, tmp))
         return matches
-        
 
     def vocabulary(self, filter_pos = None, lemma=False):
         """ Generates vocabulary list of words"""
@@ -141,17 +85,15 @@ class TextChunk:
         return vocabulary
     
     def list_entities(self):
-        """ Returns dictionary (or list of dict) of ner entities"""
-        entities = []
-        tmp = {}
+        """ Returns dictionary of ner entities"""
+        entities = {}
         for t, e in zip(self.token_flat, self.ner_flat):
             if e.get('type', None):
-                for type in e['type']:
-                    if type in tmp:
-                        tmp[type].append(t)
+                for _type in e['type']:
+                    if _type in entities:
+                        entities[_type].append(t)
                     else:
-                        tmp[type] = [t]
-        entities.append(tmp)
+                        entities[_type] = [t]
         return entities
 
     def word_count(self, filter_pos = None, lemma=False):

@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.0.3] - commit name : Pattern Matching Update - 2021-06-05
+### Added
+- New feature: Pattern Matcher
+- New feature: Dependency Pattern Matcher
+- New function (lettria.load_results) that can return an iterator of NLP objects for reading files chunk by chunk.
+### Changed
+- Default save format changed from json to jsonlines, this allows to load huge files in memory by reading them chunk by chunk
+- Default representation for TextChunk object has changed from raw json data to token text.
+- Important decrease of memory requirements and results file size (Around -70%).
+
 ## [5.0.2] - commit name : Functional Interface Integration - 2020-12-15
 ### Added
 - Sentiment methods are now accessible through the functional interface (get_sentiment(), word_sentiment() etc.).

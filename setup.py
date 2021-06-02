@@ -14,6 +14,7 @@ setup(
     license="MIT",
     install_requires=[
       "requests>=2.10",
+      "jsonlines"
     ],
     keywords="lettria french nlp taln ner nlu chatbot bigdata text analysis sentiment emotion"
 )

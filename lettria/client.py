@@ -10,7 +10,7 @@ class Client:
 			key = key[14:]
 		self.key = key
 		self.headers = { 'Authorization': 'LettriaProKey ' + str(self.key), 'content-type': 'application/json' }
-		self.max_try = 5
+		self.max_try = 3
 
 	def print_response_error(self, response):
 		if 'Error' in response:
