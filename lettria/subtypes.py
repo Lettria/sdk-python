@@ -29,10 +29,11 @@ class Subsentence(TextChunk):
         return [self]
 
 class Token:
-    __slots__ = ("data")
+    __slots__ = ("data", "idx")
 
-    def __init__(self, data):
+    def __init__(self, data, idx):
         self.data = data
+        self.idx = idx
 
     def __repr__(self):
         return self.str
@@ -121,7 +122,7 @@ class Token:
 
     @ListProperty
     def meaning(self):
-        return [(m['super'] or '', m['sub'] or '') for m in self.data.get('meaning', [])]
+        return [(m.get('super', ''), m.get('sub', '')) for m in self.data.get('meaning', [])]
 
     def __format__(self, format_spec):
         return format(str(self), format_spec)

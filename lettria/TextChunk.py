@@ -132,11 +132,11 @@ class TextChunk:
         for sequence in _iter:
             for e in sequence.emotion_flat:
                 if e[0] not in emotions:
-                    emotions[e[0]] = {'sum':0, 'occurences':0, 'average':0}
+                    emotions[e[0]] = {'sum':0, 'occurrences':0, 'average':0}
                 emotions[e[0]]['sum'] += round(e[1], 4)
-                emotions[e[0]]['occurences'] += 1
+                emotions[e[0]]['occurrences'] += 1
             for e in emotions:
-                if emotions[e]['occurences'] != 0:
+                if emotions[e]['occurrences'] != 0:
                     emotions[e]['average'] = round(emotions[e]['sum'] / (denumerator  + 1e-6), 4)
         for k in emotions.keys():
             emotions[k]['sum'] = round(emotions[k]['sum'], 4)
@@ -158,12 +158,12 @@ class TextChunk:
             for e in sequence.sentiment_flat:
                 for pol in e:
                     if pol not in sentiments:
-                        sentiments[pol] = {'sum':0, 'occurences':0, 'average':0}
+                        sentiments[pol] = {'sum':0, 'occurrences':0, 'average':0}
                     sentiments[pol]['sum'] += e[pol]
                     if e[pol] != 0 or pol == 'total':
-                        sentiments[pol]['occurences'] += 1
+                        sentiments[pol]['occurrences'] += 1
             for e in sentiments:
-                if sentiments[e]['occurences'] != 0:
+                if sentiments[e]['occurrences'] != 0:
                     sentiments[e]['average'] = sentiments[e]['sum'] / (denumerator + 1e-6)
             for p in sentiments:
                 sentiments[p]['sum'] = sentiments[p]['sum']
@@ -249,24 +249,59 @@ class TextChunk:
         tokens = self.vocabulary(filter_pos=filter_pos, lemma=lemma)
         _iter = self.subsentences if granularity in SUB else self.sentences
         if average:
-            res = {t:{'values':0, 'occurences':0} for t in tokens}
+            res = {t:{'values':0, 'occurrences':0} for t in tokens}
             for sentence in _iter:
                 val = sentence.sentiment.get('total', 0)
                 tmp_iter = sentence.lemma if lemma else sentence.token
                 for t, p in zip(tmp_iter, sentence.pos):
                     if not filter_pos or p in filter_pos:
                         res[(t,p)]['values'] += val
-                        res[(t,p)]['occurences'] += 1
-            res = {t: round(res[t]['values'] / (res[t]['occurences'] + 1e-8), 4) for t in res.keys()}
+                        res[(t,p)]['occurrences'] += 1
+            res = {t: round(res[t]['values'] / (res[t]['occurrences'] + 1e-8), 4) for t in res.keys()}
         else:
-            res = {t:{'values':[], 'occurences':0} for t in tokens}
+            res = {t:[] for t in tokens}
             for sentence in _iter:
                 val = sentence.sentiment.get('total', 0)
                 tmp_iter = sentence.lemma if lemma else sentence.token
                 for t, p in zip(tmp_iter, sentence.pos):
                     if not filter_pos or p in filter_pos:
-                        res[(t,p)]['values'].append(val)
-                        res[(t,p)]['occurences'] += 1
+                        res[(t,p)].append(val)
+        return res
+
+    def word_emotion(self, granularity = 'sentence', lemma = False, filter_pos = None, average=True):
+        """ Returns emotion associated with word"""
+        if granularity not in SENT + SUB:
+            print("granularity argument should be 'sentence' or 'subsentence'")
+            return None
+        class_name = self.__class__.__name__
+        if class_name == 'Subsentence':
+            granularity = 'subsentence'
+        tokens = self.vocabulary(filter_pos=filter_pos, lemma=lemma)
+        _iter = self.subsentences if granularity in SUB else self.sentences
+        if average:
+            res = {t:{} for t in tokens}
+            for sentence in _iter:
+                val = sentence.emotion
+                tmp_iter = sentence.lemma if lemma else sentence.token
+                for t, p in zip(tmp_iter, sentence.pos):
+                    if not filter_pos or p in filter_pos:
+                        for v in val:
+                            if not v[0] in res[(t,p)]:
+                                res[(t,p)][v[0]] = {'values':0, 'occurrences':0}
+                            res[(t,p)][v[0]]['values'] += v[1]
+                            res[(t,p)][v[0]]['occurrences'] += 1
+            res = {t: {v:round(res[t][v]['values'] / (res[t][v]['occurrences'] + 1e-8), 4) for v in val} for t, val in res.items()}
+        else:
+            res = {t:{} for t in tokens}
+            for sentence in _iter:
+                val = sentence.emotion
+                tmp_iter = sentence.lemma if lemma else sentence.token
+                for t, p in zip(tmp_iter, sentence.pos):
+                    if not filter_pos or p in filter_pos:
+                        for v in val:
+                            if not v[0] in res[(t,p)]:
+                                res[(t,p)][v[0]] = []
+                            res[(t,p)][v[0]].append(v[1])
         return res
 
     def meaning_sentiment(self, granularity='sentence', filter_meaning=None, average=True):
@@ -285,22 +320,62 @@ class TextChunk:
             meanings = list(set([m[1] for m in self.meaning_flat if m[1]]))
         _iter = self.subsentences if granularity == 'subsentence' else self.sentences
         if average:
-            res = {t:{'values':0, 'occurences':0} for t in meanings}
+            res = {t:{'values':0, 'occurrences':0} for t in meanings}
             for sentence in _iter:
                 val = sentence.sentiment.get('total',0)
                 tmp_iter = list(set([m[1] for m in sentence.meaning_flat if m[1]]))
                 for m in tmp_iter:
                     if not filter_meaning or m in filter_meaning:
                         res[m]['values'] += val
-                        res[m]['occurences'] += 1
-            res = {t: round(res[t]['values'] / (res[t]['occurences'] + 1e-8), 4) for t in res.keys()}
+                        res[m]['occurrences'] += 1
+            res = {t: round(res[t]['values'] / (res[t]['occurrences'] + 1e-8), 4) for t in res.keys()}
         else:
-            res = {t:{'values':[], 'occurences':0} for t in meanings}
+            res = {t:[] for t in meanings}
             for sentence in _iter:
                 val = sentence.sentiment.get('total',0)
                 tmp_iter = list(set([m[1] for m in sentence.meaning_flat if m[1]]))
                 for m in tmp_iter:
                     if not filter_meaning or m in filter_meaning:
-                        res[m]['values'].append(val)
-                        res[m]['occurences'] += 1
+                        res[m].append(val)
+        return res
+
+    def meaning_emotion(self, granularity='sentence', filter_meaning=None, average=True):
+        """ Returns emotion associated with meaning"""
+        if isinstance(filter_meaning, str):
+            filter_meaning = [filter_meaning]
+        if granularity not in SENT + SUB:
+            print("granularity argument should be 'sentence' or 'subsentence'")
+            return None
+        class_name = self.__class__.__name__
+        if class_name == 'Subsentence':
+            granularity = 'subsentence'
+        if filter_meaning and isinstance(filter_meaning, list):
+            meanings = filter_meaning
+        else:
+            meanings = list(set([m[1] for m in self.meaning_flat if m[1]]))
+        _iter = self.subsen2tences if granularity == 'subsentence' else self.sentences
+        if average:
+            res = {t:{} for t in meanings}
+            for sentence in _iter:
+                val = sentence.emotion
+                tmp_iter = list(set([m[1] for m in sentence.meaning_flat if m[1]]))
+                for m in tmp_iter:
+                    if not filter_meaning or m in filter_meaning:
+                        for v in val:
+                            if not v[0] in res[m]:
+                                res[m][v[0]] = {'values':0, 'occurrences':0}
+                            res[m][v[0]]['values'] += v[1]
+                            res[m][v[0]]['occurrences'] += 1
+            res = {t: {v:round(res[t][v]['values'] / (res[t][v]['occurrences'] + 1e-8), 4) for v in val} for t, val in res.items()}
+        else:
+            res = {t:{} for t in meanings}
+            for sentence in _iter:
+                val = sentence.emotion
+                tmp_iter = list(set([m[1] for m in sentence.meaning_flat if m[1]]))
+                for m in tmp_iter:
+                    if not filter_meaning or m in filter_meaning:
+                        for v in val:
+                            if not v[0] in res[m]:
+                                res[m][v[0]] = []
+                            res[m][v[0]].append(v[1])
         return res

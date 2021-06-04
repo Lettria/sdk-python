@@ -3,12 +3,25 @@
         [
             {
             "RIGHT_ID": "rootnode",
-            "RIGHT_ATTRS": {"POS": "N"}
+            "RIGHT_ATTRS": {"POS": {"IN":["P"]}}
             },
             {
             "LEFT_ID": "rootnode",
-            "REL_OP": ">",
-            "RIGHT_ID": "subject",
+            "REL_OP": "$++",
+            "RIGHT_ID": "noun",
+            "RIGHT_ATTRS": {"POS": "D"}
+            }
+        ],
+        "likeness2":
+        [
+            {
+            "RIGHT_ID": "rootnode",
+            "RIGHT_ATTRS": {"POS": {"IN":["P"]}}
+            },
+            {
+            "LEFT_ID": "rootnode",
+            "REL_OP": ".",
+            "RIGHT_ID": "noun",
             "RIGHT_ATTRS": {"POS": "D"}
             }
         ]

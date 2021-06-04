@@ -79,7 +79,7 @@ class Sentence(TextChunk):
     def __next__(self):
         if self.n < self.max:
             self.n += 1
-            return Token(self.data.get('synthesis', [])[self.n - 1])
+            return Token(self.data.get('synthesis', [])[self.n - 1], self.n -1)
         else:
             raise StopIteration
 
@@ -103,7 +103,7 @@ class Sentence(TextChunk):
 
     @ListProperty
     def tokens(self):
-        return [Token(s) for s in self.data.get('synthesis', [])]
+        return [Token(s, i) for i, s in enumerate(self.data.get('synthesis', []))]
 
     @ListProperty
     def subsentences(self):
@@ -147,7 +147,7 @@ class Sentence(TextChunk):
 
     @ListProperty
     def meaning(self):
-        return [[(m['super'] or '', m['sub'] or '') for m in t.get('meaning', [])] for t in self.data['synthesis']]
+        return [[(m.get('super', ''), m.get('sub', '')) for m in t.get('meaning', [])] for t in self.data['synthesis']]
 
     @ListProperty
     def emotion(self):

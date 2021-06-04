@@ -16,7 +16,7 @@ commentaires = [
 ]
 
 commentaires = [
-    ['ma fille est tres belle, son ami et amant est charmant']
+    ['Le garcon de ma voisine et de mon voisin est sympa, la fille du boulanger aussi']
 ]
 
 # ner_text = ["Je vais a Rome vendredi prochain avec 3 copains. En roulant a 130 km/h on devrait y etre en 9 heures depuis Lyon, c'est Pierre qui conduit.",
@@ -29,8 +29,10 @@ nlp = lettria.NLP(api_key, no_print=False)
 import json
 
 # for c in commentaires:
-    # nlp.add_document(c)
+#     nlp.add_document(c)
 
+# nlp.save_results("results2.jsonl")
+# nlp.load_results('results2.jsonl', reset=True)
 # nlp.save_results("results.jsonl")
 nlp.load_results('results.jsonl', reset=True)
 
@@ -47,28 +49,39 @@ with open('pattern_dependency.json', 'r') as f:
     patterns = json.load(f)
 
 # print(nlp.str)
+# print(nlp.pos)
 
-# print(nlp.str)
-# for doc in nlp:
-#     for sent in doc:
-#         for tok in sent:
-#             print(tok.ner)
+for t in nlp.tokens:
+    print(t.str, t.pos, t.dep)
 
-# matches = nlp.match_pattern(patterns, level='documents')
-# print("GLOB DOC", matches)
-# for match in matches:
-    # for k,v in match.items():
-        # print(k, v.str)
-for sentence in nlp.sentences:
-    for t in sentence:
-        print(t.pos, t.str)
+## new functions emotion
+
+# print(nlp.word_sentiment(filter_pos=['N'],average=True))
+# print(nlp.word_sentiment(filter_pos=['N'],average=False))
+# print(nlp.word_emotion(filter_pos=['N'],average=True))
+# print(nlp.word_emotion(filter_pos=['N'],average=False))
+
+# print(nlp.meaning_sentiment(filter_meaning=['action_heal'],average=True))
+# print(nlp.meaning_sentiment(filter_meaning=['action_heal'],average=False))
+# print(nlp.meaning_emotion(filter_meaning=['action_heal'],average=True))
+# print(nlp.meaning_emotion(filter_meaning=['action_heal'],average=False))
+
+# print(nlp.sentences[0].data['synthesis'][3])
+# for t in nlp.sentences:
+#     print([v.get('meaning', '') for v in t.data['synthesis']])
+#     print(t.meaning)
+
+# for sentence in nlp.sentences:
+#     for t in sentence:
+#         print(t.pos, t.str)
 for doc, matches in nlp.match_pattern(patterns, level='sentence'):
     print(doc.str, matches)
-    # for k, val in matches.items():
-    #     print(k)
-    #     for m in val:
-    #         for t in m:
-    #             print(t.str, t.pos, t.dep)
+    for k, val in matches.items():
+        print(k)
+        for m in val:
+            for t in m:
+                print(t.str, t.pos, t.idx, t.dep)
+            print("")
 
 # for sentence in nlp.sentences:
 #     for sentence, matches in sentence.match_pattern(patterns):
