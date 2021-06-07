@@ -12,9 +12,9 @@ class DepTree:
         self.tokens = None
     
     def grow_children(self):
-        for item in self.data:
+        for i, item in enumerate(self.data):
             if item['ref'] == self.idx:
-                self.children.append(DepTree(self.data, item['index'], self.root, self))
+                self.children.append(DepTree(self.data, i, self.root, self))
     
     def __repr__(self):
         return self.str
@@ -169,11 +169,11 @@ dep_ops = {
 def find_matching_nodes(step_pattern, target_node):
     op = step_pattern["REL_OP"]
     result = []
-    print("===> op",target_node,  op, step_pattern)
+    # print("===> op",target_node,  op, step_pattern)
 
     candidates = dep_ops[op](target_node) #assume op is ok
     for c in candidates:
-        print("====> candidate:", c, step_pattern)
+        # print("====> candidate:", c, step_pattern)
         if compare_attr(c.root.tokens[c.idx], step_pattern['RIGHT_ATTRS']):
             result.append(c)
     # print("===> res", result)
@@ -245,9 +245,12 @@ def check_pattern_dependency(sentence_data, pattern):
             if 'LEFT_ID' not in e:
                 return e
         return None
-    print("")
+    # print("")
     tree = DepTree.grow_tree(sentence_data.data)
     tree.tokens = sentence_data.tokens
+    # print(sentence_data.tokens)
+    # for k in tree.descendants:
+    #     print(k.idx, k)
     tree.print_tree()
     patterns_caught = []
     root_pattern = find_root_pattern(pattern)
@@ -257,13 +260,13 @@ def check_pattern_dependency(sentence_data, pattern):
     if tree is None:
         return []
     root_nodes = tree.find_node_attribute(root_pattern['RIGHT_ATTRS'])
-    print("root pattern", root_pattern)
-    print("root nodes", root_nodes)
+    # print("root pattern", root_pattern)
+    # print("root nodes", root_nodes)
     for root_node in root_nodes:
         res = get_match_from_root(root_node, root_pattern, pattern)
         if res:
             patterns_caught += res
-    print("caught", patterns_caught)
+    # print("caught", patterns_caught)
 
     results = []
     for p in patterns_caught:

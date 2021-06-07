@@ -44,13 +44,14 @@ def clear_data(data_json):
     return data_json
 
 class Sentence(TextChunk):
-    __slots__ = ("data", "n", "max")
+    __slots__ = ("data", "n", "max", "id")
 
-    def __init__(self, data_sentence):
+    def __init__(self, data_sentence, idx=0):
         super(Sentence, self).__init__()
         self.data = clear_data(data_sentence)
         self.max = len(self.data.get('synthesis', []))
         self._ner_fix()
+        self.id = idx
 
     # To modify when desambiguisation is active and only one NER entity is returned for each token
     def _ner_fix(self):
@@ -82,6 +83,10 @@ class Sentence(TextChunk):
             return Token(self.data.get('synthesis', [])[self.n - 1], self.n -1)
         else:
             raise StopIteration
+
+    @property
+    def idx(self):
+        return self.id
 
     @ListProperty
     def sentences(self):
@@ -190,13 +195,17 @@ class Document(TextChunk):
     next_id = 0
     def __init__(self, sentences, id=None):
         super(Document, self).__init__()
-        self.sentences = [Sentence(s) for s in sentences]
+        self.sentences = [Sentence(s, i) for i, s in enumerate(sentences)]
         self.max = len(self.sentences)
         self.data = self.sentences
         if id is None:
             id = Document.next_id
             Document.next_id += 1
         self.id = str(id)
+
+    @property
+    def idx(self):
+        return self.id
 
     @ListProperty
     def subsentences(self):

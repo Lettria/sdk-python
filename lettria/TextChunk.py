@@ -43,34 +43,37 @@ class TextChunk:
                 print("level argument " + level + " is not available for subsentences.")
                 return None
             level = 'subsentence'
-        if level in DOC:
-            for element in self.documents:
-                tmp = {}
-                for sentence in element:
+        try:
+            if level in DOC:
+                for element in self.documents:
+                    tmp = {}
+                    for sentence in element:
+                        for pattern_name, patterns in patterns_json.items():
+                            res_pattern = check_pattern(sentence, patterns)
+                            if res_pattern != []:
+                                tmp[pattern_name] = tmp.get(pattern_name, []) + (res_pattern)
+                    if tmp:
+                        matches.append((element, tmp))
+            elif level in SENT:
+                for sentence in self.sentences:
+                    tmp = {}
                     for pattern_name, patterns in patterns_json.items():
                         res_pattern = check_pattern(sentence, patterns)
                         if res_pattern != []:
                             tmp[pattern_name] = tmp.get(pattern_name, []) + (res_pattern)
-                if tmp:
-                    matches.append((element, tmp))
-        elif level in SENT:
-            for sentence in self.sentences:
-                tmp = {}
-                for pattern_name, patterns in patterns_json.items():
-                    res_pattern = check_pattern(sentence, patterns)
-                    if res_pattern != []:
-                        tmp[pattern_name] = tmp.get(pattern_name, []) + (res_pattern)
-                if tmp:
-                    matches.append((sentence, tmp))
-        elif level in SUB:
-            for sentence in self.subsentences:
-                tmp = {}
-                for pattern_name, patterns in patterns_json.items():
-                    res_pattern = check_pattern(sentence, patterns)
-                    if res_pattern != []:
-                        tmp[pattern_name] = tmp.get(pattern_name, []) + (res_pattern)
-                if tmp:
-                    matches.append((sentence, tmp))
+                    if tmp:
+                        matches.append((sentence, tmp))
+            elif level in SUB:
+                for sentence in self.subsentences:
+                    tmp = {}
+                    for pattern_name, patterns in patterns_json.items():
+                        res_pattern = check_pattern(sentence, patterns)
+                        if res_pattern != []:
+                            tmp[pattern_name] = tmp.get(pattern_name, []) + (res_pattern)
+                    if tmp:
+                        matches.append((sentence, tmp))
+        except Exception as e:
+            print("Pattern matching failed:", e)
         return matches
 
     def vocabulary(self, filter_pos = None, lemma=False):

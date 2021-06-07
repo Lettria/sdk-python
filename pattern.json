@@ -1,7 +1,6 @@
 {
 "likeness":
     [
-        {"POS":{"IN":["D"]}},
-        {"POS":{"IN":["N"]}}
+        {"POS":{"IN":["V", "NP", "CLS", "RB"]}, "IS_ASCII":4}
     ]
 }

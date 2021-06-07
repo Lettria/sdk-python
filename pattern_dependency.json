@@ -1,28 +1,15 @@
 {
-    "likeness":
+    "patient":
         [
             {
             "RIGHT_ID": "rootnode",
-            "RIGHT_ATTRS": {"POS": {"IN":["P"]}}
+            "RIGHT_ATTRS": {"LEMMA": {"IN":["patient"]}}
             },
             {
             "LEFT_ID": "rootnode",
-            "REL_OP": "$++",
-            "RIGHT_ID": "noun",
-            "RIGHT_ATTRS": {"POS": "D"}
-            }
-        ],
-        "likeness2":
-        [
-            {
-            "RIGHT_ID": "rootnode",
-            "RIGHT_ATTRS": {"POS": {"IN":["P"]}}
-            },
-            {
-            "LEFT_ID": "rootnode",
-            "REL_OP": ".",
-            "RIGHT_ID": "noun",
-            "RIGHT_ATTRS": {"POS": "D"}
+            "REL_OP": ">>",
+            "RIGHT_ID": "num",
+            "RIGHT_ATTRS": {"POS": "CD", "DEP":"nummod"}
             }
         ]
 }

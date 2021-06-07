@@ -106,10 +106,7 @@ Name|Type|Description|Optional
 ---|---|---|---
 client|instance of Client class|Client instance to replace the current one.|True
 api_key|string|Key to use for the new client.|True
-
-
-
-
+  
 
 ## _TextChunk_
 
@@ -121,13 +118,16 @@ It offers different methods that can be accessed through children classes.
 METHOD|DESCRIPTION
 ---|---
 [vocabulary()](#vocabulary)|Returns vocabulary from current data.
+[match_pattern()](#patterns)|Returns matches from given patterns.
 [word_count()](#word_count)|Returns word count from current data.
 [word_frequency()](#word_frequency)|Returns word frequency of current data.
 [list_entities()](#list_entities)|Returns dictionaries of detected entities by type.
 [get_emotion()](#get_emotion)|Returns emotion results at the specified hierarchical level
 [get_sentiment()](#get_sentiment)|Returns sentiment results at the specified hierarchical level
 [word_sentiment()](#word_sentiment)| Returns average sentiment for each word of the whole vocabulary
+[word_emotion()](#word_sentiment)| Returns average emotion for each word of the whole vocabulary
 [meaning_sentiment()](#meaning_sentiment)|Returns average sentiment for each **meaning**
+[meaning_emotion()](#meaning_sentiment)|Returns average emotion for each **meaning**
 [filter_polarity()](#filter_polarity)|Filters **Sentence** or **Subsentence** of the specified polarity
 [filter_emotion()](#filter_emotion)|Filters **Sentence** or **Subsentence** of the specified emotions
 [filter_type()](#filter_type)|Filters **Sentence** of the specified types
@@ -244,7 +244,7 @@ list of dict|List of dictionaries with polarity as keys and dict {'occurences','
 
 
 ### word_sentiment
-``word_sentiment(granularity = 'sentence', lemma = False, filter_pos = None)``
+``word_sentiment(granularity = 'sentence', lemma = False, filter_pos = None, average=True)``
 
 Returns an average sentiment score for each word or lemma.
 For each sentence or subsentence (**granularity** parameter), the sentiment score is added to each of the words present. The scores are divided by the number of sentences or subsentences to get an average.
@@ -256,6 +256,7 @@ Name|Type|Description|Optional
 granularity|string|Whether to use sentiment by 'sentence' or 'subsentence' for scoring.|True
 lemma|bool|Whether to use lemma or plain words.|True
 filter_pos|list of string| POStags to use for filtering.|True
+average|bool|Whether to return average or list of values.|True
 
 **Return**:
 
@@ -263,21 +264,78 @@ Type|Description
 ---|---
 dictionary|Dictionary with words as keys and sentiment as value
 
+```python
+{
+	('patients', 'N'): -0.4917,
+	('male', 'N'): -0.4275,
+	('age', 'N'): -0.5167,
+	('cure', 'N'): 0.6421
+}
+```
+
+### word_emotion
+``word_emotion(granularity = 'sentence', lemma = False, filter_pos = None, average=True)``
+
+Returns the average score for each emotion for each word or lemma in the vocabulary.
+For each sentence or subsentence (**granularity** parameter), the emotion scores are added to each of the words present. The scores are divided by the number of sentences or subsentences to get an average (or list of values if 'average' == False).
+
+**Parameters**:
+
+Name|Type|Description|Optional
+---|---|---|---
+granularity|string|Whether to use emotion by 'sentence' or 'subsentence' for scoring.|True
+lemma|bool|Whether to use lemma or plain words.|True
+filter_pos|list of string| POStags to use for filtering.|True
+average|bool|Whether to return average or list of values.|True
+
+**Return**:
+
+Type|Description
+---|---
+dictionary|Dictionary with (words, POS tag) as keys and a dictionary with emotion scores as value.
+  
+```python
+{
+	('patients', 'N'): {'surprise': 0.753, 'neutral': 0.445},
+	('male', 'N'): {'neutral': 0.8},
+	('surgery', 'N'): {'sadness': 0.79}
+}
+```
 
 ### meaning_sentiment
-``meaning_sentiment(granularity='sentence', filter_meaning=None)``
+``meaning_sentiment(granularity='sentence', filter_meaning=None, average=True)``
 
 Returns average sentiment score for each **meaning**
 For each sentence or subsentence(**granularity** parameter), the sentiment score is added to each of the meaning present. The scores are divided by the number of sentences or subsentences to get an average.
-This can be used with custom **meaning** to get the sentiment associated with customer service or pricing when analyzing reviews.  
-
+This can be used with custom **meaning** to get the sentiment associated with a particular meaning, for example 'customer service' or 'pricing' when analyzing customer reviews.  
 **Parameters**:
 
 Name|Type|Description|Optional
 ---|---|---|---
 granularity|string|Whether to use sentiment by 'sentence' or 'subsentence' for scoring.|True
 filter_meaning|list of string|Filters results by list of meanings|True
+average|bool|Whether to return average or list of values.|True
 
+**Return**:
+
+Type|Description
+---|---
+dictionary|Dictionary with meanings as keys and sentiment as value
+
+### meaning_emotion
+``meaning_emotion(granularity='sentence', filter_meaning=None, average=True)``
+
+Returns average emotion scores for each **meaning**.
+For each sentence or subsentence(**granularity** parameter), the score for each emotion is added to each of the meaning. The scores are divided by the number of sentences or subsentences to get an average.
+This can be used with custom **meaning** to get the emotion associated with a particular meaning, for example 'customer service' or 'pricing' when analyzing customer reviews.  
+
+**Parameters**:
+
+Name|Type|Description|Optional
+---|---|---|---
+granularity|string|Whether to use emotion by 'sentence' or 'subsentence' for scoring.|True
+filter_meaning|list of string|Filters results by list of meanings|True
+average|bool|Whether to return average or list of values.|True
 
 **Return**:
 
@@ -372,6 +430,9 @@ tokens|list of [Token](#token-class) instances|List of **Token** in the sentence
 [common properties](#common-properties)|depends on property|Properties allowing access to specific data (pos, token etc.)
 
 ## _Subsentence Class_
+
+**Subsentence** inherits from [TextChunk](#textchunk).  
+
 **Subsentence** stores data relative to a part of a sentence. For longer and more complicated sentences it can be advantageous to cut it in multiple pieces to have a more detailed analysis.
 
 For example:
@@ -429,7 +490,7 @@ synthesis|Dictionary|Returns synthesis object
 
 ## _Sentiment Class_
 
-!!! **Sentiment** is deprecated as 5.0.2 and may be removed in future releases, all methods are now available at all levels through the functional interface, cf [TextChunk](#textchunk).  !!!
+<!> **Sentiment** is deprecated as 5.0.2 and may be removed in future releases, all methods are now available at all levels through the functional interface, cf [TextChunk](#textchunk).  <!>
 
   
 **Sentiment** provides methods to perform some specific sentiment and emotion analysis.
@@ -583,6 +644,108 @@ list of instances of **Sentence** or **Subsentence**|List of instances of object
 
 ## _Client Class_
 **Client** used to perform requests to our API.
+
+### Attributes / Properties
+
+Name|Type|Description
+---|---|---
+key|string|The API_KEY that will be used by the client.
+
+### Methods
+
+METHOD|DESCRIPTION
+---|---
+[request()](#request)|Send a request to our API
+
+### request
+
+`request(text)`
+
+Performs a request to lettria API using the API_KEY provided.
+
+**Parameters**:
+
+Name|Type|Description|Optional
+---|---|---|---
+text|string|Text data to be sent to the API|False
+
+**Return**:
+
+Type|Description
+---|---
+list of dictionary|Each of these objects represents the informations collected for a sentence.
+
+## _Patterns_
+
+Patterns let you find documents, sentences or tokens according to certain rules that will describe token attributes and relations between tokens. Attributes refer to information about a token like postag, raw text, dependency, entity type ...
+
+### _Token Patterns_
+Token patterns are simple patterns that do not use dependency parsing. They consist of a sequence of attributes related rules.
+
+Attribute|Description
+---|---
+ORTH|Text of the token.
+TEXT|Text of the token.
+LOWER|Text of the token in lowercase.
+LEMMA|Lemma of the token.
+POS|Part-Of-Speech tag of the token.
+DEP|Dependency tag of the token.
+ENT_TYPE|Entity type of the token (see NER API).
+CATEGORY_SUPER|Category "SUPER" of the token (see Meaning API).
+CATEGORY_SUB|Category "SUB" of the token (see Meaning API).
+LENGTH|Length of the token.
+IS_ALPHA|Token is composed of alphabectics characters.
+IS_ASCII|Token is composed of ASCII characters.
+IS_DIGIT|Token is composed of digits.
+IS_LOWER|Token is in lowercase.
+IS_UPPER|Token is in uppercase.
+IS_TITLE|Token is in titlecase.
+IS_PUNCT|Token is punctuation.
+IS_SPACE|Token is space.
+IS_SENT_START|Token is the first in the sentence.
+LIKE_NUM|Token is a number.
+LIKE_URL|Token has entity type URL.
+LIKE_EMAIL|Token has entity type email.
+OP|Operator to modify matching behavior.
+
+Each attribute can map either to a single value or to a dictionary that allows modifiers for more complex behaviors.
+
+Attribute Modifier|Description
+---|---
+IN|Attribute value is a member of this list.
+NOT_IN|Attribute value is not amember of this list.
+ISSUBSET|Attribute value is a subset (part of) this list
+ISSUPERSET|Attribute value is a superset of this list.
+==, >, <, >=, <=|For integer comparisons, attribute value is equal, greater or lower.
+
+Operators work similarly as similarly as regular expressions operators, they allow to choose how often should a token be matched.
+
+Operator|Description
+---|---
+?|Pattern step is optional and can match 0 or 1 token.
++|Pattern can match 1 or more tokens.
+*|Pattern can match 0 or more tokens.
+!|Pattern is negated, it must match 0 time.
+.|Default operator, pattern should match 1 token.
+
+### _Dependency Patterns_
+Dependency patterns use dependency parsing to allow complex matching patterns.  
+Attributes matching is similar to Token Patterns but operator are specific to dependency matching.
+
+Operator|Description
+---|---
+<|A is a direct dependant of B.
+>|A is the immediate head of B.
+<<|A is a dependant of B directly or indirectly.
+>>|A is a head of B directly or indirectly.
+.|A token directly precedes B: A.idx == B.idx - 1.
+.*|A token is located before B: A.idx < B.idx.
+;|A token directly follows B: A.idx == B.idx + 1.
+;*|A token is located after B: A.idx > B.idx.
+$+|A is a sibling of B (same parent/head) and is located directly before B: A.idx == B.idx - 1.
+$-|A is a sibling of B (same parent/head) and is located directly after B: A.idx == B.idx + 1.
+$++|A is a sibling of B and is located before B: A.idx < B.idx.
+$--|A is a sibling of B and is located after B: A.idx > B.idx.
 
 ### Attributes / Properties
 
