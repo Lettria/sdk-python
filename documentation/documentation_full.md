@@ -118,7 +118,6 @@ It offers different methods that can be accessed through children classes.
 METHOD|DESCRIPTION
 ---|---
 [vocabulary()](#vocabulary)|Returns vocabulary from current data.
-[match_pattern()](#match_pattern)|Returns matches from given patterns.
 [word_count()](#word_count)|Returns word count from current data.
 [word_frequency()](#word_frequency)|Returns word frequency of current data.
 [list_entities()](#list_entities)|Returns dictionaries of detected entities by type.
@@ -131,6 +130,7 @@ METHOD|DESCRIPTION
 [filter_polarity()](#filter_polarity)|Filters **Sentence** or **Subsentence** of the specified polarity
 [filter_emotion()](#filter_emotion)|Filters **Sentence** or **Subsentence** of the specified emotions
 [filter_type()](#filter_type)|Filters **Sentence** of the specified types
+[match_pattern()](#match_pattern)|Returns matches from given patterns.
 
 ### vocabulary
 
@@ -803,9 +803,9 @@ Attributes matching is similar to Token Patterns but operators are specific to d
 Operator|Description
 ---|---
 <|A is a direct dependant of B.
->|A is the immediate head of B.
+\>|A is the immediate head of B.
 <<|A is a dependant of B directly or indirectly.
->>|A is a head of B directly or indirectly.
+\>>|A is a head of B directly or indirectly.
 .|A token directly precedes B: A.idx == B.idx - 1.
 .*|A token is located before B: A.idx < B.idx.
 ;|A token directly follows B: A.idx == B.idx + 1.
