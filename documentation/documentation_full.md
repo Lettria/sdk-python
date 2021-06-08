@@ -118,7 +118,7 @@ It offers different methods that can be accessed through children classes.
 METHOD|DESCRIPTION
 ---|---
 [vocabulary()](#vocabulary)|Returns vocabulary from current data.
-[match_pattern()](#patterns)|Returns matches from given patterns.
+[match_pattern()](#match_pattern)|Returns matches from given patterns.
 [word_count()](#word_count)|Returns word count from current data.
 [word_frequency()](#word_frequency)|Returns word frequency of current data.
 [list_entities()](#list_entities)|Returns dictionaries of detected entities by type.
@@ -396,6 +396,28 @@ sentence_type|string or list of string|Types to filter, one of 'assert', 'comman
 Type|Description
 ---|---
 list of instances of **Sentence**|List of instances of **Sentence** with the specified type.
+
+### match_pattern
+
+`match_pattern(self, patterns_json, level = None, print_tree=False)`
+
+Match given pattern (either **Token Pattern** or **Dependency Pattern**) on the current TextChunk object.  
+The '**level**' argument specifies on which level the matching should be done, i.e. on the document level (returns matches per document), on the sentence or subsentence level. The default level is one level below in the hierarchy, document for **NLP** class, sentence for **Document** class and subsentence for **Sentence** class.  
+For more information on patterns look at the dedicated section: [Patterns](#patterns).  
+  
+**Parameters**:
+Name|Type|Description|Optional
+---|---|---|---
+patterns_json|dictionary|Token Pattern or Dependency Pattern|False
+level|string|Level on which matching is done, one of 'document', 'sentence', 'subsentence'|True
+print_tree|bool|Whether to print the dependency tree for dependency patterns.|True
+<br/>
+
+**Return**:
+
+Type|Description
+---|---
+list of tuple|List of tuple (TextChunk object, match dictionary)
 
 ## _Document Class_
 
@@ -677,10 +699,15 @@ list of dictionary|Each of these objects represents the informations collected f
 
 ## _Patterns_
 
-Patterns let you find documents, sentences or tokens according to certain rules that will describe token attributes and relations between tokens. Attributes refer to information about a token like postag, raw text, dependency, entity type ...
+Patterns let you find documents, sentences or tokens according to certain rules that will describe token attributes and relations between tokens. Attributes refer to information about a token like postag, raw text, dependency, entity type ...  
+Patterns follow a dictionary structure and can be loaded from json files.  
 
 ### _Token Patterns_
 Token patterns are simple patterns that do not use dependency parsing. They consist of a sequence of attributes related rules.
+
+**Attributes**
+
+Attributes are the properties of a token after analysis by the comprehension API. By defining an attribute in a pattern, only tokens that match the specific attribute will be matched.
 
 Attribute|Description
 ---|---
@@ -708,6 +735,8 @@ LIKE_URL|Token has entity type URL.
 LIKE_EMAIL|Token has entity type email.
 OP|Operator to modify matching behavior.
 
+**Modifiers**
+
 Each attribute can map either to a single value or to a dictionary that allows modifiers for more complex behaviors.
 
 Attribute Modifier|Description
@@ -718,7 +747,9 @@ ISSUBSET|Attribute value is a subset (part of) this list
 ISSUPERSET|Attribute value is a superset of this list.
 ==, >, <, >=, <=|For integer comparisons, attribute value is equal, greater or lower.
 
-Operators work similarly as similarly as regular expressions operators, they allow to choose how often should a token be matched.
+**Operators**
+
+Operators work similarly as regular expressions operators, they allow to choose how often should a token be matched.
 
 Operator|Description
 ---|---
@@ -728,10 +759,47 @@ Operator|Description
 !|Pattern is negated, it must match 0 time.
 .|Default operator, pattern should match 1 token.
 
+**Example**
+
+```python
+patterns = {
+{
+    "patients":
+        [
+            {"POS":{"IN":["CD", "ENTITY"]}},
+            {"POS":{"IN":["RB", "JJ", "PUNCT", "ENTITY"]}, "OP":"*"},
+            {"LEMMA":"patient"}
+        ],
+    "date":
+        [
+            {"ENT_TYPE":"duration"}
+        ]
+}
+
+text = "3416 consecutive patients were reviewed and 1476 finally enrolled (65.9 ± 20.9 years, 57.3% male). 76 (5.1%) patients had NAEs. Of 444 patients, 76% were male. They had a mean age of 69 ± 10 years."
+nlp.add_document(text)
+
+for s, matches in nlp.match_pattern(patterns, level='sentence'):
+    print(s.str)
+	print(matches)
+```
+  
+```python
+3416 consecutive patients were reviewed and 1476 finally enrolled (65.9 ± 20.9 years, 57.3% male). 
+{'patients': [[3416, consecutive, patients]], 'date': [[20.9 years]]}
+76 (5.1%) patients had NAEs.
+{'patients': [[76, (, 5.1%, ), patients]]}
+Of 444 patients, 76% were male.
+{'patients': [[444, patients]]}
+They had a mean age of 69 ± 10 years.
+{'date': [[10 years]]}
+```
+
 ### _Dependency Patterns_
 Dependency patterns use dependency parsing to allow complex matching patterns.  
-Attributes matching is similar to Token Patterns but operator are specific to dependency matching.
+Attributes matching is similar to Token Patterns but operators are specific to dependency matching.  
 
+**Operators**
 Operator|Description
 ---|---
 <|A is a direct dependant of B.
@@ -747,32 +815,32 @@ $-|A is a sibling of B (same parent/head) and is located directly after B: A.idx
 $++|A is a sibling of B and is located before B: A.idx < B.idx.
 $--|A is a sibling of B and is located after B: A.idx > B.idx.
 
-### Attributes / Properties
+**Example**
 
-Name|Type|Description
----|---|---
-key|string|The API_KEY that will be used by the client.
+```python
+patterns = {
+    "fruits":
+        [
+            {
+            "RIGHT_ID": "rootnode",
+            "RIGHT_ATTRS": {"LEMMA": {"IN":["banana", "apple", "pear"]}}
+            },
+            {
+            "LEFT_ID": "rootnode",
+            "REL_OP": ">",
+            "RIGHT_ID": "num",
+            "RIGHT_ATTRS": {"POS": "CD", "DEP":"nummod"}
+            }
+        ]
+}
 
-### Methods
+text = "I have 48 bananas, 32 pears and one apple."
+nlp.add_document(text)
 
-METHOD|DESCRIPTION
----|---
-[request()](#request)|Send a request to our API
-
-### request
-
-`request(text)`
-
-Performs a request to lettria API using the API_KEY provided.
-
-**Parameters**:
-
-Name|Type|Description|Optional
----|---|---|---
-text|string|Text data to be sent to the API|False
-
-**Return**:
-
-Type|Description
----|---
-list of dictionary|Each of these objects represents the informations collected for a sentence.
+for doc, matches in nlp.match_pattern(patterns):
+    print(matches)
+```
+  
+```python
+{'fruits': [[bananas, 48], [pears, 32], [apple, one]]}
+```

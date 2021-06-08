@@ -1,9 +1,9 @@
 from .patterns_dependency import check_pattern_dependency
 from .attribute_checker import compare_attr
 
-def check_pattern(data, pattern):
+def check_pattern(data, pattern, print_tree):
     if 'RIGHT_ID' in pattern[0] or 'LEFT_ID' in pattern[0]:
-        return check_pattern_dependency(data, pattern)
+        return check_pattern_dependency(data, pattern, print_tree)
     i = 0
     j = 0
     has_matched = False
@@ -35,6 +35,19 @@ def check_pattern(data, pattern):
                 else:
                     j = 0
                     current_pattern = []
+        elif op == '*':
+            if compare_attr(current_token, current_node):
+                has_matched = True
+                current_pattern.append(current_token)
+                # print("ok.  ", current_token, current_node)
+            else:
+                if has_matched == True:
+                    i -= 1
+                    j += 1
+                    has_matched = False
+                else:
+                    i -= 1
+                    j += 1
                 # print("fail.", current_token, current_node)
         elif op == '!':
             if not compare_attr(current_token, current_node):

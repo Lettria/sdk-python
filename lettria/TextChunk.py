@@ -1,5 +1,5 @@
 from collections import defaultdict
-from .patterns import check_pattern
+from .patterns.patterns_token import check_pattern
 
 GLOBAL = ['g', 'global', 'glob']
 DOC = ['d', 'doc', 'document', 'documents']
@@ -16,11 +16,11 @@ class TextChunk:
     def __init__(self):
         self.class_name = self.__class__.__name__        
 
-    def match_pattern(self, patterns_json, level = None):
+    def match_pattern(self, patterns_json, level = None, print_tree=False):
         matches = defaultdict(list)
 
         matches = []
-        if level != None and level not in DOC + SENT + SUB + TOK:
+        if level != None and level not in DOC + SENT + SUB:
             print("level argument is invalid.")
             return None
         if self.class_name == 'NLP':
@@ -35,7 +35,7 @@ class TextChunk:
         elif self.class_name == 'Sentence':
             if level == None:
                 level = 'sentence'
-            elif level in GLOBAL + DOC + SENT:
+            elif level in GLOBAL + DOC:
                 print("level argument " + level + " is not available for sentences.")
                 return None
         elif self.class_name == 'Subsentence':
@@ -49,7 +49,7 @@ class TextChunk:
                     tmp = {}
                     for sentence in element:
                         for pattern_name, patterns in patterns_json.items():
-                            res_pattern = check_pattern(sentence, patterns)
+                            res_pattern = check_pattern(sentence, patterns, print_tree)
                             if res_pattern != []:
                                 tmp[pattern_name] = tmp.get(pattern_name, []) + (res_pattern)
                     if tmp:
@@ -58,7 +58,7 @@ class TextChunk:
                 for sentence in self.sentences:
                     tmp = {}
                     for pattern_name, patterns in patterns_json.items():
-                        res_pattern = check_pattern(sentence, patterns)
+                        res_pattern = check_pattern(sentence, patterns, print_tree)
                         if res_pattern != []:
                             tmp[pattern_name] = tmp.get(pattern_name, []) + (res_pattern)
                     if tmp:
@@ -67,7 +67,7 @@ class TextChunk:
                 for sentence in self.subsentences:
                     tmp = {}
                     for pattern_name, patterns in patterns_json.items():
-                        res_pattern = check_pattern(sentence, patterns)
+                        res_pattern = check_pattern(sentence, patterns, print_tree)
                         if res_pattern != []:
                             tmp[pattern_name] = tmp.get(pattern_name, []) + (res_pattern)
                     if tmp:

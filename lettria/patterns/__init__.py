@@ -1,0 +1,1 @@
+from .patterns_token import check_pattern

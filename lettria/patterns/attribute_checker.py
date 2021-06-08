@@ -5,7 +5,7 @@ cmp_str = {
     'LEMMA' :    lambda x : x.lemma,
     'POS' :      lambda x : x.pos,
     'DEP' :      lambda x : x.dep,
-    'ENT_TYPE' : lambda x : x.ner.get('type', []),
+    'ENT_TYPE' : lambda x : x.ner.get('type', [''])[0],
     'CATEGORY_SUPER' : lambda x : [k[0] for k in x.meaning],
     'CATEGORY_SUB' : lambda x : [k[1] for k in x.meaning],
 }
