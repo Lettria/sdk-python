@@ -59,7 +59,7 @@ You can [download the source code](https://github.com/Lettria/sdk-python/zipball
 	python setup.py install
 
 ## Getting your API key
-In order to start making requests you need an API key. 
+In order to start making requests you need an API key.
 You can start right now by creating a [free key](https://app.lettria.com/signup).
 
 ## Quickstart
@@ -96,13 +96,13 @@ for document in nlp:
 
 #Print POS tags, dependency tags by accessing sentences directly.
 for sentence in nlp.sentences:
-	print(s.pos, s.dep)
+	print(sentence.pos, sentence.dep)
 ```
 ### Common properties
 
 Properties are the way to access the relevant results for your data. For example the **pos** property gives you access to the POStag information.
 
-A lot of properties are accessibles from the different classes **NLP**, **Document**, **Sentence**, **Subsentence** and **Token** though some properties may not be accessible at subsentence or token level. 
+A lot of properties are accessibles from the different classes **NLP**, **Document**, **Sentence**, **Subsentence** and **Token** though some properties may not be accessible at subsentence or token level.
 
 Name|type|Description
 ---|---|---
@@ -123,4 +123,4 @@ coreference|String|Returns reference of token if it exists
 synthesis|Dictionary|Returns synthesis object
 
 ## Documentation
-Our documentation is available online on our [website](https://doc.lettria.com) or [locally](./documentation/documentation_full.md). You can also find [tutorials](https://lettria.com/fr/dev/guides/getting-started) that will introduce you to our API and SDK and guide you to perform specific usecases. 
+Our documentation is available online on our [website](https://doc.lettria.com) or [locally](./documentation/documentation_full.md). You can also find [tutorials](https://lettria.com/fr/dev/guides/getting-started) that will introduce you to our API and SDK and guide you to perform specific usecases.
