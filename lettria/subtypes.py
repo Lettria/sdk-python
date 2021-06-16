@@ -29,11 +29,12 @@ class Subsentence(TextChunk):
         return [self]
 
 class Token:
-    __slots__ = ("data", "idx")
+    __slots__ = ("data", "idx", "pure_source")
 
-    def __init__(self, data, idx):
+    def __init__(self, data, idx, pure_source):
         self.data = data
         self.idx = idx
+        self.pure_source = pure_source
 
     def __repr__(self):
         return self.str
@@ -44,6 +45,14 @@ class Token:
     @StrProperty
     def token(self):
         return self.data.get('source', None)
+
+    @StrProperty
+    def original_text(self):
+        idx = self.data.get('source_indexes', None)
+        if idx and len(idx) == 2:
+            return self.pure_source[idx[0]:idx[1]]
+        else:
+            return self.token
 
     @StrProperty
     def source(self):

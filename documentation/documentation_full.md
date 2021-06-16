@@ -56,7 +56,7 @@ METHOD|DESCRIPTION
 
 ### add_document
 
-`add_document(document, skip_document = False, id=None)`
+`add_document(document, skip_document = False, id=None, verbose=True)`
 
 Performs a request to lettria API using the API_KEY provided.
 Results are appended as an additional **Document instance** to the <b>documents</b> attribute.
@@ -68,6 +68,7 @@ Name|Type|Description|Optional
 document|string or list of string|Data to be sent to the API|False
 skip_document|bool|Whether to skip the document if there is a problem during processing|True
 id|str|Id to identify the document, by default an incrementing integer is assigned.|True
+verbose|bool|Whether to print additional statements about document processing.True
 
 ### save_results
 
@@ -406,12 +407,12 @@ The '**level**' argument specifies on which level the matching should be done, i
 For more information on patterns look at the dedicated section: [Patterns](#patterns).  
   
 **Parameters**:
+
 Name|Type|Description|Optional
 ---|---|---|---
 patterns_json|dictionary|Token Pattern or Dependency Pattern|False
 level|string|Level on which matching is done, one of 'document', 'sentence', 'subsentence'|True
 print_tree|bool|Whether to print the dependency tree for dependency patterns.|True
-<br/>
 
 **Return**:
 
@@ -493,6 +494,7 @@ All properties have a **_flat** variant (token_flat) which flatten recursively t
 Name|type|Description
 ---|---|---
 str|String|Returns sentence as string
+original_text|String|Returns the original token in the input text before modification from the tokenization.
 token|String|Returns token
 lemma|String|Returns lemma
 lemma_detail|String|Returns unmerged lemma
@@ -759,9 +761,8 @@ Operator|Description
 !|Pattern is negated, it must match 0 time.
 .|Default operator, pattern should match 1 token.
 
-**Example**
-
 ```python
+## Token Pattern
 patterns = {
 {
     "patients":
@@ -796,10 +797,23 @@ They had a mean age of 69 ± 10 years.
 ```
 
 ### _Dependency Patterns_
-Dependency patterns use dependency parsing to allow complex matching patterns.  
+Dependency patterns use dependency parsing which construct a grammatical tree of the sentence to allow complex matching patterns.  
 Attributes matching is similar to Token Patterns but operators are specific to dependency matching.  
+Matching between the pattern and the sentence does not use the order of token (like for Token Patterns) but the dependency relations between tokens.  
+  
+A Dependency Pattern consist of a list of dictionary formated in this way:  
+  
+Name|Description
+---|---
+LEFT_ID|Name of the left node in the relation, it must have been defined in an earlier node.
+REL_OP|Operator that describes the relation between left and right nodes.
+RIGHT_ID|Name of the right node in the relation (the current node).
+RIGHT_ATTRS|The attributes that must match with the right node, they are defined similarly as for Token Patterns.
+  
+All fields must be completed except for the root node which only needs 'RIGHT_ID' and 'RIGHT_ATTRS' fields. Each pattern must have one root node.  
 
 **Operators**
+
 Operator|Description
 ---|---
 <|A is a direct dependant of B.
@@ -815,9 +829,9 @@ $-|A is a sibling of B (same parent/head) and is located directly after B: A.idx
 $++|A is a sibling of B and is located before B: A.idx < B.idx.
 $--|A is a sibling of B and is located after B: A.idx > B.idx.
 
-**Example**
 
 ```python
+## Dependency Pattern
 patterns = {
     "fruits":
         [

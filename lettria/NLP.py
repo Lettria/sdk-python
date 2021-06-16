@@ -38,8 +38,8 @@ def clear_data(data_json):
         else:
             return None
 
-    data_json = {k:v for k,v in data_json.items() if v and k in ['source', 'ml_sentiment', 'proposition', 'sentiment', 'sentence_acts', 'ml_emotion', 'synthesis']}
-    data_json['synthesis'] = [{k:v for k,v in i.items() if v not in [[], {}, None]} for i in data_json['synthesis']]
+    data_json = {k:v for k,v in data_json.items() if v and k in ['source', 'source_pure', 'ml_sentiment', 'proposition', 'sentiment', 'sentence_acts', 'ml_emotion', 'synthesis']}
+    data_json['synthesis'] = [{k:v for k,v in i.items() if v not in [[], {}, None]} for i in data_json.get('synthesis', [])]
     clean_recursif(data_json)
     return data_json
 
@@ -80,7 +80,7 @@ class Sentence(TextChunk):
     def __next__(self):
         if self.n < self.max:
             self.n += 1
-            return Token(self.data.get('synthesis', [])[self.n - 1], self.n -1)
+            return Token(self.data.get('synthesis', [])[self.n - 1], self.n -1, self.data.get('source_pure', self.data.get('source', None)))
         else:
             raise StopIteration
 
@@ -108,7 +108,7 @@ class Sentence(TextChunk):
 
     @ListProperty
     def tokens(self):
-        return [Token(s, i) for i, s in enumerate(self.data.get('synthesis', []))]
+        return [Token(s, i, self.data.get('source_pure', self.data.get('source', None))) for i, s in enumerate(self.data.get('synthesis', []))]
 
     @ListProperty
     def subsentences(self):
@@ -121,6 +121,10 @@ class Sentence(TextChunk):
     @StrProperty
     def str(self):
         return self.data.get('source', None)
+
+    @StrProperty
+    def original_text(self):
+        return self.data.get('source_pure', self.data.get('source', None))
 
     @ListProperty
     def lemma(self):
@@ -379,7 +383,7 @@ class NLP(TextChunk):
         else:
             print('Please provide a client instance or an api_key.')
 
-    def add_document(self, document, skip_document=False, id=None):
+    def add_document(self, document, skip_document=False, id=None, verbose=True):
         """ Performs request to lettria API for a document and stores it.
             skip_document: If False document is added even if empty or request failed.
             id: Id given to document, by default sequential integer """
@@ -415,7 +419,8 @@ class NLP(TextChunk):
         else:
             if isinstance(results, list):
                 self.documents.append(Document(results, id=id))
-                print("Added document " + str(self.documents[-1].id) + '.')
+                if verbose:
+                    print("Added document " + str(self.documents[-1].id) + '.')
             else:
                 if not document:
                     self.documents.append(Document([], id=id))
