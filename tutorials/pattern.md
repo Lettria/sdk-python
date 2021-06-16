@@ -125,6 +125,17 @@ ISSUPERSET|La valeur de l'attribut a pour sous-ensemble cette liste.
 Les Dependency Patterns se basent sur le Dependency Parser qui construit un arbre grammatical de la phrase.  
 Ce type de pattern suit une syntaxe différente car le matching ne se fait plus dans l'ordre des tokens mais par rapport aux relations grammaticales qui lient les tokens les uns aux autres.  
   
+Un Dependency Pattern est défini par une liste de dictionnaire qui suit le format suivant:  
+  
+Nom|Description
+---|---
+LEFT_ID|Nom du node gauche dans la relation, il doit avoir été défini précédemment.
+REL_OP|Operateur qui décrit la relation entre le node gauchet et le node droit.
+RIGHT_ID|Nom du node droit dans la relation (le node qui est en train d'être défini)
+RIGHT_ATTRS|Les attributs qui doivent match avec le node droit, ils sont définis de la même façon que pour les Token Patterns.
+  
+Chaque node doit présenter les 4 champs sauf le node 'root' qui ne contient que les champs 'RIGHT_ID' et 'RIGHT_ATTRS'.  
+Chaque pattern doit comporter un et un seul root node.  
 Pour aller avec cette nouvelle syntaxe d'autres opérateurs doivent être utilisés:
   
 Operateur|Description
