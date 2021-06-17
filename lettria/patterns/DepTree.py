@@ -15,11 +15,11 @@ class DepTree:
             if item['ref'] == self.idx:
                 self.children.append(DepTree(self.data, i, self.root, self))
     
-    def __repr__(self):
-        return self.str
+    # def __repr__(self):
+    #     return self.print_tree()
 
-    def __str__(self):
-        return self.str
+    # def __str__(self):
+    #     return self.print_tree()
 
     def print_tree(self, depth = 0, last = False):
         phrase = ""
@@ -130,7 +130,7 @@ class DepTree:
     def grow_tree(self, sentence_data):
         root = None
         for i, item in enumerate(sentence_data['synthesis']):
-            if item['dep'] == 'root':
+            if item['dep'] == 'root' or item['ref'] == -1:
                 root = DepTree(sentence_data['synthesis'], i, None, None)
                 break
         return root

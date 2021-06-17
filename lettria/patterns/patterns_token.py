@@ -17,16 +17,13 @@ def check_pattern(data, pattern, print_tree):
             if compare_attr(current_token, current_node):
                 j += 1
                 current_pattern.append(current_token)
-                # print("ok.  ", current_token, current_node)
             else:
-                # print("fail.", current_token, current_node)
                 j = 0
                 current_pattern = []
         elif op == '+':
             if compare_attr(current_token, current_node):
                 has_matched = True
                 current_pattern.append(current_token)
-                # print("ok.  ", current_token, current_node)
             else:
                 if has_matched == True:
                     i -= 1
@@ -39,7 +36,6 @@ def check_pattern(data, pattern, print_tree):
             if compare_attr(current_token, current_node):
                 has_matched = True
                 current_pattern.append(current_token)
-                # print("ok.  ", current_token, current_node)
             else:
                 if has_matched == True:
                     i -= 1
@@ -48,23 +44,18 @@ def check_pattern(data, pattern, print_tree):
                 else:
                     i -= 1
                     j += 1
-                # print("fail.", current_token, current_node)
         elif op == '!':
             if not compare_attr(current_token, current_node):
                 j += 1
                 current_pattern.append(current_token)
-                # print("ok!  ", current_token, current_node)
             else:
-                # print("fail!", current_token, current_node)
                 j = 0
                 current_pattern = []
         elif op == '?':
             j += 1
             if compare_attr(current_token, current_node):
-                # print("ok?  ", current_token, current_node)
                 current_pattern.append(current_token)
             else:
-                # print("fail?", current_token, current_node)
                 i -= 1
         i += 1
         if j == len(pattern):

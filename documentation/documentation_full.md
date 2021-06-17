@@ -400,7 +400,7 @@ list of instances of **Sentence**|List of instances of **Sentence** with the spe
 
 ### match_pattern
 
-`match_pattern(self, patterns_json, level = None, print_tree=False)`
+`match_pattern(self, patterns_json, level = None, print_tree=False, skip_errors=False)`
 
 Match given pattern (either **Token Pattern** or **Dependency Pattern**) on the current TextChunk object.  
 The '**level**' argument specifies on which level the matching should be done, i.e. on the document level (returns matches per document), on the sentence or subsentence level. The default level is one level below in the hierarchy, document for **NLP** class, sentence for **Document** class and subsentence for **Sentence** class.  
@@ -413,6 +413,7 @@ Name|Type|Description|Optional
 patterns_json|dictionary|Token Pattern or Dependency Pattern|False
 level|string|Level on which matching is done, one of 'document', 'sentence', 'subsentence'|True
 print_tree|bool|Whether to print the dependency tree for dependency patterns.|True
+skip_errors|bool|Whether to skip errors and continue matching.|True
 
 **Return**:
 
