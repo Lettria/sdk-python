@@ -81,6 +81,12 @@ def get_match_from_root(root_node, root_pattern, pattern, c_pattern = None, c_no
             j += 1
             if j != len(current_pattern):
                 j = 0
+        elif 'OP' in step_pattern.get('RIGHT_ATTRS', {}) and step_pattern['RIGHT_ATTRS']['OP'] == '?':
+            current_pattern.append(step_pattern)
+            current_nodes.append(None)
+            j += 1
+            if j != len(current_pattern):
+                j = 0
         else:
             break
         if len(current_pattern) == len(pattern):
@@ -111,5 +117,5 @@ def check_pattern_dependency(sentence_data, pattern, print_tree):
             patterns_caught += res
     results = []
     for p in patterns_caught:
-        results.append([k.root.tokens[k.idx] for k in p])
+        results.append([k.root.tokens[k.idx] if k else None for k in p])
     return results

@@ -48,9 +48,9 @@ class DepTree:
     
     @property
     def descendants(self):
-        res = [self]
+        res = []
         for child in self.children:
-            res += child.descendants
+            res += [child] + child.descendants
         return res
     
     @property
