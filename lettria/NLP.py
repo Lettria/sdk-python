@@ -38,7 +38,7 @@ def clear_data(data_json):
         else:
             return None
 
-    data_json = {k:v for k,v in data_json.items() if v and k in ['source', 'source_pure', 'ml_sentiment', 'proposition', 'sentiment', 'sentence_acts', 'ml_emotion', 'synthesis']}
+    data_json = {k:v for k,v in data_json.items() if v and k in ['source', 'language_used', 'source_pure', 'ml_sentiment', 'proposition', 'sentiment', 'sentence_acts', 'ml_emotion', 'synthesis']}
     data_json['synthesis'] = [{k:v for k,v in i.items() if v not in [[], {}, None]} for i in data_json.get('synthesis', [])]
     clean_recursif(data_json)
     return data_json
