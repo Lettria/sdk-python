@@ -20,7 +20,7 @@ class Subsentence(TextChunk):
     def __next__(self):
         if self.n < self.max:
             self.n += 1
-            return Token(self.data['synthesis'][self.n - 1])
+            return Token(self.data.get('synthesis', [])[self.n - 1], self.n -1, self.data.get('source_pure', self.data.get('source', None)))
         else:
             raise StopIteration
     

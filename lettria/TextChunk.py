@@ -22,7 +22,7 @@ class TextChunk:
         matches = []
         if level != None and level not in DOC + SENT + SUB:
             print("level argument is invalid.")
-            return None
+            return []
         if self.class_name == 'NLP':
             if level == None:
                 level = 'documents'
@@ -31,17 +31,17 @@ class TextChunk:
                 level = 'sentence'
             elif level in DOC:
                 print("level argument " + level + " is not available for documents.")
-                return None
+                return []
         elif self.class_name == 'Sentence':
             if level == None:
                 level = 'sentence'
             elif level in GLOBAL + DOC:
                 print("level argument " + level + " is not available for sentences.")
-                return None
+                return []
         elif self.class_name == 'Subsentence':
             if level in GLOBAL + DOC + SENT:
                 print("level argument " + level + " is not available for subsentences.")
-                return None
+                return []
             level = 'subsentence'
         if level in DOC:
             for element in self.documents:
@@ -255,7 +255,7 @@ class TextChunk:
         if average:
             res = {t:{'values':0, 'occurrences':0} for t in tokens}
             for sentence in _iter:
-                val = sentence.sentiment.get('total', 0)
+                val = sentence.sentiment_ml
                 tmp_iter = sentence.lemma if lemma else sentence.token
                 for t, p in zip(tmp_iter, sentence.pos):
                     if not filter_pos or p in filter_pos:
@@ -265,11 +265,12 @@ class TextChunk:
         else:
             res = {t:[] for t in tokens}
             for sentence in _iter:
-                val = sentence.sentiment.get('total', 0)
+                val = sentence.sentiment_ml
                 tmp_iter = sentence.lemma if lemma else sentence.token
                 for t, p in zip(tmp_iter, sentence.pos):
                     if not filter_pos or p in filter_pos:
                         res[(t,p)].append(val)
+            res = {k:v for k,v in res.items() if v}
         return res
 
     def word_emotion(self, granularity = 'sentence', lemma = False, filter_pos = None, average=True):
@@ -285,20 +286,18 @@ class TextChunk:
         if average:
             res = {t:{} for t in tokens}
             for sentence in _iter:
-                val = sentence.emotion
+                val = sentence.emotion_ml
                 tmp_iter = sentence.lemma if lemma else sentence.token
                 for t, p in zip(tmp_iter, sentence.pos):
                     if not filter_pos or p in filter_pos:
                         for v in val:
-                            if not v[0] in res[(t,p)]:
-                                res[(t,p)][v[0]] = {'values':0, 'occurrences':0}
-                            res[(t,p)][v[0]]['values'] += v[1]
-                            res[(t,p)][v[0]]['occurrences'] += 1
-            res = {t: {v:round(res[t][v]['values'] / (res[t][v]['occurrences'] + 1e-8), 4) for v in val} for t, val in res.items()}
+                            res[(t,p)][v[0]] = res[(t,p)].get(v[0], 0) + v[1]
+                        res[(t,p)]['occurrences'] = res[(t,p)].get('occurrences', 0) + 1
+            res = {t: {v:round(res[t][v] / (res[t]['occurrences'] + 1e-8), 4) for v in val if v != 'occurrences'} for t, val in res.items() if val}
         else:
             res = {t:{} for t in tokens}
             for sentence in _iter:
-                val = sentence.emotion
+                val = sentence.emotion_ml
                 tmp_iter = sentence.lemma if lemma else sentence.token
                 for t, p in zip(tmp_iter, sentence.pos):
                     if not filter_pos or p in filter_pos:
@@ -306,6 +305,7 @@ class TextChunk:
                             if not v[0] in res[(t,p)]:
                                 res[(t,p)][v[0]] = []
                             res[(t,p)][v[0]].append(v[1])
+            res = {k:v for k,v in res.items() if v}
         return res
 
     def meaning_sentiment(self, granularity='sentence', filter_meaning=None, average=True):
@@ -361,20 +361,18 @@ class TextChunk:
         if average:
             res = {t:{} for t in meanings}
             for sentence in _iter:
-                val = sentence.emotion
+                val = sentence.emotion_ml
                 tmp_iter = list(set([m[1] for m in sentence.meaning_flat if m[1]]))
                 for m in tmp_iter:
                     if not filter_meaning or m in filter_meaning:
                         for v in val:
-                            if not v[0] in res[m]:
-                                res[m][v[0]] = {'values':0, 'occurrences':0}
-                            res[m][v[0]]['values'] += v[1]
-                            res[m][v[0]]['occurrences'] += 1
-            res = {t: {v:round(res[t][v]['values'] / (res[t][v]['occurrences'] + 1e-8), 4) for v in val} for t, val in res.items()}
+                            res[m][v[0]] = res[m].get(v[0], 0) + v[1]
+                        res[m]['occurrences'] = res[m].get('occurrences', 0) + 1
+            res = {t: {v:round(res[t][v] / (res[t]['occurrences'] + 1e-8), 4) for v in val if v != 'occurrences'} for t, val in res.items() if val}
         else:
             res = {t:{} for t in meanings}
             for sentence in _iter:
-                val = sentence.emotion
+                val = sentence.emotion_ml
                 tmp_iter = list(set([m[1] for m in sentence.meaning_flat if m[1]]))
                 for m in tmp_iter:
                     if not filter_meaning or m in filter_meaning:
@@ -382,4 +380,5 @@ class TextChunk:
                             if not v[0] in res[m]:
                                 res[m][v[0]] = []
                             res[m][v[0]].append(v[1])
+            res = {k:v for k,v in res.items() if v}
         return res
