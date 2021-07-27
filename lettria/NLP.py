@@ -101,10 +101,12 @@ class Sentence(TextChunk):
         data['source_pure'] = self.data.get('source_pure', '')
         if len(self.data.get('sentiment', {}).get('subsentences', [])) > _id:
             data['sentiment'] = self.data['sentiment'].get('subsentences', [])[_id]
+        if len(self.data.get('emotion', {}).get('subsentences', [])) > _id:
+            data['emotion'] = self.data['emotion'].get('subsentences', [])[_id]
         if len(self.data.get('ml_emotion', {}).get('subsentence', [])) > _id:
             data['ml_emotion'] = {'sentence': self.data.get('ml_emotion', {}).get('subsentence', [])[_id]}
         if len(self.data.get('ml_sentiment', {}).get('subsentence', [])) > _id:
-            data['ml_sentiment'] = {'sentence': self.data['ml_sentiment'].get('subsentence', [])[_id]}
+            data['ml_sentiment'] = {'sentence':{'value':self.data['ml_sentiment'].get('subsentence', {})[_id]}}
         return Subsentence(data)
 
     @ListProperty
@@ -113,7 +115,7 @@ class Sentence(TextChunk):
 
     @ListProperty
     def subsentences(self):
-        return [self._get_subsentence(id, idx) for id, idx in enumerate(self.data.get('proposition', []))]
+        return [self._get_subsentence(_id, idx) for _id, idx in enumerate(self.data.get('proposition', []))]
 
     @ListProperty
     def token(self):
@@ -466,7 +468,6 @@ class NLP(TextChunk):
             with jsonl.open(path, 'w') as fw:
                 for d in self.documents:
                     fw.write({'document_id':d.id, 'data':d._get_data()})
-                # json.dump({'document_ids': [d.id for d in self.documents],'documents':self._get_data()}, f)
             print(f'Results saved to {path}')
         except Exception as e:
             print(e)
@@ -523,7 +524,6 @@ class NLP(TextChunk):
             i += max_document_per_file
             count += 1
             results['document_ids']
-        # for n in number:
 
     def reset_data(self):
         """ Erase current data """
