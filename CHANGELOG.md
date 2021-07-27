@@ -3,6 +3,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.0.6] - commit name : Fix - 2021-07-27
+### Fixed
+- subsentence is now available again when 'sentiment' module is not activated.
+
 ## [5.0.5] - commit name : Various improvments - 2021-06-29
 ### Added
 - NLP.reset_data() allows to reset the nlp object and erase all documents data.

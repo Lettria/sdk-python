@@ -92,19 +92,19 @@ class Sentence(TextChunk):
     def sentences(self):
         return [self]
 
-    def _get_subsentence(self, id, idx):
+    def _get_subsentence(self, _id, _idx):
         ''' Dividing information for each subsentence, then it can use 
         normal Sentence methods to access its data'''
         data = {}
-        data['synthesis'] = self.data['synthesis'][idx['start_id']:idx['end_id'] + 1]
-        data['source'] = self.data.get('source', '')
+        data['synthesis'] = self.data['synthesis'][_idx['start_id']:_idx['end_id'] + 1]
+        data['source'] = ' '.join([k.get('source', '') if k.get('source', '') else '' for k in data['synthesis'][_idx['start_id']:_idx['end_id'] + 1]])
         data['source_pure'] = self.data.get('source_pure', '')
-        if len(self.data['sentiment'].get('subsentences', [])) > id:
-            data['sentiment'] = self.data['sentiment'].get('subsentences', [])[id]
-        if len(self.data.get('ml_emotion', {}).get('subsentence', [])) > id:
-            data['ml_emotion'] = {'sentence': self.data.get('ml_emotion', {}).get('subsentence', [])[id]}
-        if len(self.data.get('ml_sentiment', {}).get('subsentence', [])) > id:
-            data['ml_sentiment'] = {'sentence': self.data['ml_sentiment'].get('subsentence', [])[id]}
+        if len(self.data.get('sentiment', {}).get('subsentences', [])) > _id:
+            data['sentiment'] = self.data['sentiment'].get('subsentences', [])[_id]
+        if len(self.data.get('ml_emotion', {}).get('subsentence', [])) > _id:
+            data['ml_emotion'] = {'sentence': self.data.get('ml_emotion', {}).get('subsentence', [])[_id]}
+        if len(self.data.get('ml_sentiment', {}).get('subsentence', [])) > _id:
+            data['ml_sentiment'] = {'sentence': self.data['ml_sentiment'].get('subsentence', [])[_id]}
         return Subsentence(data)
 
     @ListProperty
