@@ -44,7 +44,7 @@ class Client:
 		print(batch_documents)
 		while i < self.max_try:
 			try:
-				response = requests.post('http://0.0.0.0:1996/main_documents', auth=('Ksyd7h8bvEmdLXVB', 'bM7z6sysRqQLha6A'), json={'documents':batch_documents}).json()
+				response = requests.post('https://api.lettria.com/main_documents', headers=self.headers, json={'documents' : batch_documents}).json()
 				if response and not isinstance(response, list):
 					raise Exception
 				result = response
