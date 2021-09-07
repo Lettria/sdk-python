@@ -10,7 +10,7 @@ class Client:
 			key = key[14:]
 		self.key = key
 		self.headers = { 'Authorization': 'LettriaProKey ' + str(self.key), 'content-type': 'application/json' }
-		self.max_try = 3
+		self.max_try = 2
 
 	def print_response_error(self, response):
 		if 'Error' in response:
@@ -18,10 +18,11 @@ class Client:
 		else:
 			print(response)
 
-	def server_request(self, text):
+	def request(self, text):
 		result = None
 		response = None
 		i = 0
+		print(text)
 		while i < self.max_try:
 			try:
 				response = requests.post('https://api.lettria.com/main', headers=self.headers, json={'text' : text}).json()
@@ -36,7 +37,22 @@ class Client:
 		if result and not isinstance(result, list):
 			result = None
 		return result
-
-	def request(self, text):
-		sentences_json = self.server_request(text)
-		return sentences_json
+	
+	def request_batch(self, batch_documents):
+		result = []
+		i = 0
+		print(batch_documents)
+		while i < self.max_try:
+			try:
+				response = requests.post('http://0.0.0.0:1996/main_documents', auth=('Ksyd7h8bvEmdLXVB', 'bM7z6sysRqQLha6A'), json={'documents':batch_documents}).json()
+				if response and not isinstance(response, list):
+					raise Exception
+				result = response
+				break
+			except Exception as e:
+				i += 1
+		if len(result) == 0:
+			print(f'Request failed after {self.max_try} tries.')
+		if result and not isinstance(result, list):
+			result = []
+		return result

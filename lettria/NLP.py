@@ -344,10 +344,98 @@ class NLP(TextChunk):
                 bad_idx.append(i)
         return bad_idx
 
-    def _request(self, data, skip_document = False):
+    def add_client(self, client = None, api_key = None):
+        """ Add/Change the active Client by providing a Client Instance or an api_key
+            Args:
+                client: Client Instance
+                api_key: string representing a valid api_key
+        """
+        if client and isinstance(client, Client):
+            self.client = client
+        elif api_key:
+            self.client = Client(api_key)
+        else:
+            print('Please provide a client instance or an api_key.')
+
+    def _missing_api_key():
+        print('Failure : Please assign a client or api_key with add_client() in order to make a request. ')
+
+    def _preprocess_document(self, document):
+        if isinstance(document, str):
+            if document.strip():
+                document = document.strip()
+                # document = [document] ## Temporary until option split_sentence is available
+            else:
+                return None
+        elif isinstance(document, list):
+            document = [d.strip() for d in flatten_lst(document) if d.strip()]
+            document = ' '.join(document) ## Temporary until option split_sentence is available
+        else:
+            print('document argument should be of type list or str.')
+            raise TypeError
+        return document
+
+    def _request_batch(self, batch_documents, skip_document = False):
         ''' Input: string or list of string'''
+        results = self.client.request_batch(batch_documents)
+        if skip_document:
+            for idx in range(len(results) - 1, -1, -1):
+                if results[idx] is None:
+                    print("WARNING: Skipping document, request error.")
+                    results.pop(idx)
+                elif self._check_result(results[idx]):
+                    print("WARNING: Skipping document, error in sentences processing.")
+                    results.pop(idx)
+        return results
+
+    def add_documents(self, documents, batch_size=32, skip_document=False, document_ids=[], verbose=True):
+        """ Performs request to lettria API for multiples documents and stores it.
+            This will increase speed by allowing batching to occur across different documents.
+            Args:
+                skip_document: If False document is added even if empty or request failed.
+                batch_size: Number of documents to request at once.
+                id: List of Ids given to documents, by default sequential integer """
+        if not isinstance(documents, list):
+            print("Error, add_documents expects a list of string as first argument.")
+            return
+        if document_ids:
+            if not isinstance(document_ids, list) or len(document_ids) == 0:
+                print("document_ids argument should be a list of string with the same length as the number of documents")
+                return
+        else:
+            document_ids = list(range(self._next_id, self._next_id + len(documents)))
+         
+        if not self.client:
+            self._missing_api_key()
+            return
+        for idx_batch in range(0, len(documents), batch_size):
+            batch_documents = documents[idx_batch:idx_batch + batch_size]
+            batch_documents = [self._preprocess_document(doc) for doc in batch_documents]
+            results = []
+            if not batch_documents:
+                print("Error, documents input is empty.")
+                return 
+            results = self._request_batch(batch_documents, skip_document=skip_document)
+            for idx, (input_document, result) in enumerate(zip(batch_documents, results)):
+                if isinstance(result, list) and result:
+                    self.documents.append(Document(result, _id=document_ids[idx_batch + idx]))
+                    if verbose:
+                        print("Added document " + str(self.documents[-1].id) + '.')
+                else:
+                    if not input_document:
+                        self.documents.append(Document([], _id=document_ids[idx_batch + idx]))
+                    if verbose:
+                        print("Added empty document " + str(self.documents[-1].id) + ': received empty input.')
+                    else:
+                        self.documents.append(Document([], _id=document_ids[idx_batch + idx]))
+                    if verbose:
+                        print("Added empty document " + str(self.documents[-1].id) + ': processing failed.')
+                self.max += 1
+                self._next_id += 1
+
+    def _request(self, data, skip_document = False):
+        """ Input: string or list of string"""
         results = []
-        
         for i, seq in enumerate(data):
             try:
                 res = self.client.request(seq)
@@ -359,57 +447,27 @@ class NLP(TextChunk):
                     print("WARNING: Skipping document, request error ")
                     return None
                 else:
-                    print("WARNING request error: Document " + str(Document.next_id) + " skipping sentence " + str(i))
-
-        try:
+                    print("WARNING request error: Document " + str(self._next_id) + " skipping sentence " + str(i))
+        if skip_document:
             bad_idx = self._check_result(results)
             if bad_idx:
-                if skip_document:
-                    raise PipelineError
-                else:
-                    for idx in sorted(bad_idx, reverse=True):
-                        print("WARNING pipeline error: Document " + str(Document.next_id) + " skipping sentence " + str(idx))
-                        results.pop(idx)
-        except PipelineError:
-            print("WARNING: Skipping document, pipeline error ")
-            return None
+                print("WARNING: Skipping document, pipeline error ")
+                return None
         return results
-
-    def add_client(self, client = None, api_key = None):
-        if client and isinstance(client, Client):
-            self.client = client
-        elif api_key:
-            self.client = Client(api_key)
-        else:
-            print('Please provide a client instance or an api_key.')
 
     def add_document(self, document, skip_document=False, id=None, verbose=True):
         """ Performs request to lettria API for a document and stores it.
-            skip_document: If False document is added even if empty or request failed.
-            id: Id given to document, by default sequential integer """
-        
-        def preprocess_input(document):
-            if isinstance(document, str):
-                if document.strip():
-                    document = [document.strip()]
-                else:
-                    return None
-            elif isinstance(document, list):
-                document = [d.strip() for d in flatten_lst(document) if d.strip()]
-            else:
-                print('document argument should be of type list or str.')
-                raise TypeError
-            return document
-        
+            Args:
+                skip_document: If False document is added even if empty or request failed.
+                id: Id given to document, by default sequential integer """
         if not self.client:
-            print('Failure : Please assign a client or api_key with add_client() in order to make a request. ')
+            self._missing_api_key()
             return
-        
         results = None
-        document = preprocess_input(document)
+        document = self._preprocess_document(document)
         
         if document:
-            results = self._request(document, skip_document=skip_document)
+            results = self._request([document], skip_document=skip_document)
 
         if results is None and skip_document == True:
             if not document:
