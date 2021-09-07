@@ -1,8 +1,20 @@
-on 2.0.0
 # Changelog
 All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [5.0.6] - commit name : Fix - 2021-07-27
+### Fixed
+- subsentence is now available again when 'sentiment' module is not activated.
+
+## [5.0.5] - commit name : Various improvments - 2021-06-29
+### Added
+- NLP.reset_data() allows to reset the nlp object and erase all documents data.
+### Changed
+- Multiple NLP instances can be used at the same time, documents ids are not common anymore accross all NLP instances.
+- Changes to calculation of average for word_emotion, meaning_emotion, word_sentiment, meaning_sentiment.
+- emotion and emotion_ml attributes now return different values. 'emotion_ml' stays the same while 'emotion' is now a mix of our ML model with another algorithm.
+- Fix for subsentences tokens.
 
 ## [5.0.4] - commit name : Various improvments - 2021-06-05
 ### Added
@@ -36,7 +48,7 @@ Before: self.nlp.vocabulary(level='documents') => After: [doc.vocabulary() for d
 ### Fixed
 - pos_detail property for Token class has been fixed.
 ### Security
-
+ 
 ## [5.0.1] - commit name : NLP Interface - 2020-10-15
 ### Added
 - SDK redone from the ground up ! Look at our tutorials and documentation to get started.

@@ -52,6 +52,7 @@ METHOD|DESCRIPTION
 [add_document()](#add_document)|Submits document to API
 [save_results()](#save_results)|Saves data from json file
 [load_results()](#load_results)|Loads data from json file
+[reset_data()](#reset_data)|Erase data and reinitialise object
 [add_client()](#load_results)|Adds new client / api_key
 
 ### add_document
@@ -94,6 +95,20 @@ Name|Type|Description|Optional
 ---|---|---|---
 file|string|Path of file to load.|True
 reset|bool|Whether to erase current data.|True
+
+### reset_data
+
+`reset_data()`
+
+Erase all data inside NLP and reinitialise documents ids.
+
+**Parameters**:
+
+Name|Type|Description|Optional
+---|---|---|---
+file|string|Path of file to load.|True
+reset|bool|Whether to erase current data.|True
+
 
 ### add_client
 
