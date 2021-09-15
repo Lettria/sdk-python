@@ -1,4 +1,5 @@
 import requests
+import random
 
 class Client:
 	def __init__(self, key=None):
@@ -25,7 +26,7 @@ class Client:
 		while i < self.max_try:
 			try:
 				response = requests.post('https://api.lettria.com/main', headers=self.headers, json={'text' : text}).json()
-				if response and not isinstance(response, list):
+				if not response or (response and not isinstance(response, list)):
 					raise Exception
 				result = response
 				break
@@ -43,14 +44,15 @@ class Client:
 		while i < self.max_try:
 			try:
 				response = requests.post('https://api.lettria.com/main_documents', headers=self.headers, json={'documents' : batch_documents}).json()
-				if response and not isinstance(response, list):
+				response[1][0] = None
+				if not response or (response and not isinstance(response, list)):
 					raise Exception
 				result = response
 				break
 			except Exception as e:
 				i += 1
-		if len(result) == 0:
-			print(f'Request failed after {self.max_try} tries.')
+		if result is None or len(result) == 0:
+			print(f'Batch request failed after {self.max_try} tries.')
 		if result and not isinstance(result, list):
 			result = []
 		return result

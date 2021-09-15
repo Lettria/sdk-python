@@ -38,6 +38,8 @@ def clear_data(data_json):
         else:
             return None
 
+    if not isinstance(data_json, dict): 
+        data_json = {}
     data_json = {k:v for k,v in data_json.items() if v and k in ['source', 'language_used', 'source_pure', 'ml_sentiment', 'proposition', 'sentiment', 'sentence_acts', 'ml_emotion', 'emotion', 'synthesis']}
     data_json['synthesis'] = [{k:v for k,v in i.items() if v not in [[], {}, None]} for i in data_json.get('synthesis', [])]
     clean_recursif(data_json)
@@ -340,7 +342,7 @@ class NLP(TextChunk):
         """ Check if synthesis key is empty """
         bad_idx = []
         for i, r in enumerate(result):
-            if not 'synthesis' in r:
+            if not isinstance(r, dict) or not 'synthesis' in r:
                 bad_idx.append(i)
         return bad_idx
 
@@ -366,7 +368,7 @@ class NLP(TextChunk):
                 document = document.strip()
                 # document = [document] ## Temporary until option split_sentence is available
             else:
-                return None
+                return " "
         elif isinstance(document, list):
             document = [d.strip() for d in flatten_lst(document) if d.strip()]
             document = ' '.join(document) ## Temporary until option split_sentence is available
@@ -375,18 +377,43 @@ class NLP(TextChunk):
             raise TypeError
         return document
 
-    def _request_batch(self, batch_documents, skip_document = False):
+    def _request(self, document, skip_document = False, verbose=False):
+        """ Input: string or list of string"""
+        results = []
+        try:
+            results = self.client.request(document)
+            if results is None:
+                raise RequestError
+        except RequestError:
+            if skip_document:
+                return None
+        if isinstance(results, list):
+            bad_idx = self._check_result(results)
+            if bad_idx:
+                if skip_document:
+                        print("WARNING: Skipping document, error in sentences processing.")
+                        return None
+                elif verbose:
+                    for i in bad_idx:
+                        print("Error processing sentence", i)
+        return results
+
+    def _request_batch(self, batch_documents, document_ids, skip_document = False):
         ''' Input: string or list of string'''
         results = self.client.request_batch(batch_documents)
         if skip_document:
             for idx in range(len(results) - 1, -1, -1):
-                if results[idx] is None:
+                if not results[idx]:
                     print("WARNING: Skipping document, request error.")
                     results.pop(idx)
+                    if document_ids:
+                        document_ids.pop(idx)
                 elif self._check_result(results[idx]):
                     print("WARNING: Skipping document, error in sentences processing.")
                     results.pop(idx)
-        return results
+                    if document_ids:
+                        document_ids.pop(idx)
+        return results, document_ids
 
     def add_documents(self, documents, batch_size=32, skip_document=False, document_ids=[], verbose=True):
         """ Performs request to lettria API for multiples documents and stores it.
@@ -396,18 +423,17 @@ class NLP(TextChunk):
                 batch_size: Number of documents to request at once.
                 id: List of Ids given to documents, by default sequential integer """
         if not isinstance(documents, list):
-            print("ERROR, add_documents expects a list of string as first argument.")
+            print("ERROR, 'add_documents' method expects a list of string as first argument.")
             return
         if document_ids:
             if not isinstance(document_ids, list) or len(document_ids) == 0 or len(document_ids) != len(documents):
-                print("ERROR, document_ids argument should be a list of string with the same length as the number of documents")
+                print("ERROR, 'document_ids' argument should be a list of string with the same length as the number of documents")
                 return
-        else:
-            document_ids = list(range(self._next_id, self._next_id + len(documents)))
         
         if not self.client:
             self._missing_api_key()
             return
+        
         for idx_batch in range(0, len(documents), batch_size):
             batch_documents = documents[idx_batch:idx_batch + batch_size]
             batch_documents = [self._preprocess_document(doc) for doc in batch_documents]
@@ -415,45 +441,27 @@ class NLP(TextChunk):
             if not batch_documents:
                 print("ERROR, documents input is empty.")
                 return 
-            results = self._request_batch(batch_documents, skip_document=skip_document)
+            results, document_ids = self._request_batch(batch_documents, document_ids = document_ids, skip_document=skip_document)
             for idx, (input_document, result) in enumerate(zip(batch_documents, results)):
+                if idx_batch + idx < len(document_ids):
+                    next_doc_id = document_ids[idx_batch + idx]
+                else:
+                    next_doc_id = self._next_id
+                    self._next_id += 1
                 if isinstance(result, list) and result:
-                    self.documents.append(Document(result, _id=document_ids[idx_batch + idx]))
+                    self.documents.append(Document(result, _id=next_doc_id))
                     if verbose:
                         print("Added document " + str(self.documents[-1].id) + '.')
                 else:
                     if not input_document:
-                        self.documents.append(Document([], _id=document_ids[idx_batch + idx]))
-                    if verbose:
-                        print("Added empty document " + str(self.documents[-1].id) + ': received empty input.')
+                        self.documents.append(Document([], _id=next_doc_id))
+                        if verbose:
+                            print("Added empty document " + str(self.documents[-1].id) + ': received empty input.')
                     else:
-                        self.documents.append(Document([], _id=document_ids[idx_batch + idx]))
-                    if verbose:
-                        print("Added empty document " + str(self.documents[-1].id) + ': processing failed.')
+                        self.documents.append(Document([], _id=next_doc_id))
+                        if verbose:
+                            print("Added empty document " + str(self.documents[-1].id) + ': processing failed.')
                 self.max += 1
-                self._next_id += 1
-
-    def _request(self, data, skip_document = False):
-        """ Input: string or list of string"""
-        results = []
-        for i, seq in enumerate(data):
-            try:
-                res = self.client.request(seq)
-                if res is None:
-                    raise RequestError
-                results += res
-            except RequestError:
-                if skip_document:
-                    print("WARNING: Skipping document, request error ")
-                    return None
-                else:
-                    print("WARNING request error: Document " + str(self._next_id) + " skipping sentence " + str(i))
-        if skip_document:
-            bad_idx = self._check_result(results)
-            if bad_idx:
-                print("WARNING: Skipping document, pipeline error ")
-                return None
-        return results
 
     def add_document(self, document, skip_document=False, id=None, verbose=True):
         """ Performs request to lettria API for a document and stores it.
@@ -467,7 +475,7 @@ class NLP(TextChunk):
         document = self._preprocess_document(document)
         
         if document:
-            results = self._request([document], skip_document=skip_document)
+            results = self._request(document, skip_document=skip_document, verbose=verbose)
 
         if results is None and skip_document == True:
             if not document:
@@ -476,18 +484,20 @@ class NLP(TextChunk):
                 print("Skpping document, processing failed.")
         else:
             if id == None:
-                id = self._next_id
+                next_doc_id = self._next_id
                 self._next_id += 1
+            else:
+                next_doc_id = id
             if isinstance(results, list):
-                self.documents.append(Document(results, _id=id))
+                self.documents.append(Document(results, _id=next_doc_id))
                 if verbose:
                     print("Added document " + str(self.documents[-1].id) + '.')
             else:
                 if not document:
-                    self.documents.append(Document([], _id=id))
+                    self.documents.append(Document([], _id=next_doc_id))
                     print("Added empty document " + str(self.documents[-1].id) + ': received empty input.')
                 else:
-                    self.documents.append(Document([], _id=id))
+                    self.documents.append(Document([], _id=next_doc_id))
                     print("Added empty document " + str(self.documents[-1].id) + ': processing failed.')
             self.max += 1
 
