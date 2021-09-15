@@ -44,7 +44,6 @@ class Client:
 		while i < self.max_try:
 			try:
 				response = requests.post('https://api.lettria.com/main_documents', headers=self.headers, json={'documents' : batch_documents}).json()
-				response[1][0] = None
 				if not response or (response and not isinstance(response, list)):
 					raise Exception
 				result = response
