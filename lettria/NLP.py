@@ -396,15 +396,15 @@ class NLP(TextChunk):
                 batch_size: Number of documents to request at once.
                 id: List of Ids given to documents, by default sequential integer """
         if not isinstance(documents, list):
-            print("Error, add_documents expects a list of string as first argument.")
+            print("ERROR, add_documents expects a list of string as first argument.")
             return
         if document_ids:
-            if not isinstance(document_ids, list) or len(document_ids) == 0:
-                print("document_ids argument should be a list of string with the same length as the number of documents")
+            if not isinstance(document_ids, list) or len(document_ids) == 0 or len(document_ids) != len(documents):
+                print("ERROR, document_ids argument should be a list of string with the same length as the number of documents")
                 return
         else:
             document_ids = list(range(self._next_id, self._next_id + len(documents)))
-         
+        
         if not self.client:
             self._missing_api_key()
             return
@@ -413,7 +413,7 @@ class NLP(TextChunk):
             batch_documents = [self._preprocess_document(doc) for doc in batch_documents]
             results = []
             if not batch_documents:
-                print("Error, documents input is empty.")
+                print("ERROR, documents input is empty.")
                 return 
             results = self._request_batch(batch_documents, skip_document=skip_document)
             for idx, (input_document, result) in enumerate(zip(batch_documents, results)):
@@ -578,7 +578,7 @@ class NLP(TextChunk):
             elif isinstance(results, dict):
                 with open(f"{count}_{output_file}", 'w') as fw:
                     json.dump({'document_ids':results['document_ids'][i:i + max_document_per_file],\
-                             'documents':results['documents'][i:i + max_document_per_file]}, fw)
+                            'documents':results['documents'][i:i + max_document_per_file]}, fw)
             i += max_document_per_file
             count += 1
             results['document_ids']

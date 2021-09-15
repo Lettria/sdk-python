@@ -22,7 +22,6 @@ class Client:
 		result = None
 		response = None
 		i = 0
-		print(text)
 		while i < self.max_try:
 			try:
 				response = requests.post('https://api.lettria.com/main', headers=self.headers, json={'text' : text}).json()
@@ -41,7 +40,6 @@ class Client:
 	def request_batch(self, batch_documents):
 		result = []
 		i = 0
-		print(batch_documents)
 		while i < self.max_try:
 			try:
 				response = requests.post('https://api.lettria.com/main_documents', headers=self.headers, json={'documents' : batch_documents}).json()
