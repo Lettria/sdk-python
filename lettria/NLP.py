@@ -25,6 +25,8 @@ def clear_data(data_json):
         elif isinstance(node, dict):
             keys = list(node.keys())
             for k in keys:
+                if k == 'synthesis':
+                    continue
                 if k == 'confidence' or node[k] in [[], {}, None]:
                     node.pop(k)
                 elif isinstance(node[k], dict):
@@ -98,8 +100,8 @@ class Sentence(TextChunk):
         ''' Dividing information for each subsentence, then it can use 
         normal Sentence methods to access its data'''
         data = {}
-        data['synthesis'] = self.data['synthesis'][_idx['start_id']:_idx['end_id'] + 1]
-        data['source'] = ' '.join([k.get('source', '') if k.get('source', '') else '' for k in data['synthesis'][_idx['start_id']:_idx['end_id'] + 1]])
+        data['synthesis'] = self.data.get('synthesis', [])[_idx['start_id']:_idx['end_id'] + 1]
+        data['source'] = ' '.join([k.get('source', '') if k.get('source', '') else '' for k in data['synthesis']])
         data['source_pure'] = self.data.get('source_pure', '')
         if len(self.data.get('sentiment', {}).get('subsentences', [])) > _id:
             data['sentiment'] = self.data['sentiment'].get('subsentences', [])[_id]
