@@ -3,6 +3,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.5.2] - commit name : Various fixes - 2021-09-21
+### Fixed
+- subsentence str property is now working correctly.
+
 ## [5.0.7] - commit name : Fix - 2021-09-15
 ### Added
 - add_documents() method used to batch together different documents for faster inference
