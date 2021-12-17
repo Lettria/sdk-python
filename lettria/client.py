@@ -25,8 +25,9 @@ class Client:
 		i = 0
 		while i < self.max_try:
 			try:
-				response = requests.post('https://api.lettria.com/main', headers=self.headers, json={'text' : text}).json()
-				if not response or (response and not isinstance(response, list)):
+				# response = requests.post('https://api.lettria.com/main', headers=self.headers, json={'text' : text}).json()
+				response = requests.post('https://nlc.service.lettria.com/', headers=self.headers, json={'text' : text}).json()
+				if not response or (response and not isinstance(response, dict)):
 					raise Exception
 				result = response
 				break
@@ -34,7 +35,7 @@ class Client:
 				i += 1
 		if result is None:
 			print(f'Request failed after {self.max_try} tries.')
-		if result and not isinstance(result, list):
+		if result and not isinstance(result, dict):
 			result = None
 		return result
 	

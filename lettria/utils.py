@@ -20,6 +20,20 @@ class StrProperty(property):
             else:
                 return None
 
+class IntProperty(property):
+    def __get__(self, obj, objtype=None):
+        try:
+            if obj is None:
+                return self
+            if self.fget is None:
+                raise AttributeError("unreadable attribute")
+            return self.fget(obj)
+        except Exception as e:
+            if debug:
+                raise e
+            else:
+                return 0
+
 class ListProperty(property):
     def __get__(self, obj, objtype=None):
         try:
