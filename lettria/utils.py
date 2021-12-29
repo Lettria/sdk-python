@@ -3,6 +3,14 @@ import os
 debug = os.getenv('DEBUG') == '1' or os.getenv('DEBUG') == 'True'
 flatten=lambda l: sum(map(flatten,l),[]) if isinstance(l,list) else [l]
 
+#Accepted arguments for hierarchical levels
+GLOBAL =    ['g', 'global', 'glob']
+DOC =       ['d', 'doc', 'document', 'documents']
+SENT =      ['s', 'sentence', 'sent', 'sentences']
+SUB =       ['sub', 'subsentence', 'subsentences']
+TOK =       ['t', 'token', 'tok', 'tokens']
+
+
 def flatten_lst(lst):
     return flatten(lst)
 

@@ -1,268 +1,19 @@
 import sys
 import os
 import json
+
 import jsonlines as jsonl
+
 from .client import Client
-from .subtypes import Token, Subsentence
 from .utils import flatten_lst, StrProperty, ListProperty, DictProperty, IntProperty
 from .TextChunk import TextChunk
-
-#Accepted arguments for hierarchical levels
-GLOBAL =    ['g', 'global', 'glob']
-DOC =       ['d', 'doc', 'document', 'documents']
-SENT =      ['s', 'sentence', 'sent', 'sentences']
-SUB =       ['sub', 'subsentence', 'subsentences']
-TOK =       ['t', 'token', 'tok', 'tokens']
+from .utils import GLOBAL, DOC, SENT, SUB, TOK
+from .Document import Document
+from .Sentence import Sentence
+from .subtypes import Token, Subsentence
 
 class PipelineError(Exception): pass
 class RequestError(Exception): pass
-
-def clear_data(data_json):
-    def clean_recursif(node):
-        if isinstance(node, list):
-            for e in node:
-                clean_recursif(e)  
-        elif isinstance(node, dict):
-            keys = list(node.keys())
-            for k in keys:
-                if k == 'detail':
-                    continue
-                if k == 'confidence' or node[k] in [[], {}, None]:
-                    node.pop(k)
-                elif isinstance(node[k], dict):
-                    clean_recursif(node[k])
-                    if not node[k]:
-                        node.pop(k)
-                elif isinstance(node[k], list):
-                    clean_recursif(node[k])
-                    if not node[k]:
-                        node.pop(k)
-        else:
-            return None
-
-    if not isinstance(data_json, dict): 
-        data_json = {}
-    data_json = {k:v for k,v in data_json.items() if v and k in ['source', 'language_used', 'source_pure', 'ml_sentiment', 'subsentences', 'sentiment', 'sentence_acts', 'ml_emotion', 'emotion', 'detail']}
-    data_json['detail'] = [{k:v for k,v in i.items() if v not in [[], {}, None]} for i in data_json.get('detail', [])]
-    clean_recursif(data_json)
-    return data_json
-
-class Sentence(TextChunk):
-    __slots__ = ("data", "n", "max", "id")
-
-    def __init__(self, data_sentence, idx=0):
-        super(Sentence, self).__init__()
-        # self.data = clear_data(data_sentence)
-        self.data = data_sentence
-        self.max = len(self.data.get('detail', []))
-        # self._ner_fix()
-        self.id = idx
-
-    # To modify when desambiguisation is active and only one NER entity is returned for each token
-    def _ner_fix(self):
-        for i, d in enumerate(self.data.get('detail', [])):
-            ner = []
-            for m in d.get('meaning', []):
-                if 'super' in m and m['super']:
-                    if m['super'].lower() in ['location', 'person', 'organization']:
-                        if m['super'].lower() not in ner:
-                            ner.append(m['super'].lower())
-                    elif m['super'] == 'ENTITY':
-                        ner.append(m['sub'])
-                if 'sub' in m and m['sub']:
-                    if m['sub'] == 'number':
-                        ner.append(m['sub'])
-            if ner:
-                self.data['detail'][i]['type'] = ner
-
-    def __repr__(self):
-        return self.str
-
-    def __iter__(self):
-        self.n = 0
-        return self
-
-    def __next__(self):
-        if self.n < self.max:
-            self.n += 1
-            return Token(self.data.get('detail', [])[self.n - 1], self.n -1, self.data.get('source_pure', self.data.get('source', None)))
-        else:
-            raise StopIteration
-
-    @property
-    def idx(self):
-        return self.id
-
-    @ListProperty
-    def sentences(self):
-        return [self]
-
-    def _get_subsentence(self, _id, _idx):
-        ''' Dividing information for each subsentence, then it can use 
-        normal Sentence methods to access its data'''
-        data = {}
-        data['detail'] = self.data.get('detail', [])[_idx['start_id']:_idx['end_id'] + 1]
-        data['source'] = ' '.join([k.get('source', '') if k.get('source', '') else '' for k in data['detail']])
-        data['source_pure'] = self.data.get('source_pure', '')
-        if len(self.data.get('sentiment', {}).get('subsentences', [])) > _id:
-            data['sentiment'] = self.data['sentiment'].get('subsentences', [])[_id]
-        if len(self.data.get('emotion', {}).get('subsentences', [])) > _id:
-            data['emotion'] = self.data['emotion'].get('subsentences', [])[_id]
-        # if len(self.data.get('ml_emotion', {}).get('subsentence', [])) > _id:
-        #     data['ml_emotion'] = {'sentence': self.data.get('ml_emotion', {}).get('subsentence', [])[_id]}
-        # if len(self.data.get('ml_sentiment', {}).get('subsentence', [])) > _id:
-        #     data['ml_sentiment'] = {'sentence':{'value':self.data['ml_sentiment'].get('subsentence', {})[_id]}}
-        return Subsentence(data)
-
-    @ListProperty
-    def tokens(self):
-        return [Token(s, i, self.data.get('source_pure', self.data.get('source', None))) for i, s in enumerate(self.data.get('detail', []))]
-
-    @ListProperty
-    def subsentences(self):
-        return [self._get_subsentence(_id, idx) for _id, idx in enumerate(self.data.get('subsentences', []))]
-
-    @ListProperty
-    def token(self):
-        return [s.get('source', None) for s in self.data.get('detail', [])]
-
-    @StrProperty
-    def str(self):
-        return self.data.get('source', None)
-
-    @StrProperty
-    def original_text(self):
-        return self.data.get('source_pure', self.data.get('source', None))
-
-    @ListProperty
-    def lemma(self):
-        return [s.get('lemma', None) for s in self.data.get('detail', [])]
-
-    @ListProperty
-    def lemma_detail(self):
-        return flatten_lst([s.lemma_detail for s in self.tokens])
-
-    @ListProperty
-    def synthesis(self):
-        return self.data.get('detail', [])
-
-    @ListProperty
-    def pos(self):
-        return [s.get('tag', None) for s in self.data['detail']]
-
-    @ListProperty
-    def pos_detail(self):
-        return flatten_lst([s.pos_detail for s in self.tokens])
-
-    @ListProperty
-    def dep(self):
-        return [s.get('dep', None) for s in self.data['detail']]
-
-    @DictProperty
-    def language(self):
-        return self.data.get('language_used', {}).get('sentence_level', {}).get('label', {})
-
-    @ListProperty
-    def meaning(self):
-        return [[(m.get('super', ''), m.get('sub', '')) for m in t.get('meaning', [])] for t in self.data['detail']]
-
-    @ListProperty
-    def emotion(self):
-        return [(k, round(v,4)) for k,v in self.data.get('emotion', {}).get('values', {}).items() if v != 0]
-
-    @DictProperty
-    def emotion_ml(self):
-        return self.emotion
-        # return [(e.get('type', None), round(e.get('value', 0), 4)) for e in self.data.get('ml_emotion', {}).get('sentence', [])]
-
-    @DictProperty
-    def sentiment(self):
-        return self.data.get('sentiment', {}).get('values', {})
-
-    @DictProperty
-    def sentiment_ml(self):
-        return self.sentiment
-        # return self.data.get('ml_sentiment', {}).get('sentence', {}).get('value', 0)
-
-    # @ListProperty
-    # def sentiment_target(self):
-    #     return [(e.get('target', {}).get('source', None), e.get('source', {}).get('source', None), e.get('value', 0)) for e in self.data.get('sentiment', {}).get('elements', []) if 'target' in e and e['target']]
-
-    @StrProperty
-    def sentence_type(self):
-        return self.data.get('sentence_type', {}).get('predict', None)
-
-    @ListProperty
-    def ner(self):
-        return [t.ner for t in self.tokens]
-
-    @ListProperty
-    def morphology(self):
-        return [t.morphology for t in self.tokens]
-
-    @ListProperty
-    def coreference(self):
-        return [t.coreference for t in self.tokens]
-
-class Document(TextChunk):
-    __slots__ = ("sentences", "data", "n", "max", "id")
-    def __init__(self, document_data, _id):
-        super(Document, self).__init__()
-        self.sentences = [Sentence(s, i) for i, s in enumerate(document_data['sentences'])]
-        self.document_data = {k:v for k,v in document_data.items() if k != 'sentences'}
-        self.max = len(self.sentences)
-        self.data = self.sentences
-        self.id = str(_id)
-        # print(document_data)
-        # print(document_data['sentences'][0]['emotion'])
-        # print(document_data['emotion'])
-        # print(document_data['sentiment'])
-        # print(document_data.keys())
-
-    @property
-    def idx(self):
-        return self.id
-
-    @ListProperty
-    def subsentences(self):
-        return flatten_lst([s.subsentences for s in self.sentences])
-
-    @ListProperty
-    def tokens(self):
-        return flatten_lst([s.tokens for s in self.sentences])
-
-    @ListProperty
-    def documents(self):
-        return [self]
-
-    @DictProperty
-    def emotion(self):
-        return self.document_data.get('emotion', None)
-    
-    @IntProperty
-    def sentiment(self):
-        return self.document_data.get('sentiment', None)
-
-    def add_sentence(self, sentence):
-        self.sentences.append(sentence)
-        self.max += 1
-
-    def __repr__(self):
-        return str(self.sentences)
-
-    def _get_data(self):
-        return [s.data for s in self.sentences]
-
-    def __iter__(self):
-        self.n = 0
-        return self
-
-    def __next__(self):
-        if self.n < self.max:
-            self.n += 1
-            return self.sentences[self.n - 1]
-        else:
-            raise StopIteration
 
 class NLP(TextChunk):
     """ Class for data analysis of API return.
@@ -278,7 +29,9 @@ class NLP(TextChunk):
         self.documents = []
         self.max = len(self.documents)
         self.data = self.documents
-        self.fields = [p for p in dir(Sentence) if isinstance(getattr(Sentence,p),property)]
+        self.sentence_fields = [p for p in dir(Sentence) if isinstance(getattr(Sentence,p),property)]
+        self.document_fields = [p for p in dir(Document) if isinstance(getattr(Document,p),property) and p.endswith('_doc')]
+        self.fields = list(set(self.sentence_fields + self.document_fields))
         self._next_id = 0
         if 'token_flat' not in self.fields:
             self._generate_properties()
@@ -291,18 +44,18 @@ class NLP(TextChunk):
 
     @ListProperty
     def sentences(self):
-        """ Direct access to all sentences"""
+        """ Direct access to all sentences """
         return flatten_lst([d.sentences for d in self.documents])
 
     @ListProperty
     def subsentences(self):
-        """ Direct access to all subsentences"""
+        """ Direct access to all subsentences """
         sentences = flatten_lst([d.sentences for d in self.documents])
         return flatten_lst([s.subsentences for s in sentences])
 
     @ListProperty
     def tokens(self):
-        """ Direct access to all tokens"""
+        """ Direct access to all tokens """
         return flatten_lst([s.tokens for s in self.sentences])
 
     @property
@@ -311,44 +64,55 @@ class NLP(TextChunk):
 
     def _generate_properties(self):
         """ Takes properties of the Sentence class and dynamically create properties for 
-            NLP, Document and Subsentence class."""
-        for _class in [Document, NLP]: #adding to nlp and document
-            for field in self.fields:
-                if field in ['subsentences', 'tokens', 'sentences', 'emotion', 'sentiment']:
-                    continue
-                if not hasattr(_class, field):
-                    setattr(_class, field, property(self._make_lambda(field)))
-                if not hasattr(_class, field + '_flat'):
-                    setattr(_class, field + '_flat', property(self._make_lambda(field, True)))
-        for _class in [Subsentence]: #adding specific properties for subsentence
-            for field in [p for p in dir(Sentence) if isinstance(getattr(Sentence, p), property)]:
-                filters = ['sentiment_target', 'morphology', 'ner', 'token', 'str', \
+            NLP, Document and Subsentence class. """
+        #add methods to NLP and Document classes
+        for field in self.sentence_fields:
+            for _class in [Document, NLP]:
+                    if field in ['subsentences', 'tokens', 'sentences']:
+                        continue
+                    if not hasattr(_class, field):
+                        setattr(_class, field, property(self._make_lambda(field)))
+                    if not hasattr(_class, field + '_flat'):
+                        setattr(_class, field + '_flat', property(self._make_lambda(field, True)))
+            
+            #add methods to Subsentence class
+            filters = ['sentiment_target', 'morphology', 'ner', 'token', 'str', \
                             'lemma', 'lemma_detail', 'detail', 'pos', 'pos_detail', 'dep', 'language', 'meaning', \
                             'sentiment', 'sentiment_ml', 'emotion', 'emotion_ml', 'tokens']
+            for _class in [Subsentence]:
                 if field in filters:
                     if not hasattr(_class, field):
                         setattr(_class, field, getattr(Sentence, field))
                 elif field not in ['subsentences']:
                     if not hasattr(_class, field):
-                        setattr(_class, field, property(self._make_lambda_sub(field)))
-        for _class in [Sentence, Subsentence]: #adding flat variants to sentence and subsentence for convenience
-            for field in self.fields:
+                        setattr(_class, field, property(self._make_lambda_not_available(field)))
+
+            #adding _flat  variants to sentence and subsentence methods for convenience
+            for _class in [Sentence, Subsentence]: 
                 if not hasattr(_class, field):
-                    setattr(_class, field + '_flat', property(self._make_lambda_sent(field)))
+                    setattr(_class, field + '_flat', property(self._make_lambda_flat(field)))
+
+        #add documents methods
+        for field in self.document_fields:
+            for _class in [NLP]:
+                if not hasattr(_class, field):
+                    setattr(_class, field, property(self._make_lambda(field)))
+                if not hasattr(_class, field + '_flat'):
+                    setattr(_class, field + '_flat', property(self._make_lambda(field, True)))
 
     def _make_lambda(self, field, flatten = False):
-        """ Returns lambda functions to be added as property to classes"""
+        """ Returns lambda functions to be added as property to classes """
         if not flatten:
             return lambda c_self : [getattr(s, field) for s in c_self.data]
         else:
             return lambda c_self : flatten_lst([getattr(s, field) for s in c_self.data])
 
-    def _make_lambda_sub(self, field):
-        """ Returns lambda functions to be added as property to classes"""
+    def _make_lambda_not_available(self, field):
+        """ Returns lambda functions to be added as property to classes """
         return lambda x: field + ' not available for subsentences'
 
-    def _make_lambda_sent(self, field):
-        """ Returns lambda functions to be added as property to classes"""
+    def _make_lambda_flat(self, field):
+        """ Returns lambda functions to be added as property to classes """
         return lambda c_self: flatten_lst(getattr(c_self, field))
 
     def __iter__(self):
@@ -361,14 +125,6 @@ class NLP(TextChunk):
             return self.documents[self.n - 1]
         else:
             raise StopIteration
-
-    def _check_result(self, result):
-        """ Check if synthesis key is empty """
-        bad_idx = []
-        for i, r in enumerate(result):
-            if not isinstance(r, dict) or not 'detail' in r:
-                bad_idx.append(i)
-        return bad_idx
 
     def add_client(self, client = None, api_key = None):
         """ Add/Change the active Client by providing a Client Instance or an api_key
@@ -401,44 +157,6 @@ class NLP(TextChunk):
             raise TypeError
         return document
 
-    def _request(self, document, skip_document = False, verbose=False):
-        """ Input: string or list of string"""
-        results = []
-        try:
-            results = self.client.request(document)
-            if results is None:
-                raise RequestError
-        except RequestError:
-            if skip_document:
-                return None
-        # if isinstance(results, dict):
-        #     bad_idx = self._check_result(results)
-        #     if bad_idx:
-        #         if skip_document:
-        #                 print("WARNING: Skipping document, error in sentences processing.")
-        #                 return None
-        #         elif verbose:
-        #             for i in bad_idx:
-        #                 print("Error processing sentence", i)
-        return results
-
-    def _request_batch(self, batch_documents, document_ids, skip_document = False):
-        ''' Input: string or list of string'''
-        results = self.client.request_batch(batch_documents)
-        if skip_document:
-            for idx in range(len(results) - 1, -1, -1):
-                if not results[idx]:
-                    print("WARNING: Skipping document, request error.")
-                    results.pop(idx)
-                    if document_ids:
-                        document_ids.pop(idx)
-                elif self._check_result(results[idx]):
-                    print("WARNING: Skipping document, error in sentences processing.")
-                    results.pop(idx)
-                    if document_ids:
-                        document_ids.pop(idx)
-        return results, document_ids
-
     def add_documents(self, documents, batch_size=32, skip_document=False, document_ids=[], verbose=True):
         """ Performs request to lettria API for multiples documents and stores it.
             This will increase speed by allowing batching to occur across different documents.
@@ -465,7 +183,7 @@ class NLP(TextChunk):
             if not batch_documents:
                 print("ERROR, documents input is empty.")
                 return 
-            results, document_ids = self._request_batch(batch_documents, document_ids = document_ids, skip_document=skip_document)
+            results, document_ids = self.request_batch_documents(batch_documents, document_ids = document_ids, skip_document=skip_document)
             for idx, (input_document, result) in enumerate(zip(batch_documents, results)):
                 if idx_batch + idx < len(document_ids):
                     next_doc_id = document_ids[idx_batch + idx]
@@ -499,7 +217,7 @@ class NLP(TextChunk):
         document = self._preprocess_document(document)
         
         if document:
-            results = self._request(document, skip_document=skip_document, verbose=verbose)
+            results = self.client.request_document(document, skip_document=skip_document, verbose=verbose)
         if results is None and skip_document == True:
             if not document:
                 print("Skpping document, received empty input.")
@@ -535,23 +253,23 @@ class NLP(TextChunk):
         """ Alias for save_result"""
         self.save_results(*args)
 
-    def save_results(self, file = ''):
+    def save_results(self, filename = ''):
         """ Writes json result to a file with the specified name."""
         path_ok = 0
         c = 0
         if not self.data:
             print("No data to save.")
             return
-        if not file:
-            file = 'results'
+        if not filename:
+            filename = 'results'
             while not path_ok:
-                path = file + '_' + str(c) + '.jsonl'
+                path = filename + '_' + str(c) + '.jsonl'
                 if not os.path.isfile(path):
                     path_ok = 1
                 else:
                     c += 1
         else:
-            path = file
+            path = filename
             if path.endswith('.jsonl'):
                 path = path[:-6]
             path = path + '.jsonl'
@@ -579,19 +297,10 @@ class NLP(TextChunk):
             if path.endswith('jsonl'):
                 with jsonl.open(path, 'r') as f:
                     for line in f:
-                        self.add_document_data(line.get('data'), id=line.get('document_id', None))
-            elif path.endswith('json'):
-                with open(path, 'r') as f:
-                    result = json.load(f)
-                    if isinstance(result, dict):
-                        assert len(result.get('document_ids', [])) == len(result.get('documents', [])), \
-                                "'document_ids' and 'documents' should be of similar length"
-                        for _id, r in zip(result['document_ids'], result['documents']):
-                            self.add_document_data(r, _id=_id)
-                    else:
-                        for r in result:
-                            self.add_document_data(r)
-            print(f'Loaded {path} successfully')
+                        self.add_document_data(line.get('data'), _id=line.get('document_id', None))
+            else:
+                raise Exception("Expected jsonl file extension.")
+            print(f'Loaded {str(path)} successfully')
         except Exception as e:
             print('Failure to load ' + str(path) + ': ')
             print(e, '\n')
@@ -622,3 +331,56 @@ class NLP(TextChunk):
         self.data = self.documents
         self.max = 0
         self._next_id = 0
+    
+    def reformat_data(self, filepath, output_file):
+        """ Takes the path of a results file with the old sentence format 
+            and writes it to a new file with the new document format"""
+        data = []
+        idx = 0
+        if filepath.endswith('jsonl'):
+            with jsonl.open(filepath, 'r') as f:
+                for l in f:
+                    data.append(l)
+        elif filepath.endswith('json'):
+            with open(filepath, 'r') as f:
+                tmp = json.load(f)
+                for t in tmp:
+                    data.append({'id':idx, 'data':t})
+                idx += 1
+        new_data = []
+        new_format = {
+            'coreference': None,
+            'type': None, 
+            'domain': None,
+            'source_pure': None,
+            'language': None,
+            'emoticon': None,
+            'sentiment': None,
+            'emotion': None,
+            'sentences': None
+        }
+        ids = []
+        for batch in data:
+            tmp = new_format.copy()
+            tmp_sentences = []
+            ids.append(batch.get('document_id', None))
+            tmp['source_pure'] = ' '.join([d.get('source_pure', d.get('source', '')) for d in batch['data']])
+            tmp['language'] = batch['data'][0].get('language_used', {}).get('predict', 'fr')
+            for s in batch['data']:
+                new_sentence = {}
+                new_sentence['source'] = s.get('source', None)
+                new_sentence['source_pure'] = s.get('source_pure', None)
+                new_sentence['sentence_indexes'] = s.get('sentence_source_indexes', None)
+                new_sentence['subsentences'] = s.get('proposition', None)
+                new_sentence['emotion'] = s.get('emotion', None)
+                new_sentence['sentiment'] = s.get('sentiment', None)
+                new_sentence['sentence_type'] = s.get('sentence_acts', {}).get('predict', None)
+                new_sentence['ner'] = s.get('NER', None)
+                new_sentence['detail'] = s.get('synthesis', None)
+                tmp_sentences.append(new_sentence)
+            tmp['sentences'] = tmp_sentences
+            new_data.append(tmp)
+        if new_data:
+            with jsonl.open(output_file, 'w') as f:
+                for _id, d in zip(ids, new_data):
+                    f.write({'data':d, 'document_id':_id})
