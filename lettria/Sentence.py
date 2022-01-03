@@ -121,10 +121,6 @@ class Sentence(TextChunk):
     def detail(self):
         return self.data.get('detail', [])
 
-    # @DictProperty
-    # def language(self):
-    #     return self.data.get('language_used', {}).get('sentence_level', {}).get('label', {})
-
     @ListProperty
     def emotion(self):
         return [(k, round(v,4)) for k,v in self.data.get('emotion', {}).get('values', {}).items() if v != 0]
