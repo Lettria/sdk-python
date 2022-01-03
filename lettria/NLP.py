@@ -10,10 +10,10 @@ from .TextChunk import TextChunk
 from .utils import GLOBAL, DOC, SENT, SUB, TOK
 from .Document import Document
 from .Sentence import Sentence
-from .subtypes import Token, Subsentence
+from .Subsentence import Subsentence
+from .Token import Token
 
 class PipelineError(Exception): pass
-class RequestError(Exception): pass
 
 class NLP(TextChunk):
     """ Class for data analysis of API return.
@@ -29,12 +29,14 @@ class NLP(TextChunk):
         self.documents = []
         self.max = len(self.documents)
         self.data = self.documents
-        self.sentence_fields = [p for p in dir(Sentence) if isinstance(getattr(Sentence,p),property)]
-        self.document_fields = [p for p in dir(Document) if isinstance(getattr(Document,p),property) and p.endswith('_doc')]
-        self.fields = list(set(self.sentence_fields + self.document_fields))
         self._next_id = 0
-        if 'token_flat' not in self.fields:
+
+        self.token_fields = [p for p in dir(Token) if isinstance(getattr(Token,p),property)]
+        self.sentence_fields = []
+        self.document_fields = []
+        if 'token_flat' not in dir(NLP):
             self._generate_properties()
+        self.fields = list(set(self.sentence_fields + self.document_fields))
 
         def doNothing(*args):
             pass
@@ -63,21 +65,36 @@ class NLP(TextChunk):
         return [self]
 
     def _generate_properties(self):
-        """ Takes properties of the Sentence class and dynamically create properties for 
-            NLP, Document and Subsentence class. """
-        #add methods to NLP and Document classes
+        """ Dynamically create properties for NLP, Document, Sentence and Subsentence classes to avoid
+            code redudancies.
+            Methods are implemented at the level at which the information is available,
+            wrapper functions at higher levels are added dynamically."""
+
+        #add wrapper methods for tokens to sentence and subsentence classes
+        for field in self.token_fields:
+            for _class in [Sentence, Subsentence]:
+                if field in ['source', 'str']:
+                    continue
+                if not hasattr(_class, field):
+                    setattr(_class, field, ListProperty(self._make_lambda(field, token=True)))
+                if not hasattr(_class, field + '_flat'):
+                    setattr(_class, field + '_flat', ListProperty(self._make_lambda(field, True, token=True)))
+
+        #update list of sentence properties
+        self.sentence_fields = [p for p in dir(Sentence) if isinstance(getattr(Sentence,p),property) and not p.endswith('flat')]
+
+        #add wrapper methods to Document and Subsentence
         for field in self.sentence_fields:
-            for _class in [Document, NLP]:
+            for _class in [Document]:
                     if field in ['subsentences', 'tokens', 'sentences']:
                         continue
                     if not hasattr(_class, field):
-                        setattr(_class, field, property(self._make_lambda(field)))
+                        setattr(_class, field, ListProperty(self._make_lambda(field)))
                     if not hasattr(_class, field + '_flat'):
-                        setattr(_class, field + '_flat', property(self._make_lambda(field, True)))
-            
+                        setattr(_class, field + '_flat', ListProperty(self._make_lambda(field, True)))
+        
             #add methods to Subsentence class
-            filters = ['sentiment_target', 'morphology', 'ner', 'token', 'str', \
-                            'lemma', 'lemma_detail', 'detail', 'pos', 'pos_detail', 'dep', 'language', 'meaning', \
+            filters = ['token', 'str', 'detail', \
                             'sentiment', 'sentiment_ml', 'emotion', 'emotion_ml', 'tokens']
             for _class in [Subsentence]:
                 if field in filters:
@@ -89,23 +106,36 @@ class NLP(TextChunk):
 
             #adding _flat  variants to sentence and subsentence methods for convenience
             for _class in [Sentence, Subsentence]: 
-                if not hasattr(_class, field):
-                    setattr(_class, field + '_flat', property(self._make_lambda_flat(field)))
+                if not hasattr(_class, field + '_flat'):
+                    setattr(_class, field + '_flat', ListProperty(self._make_lambda_flat(field)))
 
-        #add documents methods
+        #update list of document properties
+        self.document_fields = [p for p in dir(Document) if isinstance(getattr(Document,p),property)  and not p.endswith('flat')]
+
+        #add wrapper methods to NLP
         for field in self.document_fields:
             for _class in [NLP]:
+                if field in ['documents']:
+                    continue
                 if not hasattr(_class, field):
                     setattr(_class, field, property(self._make_lambda(field)))
                 if not hasattr(_class, field + '_flat'):
                     setattr(_class, field + '_flat', property(self._make_lambda(field, True)))
 
-    def _make_lambda(self, field, flatten = False):
+    def _make_lambda(self, field, flatten = False, token=False):
         """ Returns lambda functions to be added as property to classes """
-        if not flatten:
-            return lambda c_self : [getattr(s, field) for s in c_self.data]
+        if token:
+            if not flatten:
+                return lambda c_self : [getattr(t, field) for t in c_self.tokens]
+            else:
+                return lambda c_self : flatten_lst([getattr(t, field) for t in c_self.tokens])
         else:
-            return lambda c_self : flatten_lst([getattr(s, field) for s in c_self.data])
+            if not flatten:
+                return lambda c_self : [getattr(s, field) for s in c_self.data]
+            else:
+                return lambda c_self : flatten_lst([getattr(s, field) for s in c_self.data])
+
+
 
     def _make_lambda_not_available(self, field):
         """ Returns lambda functions to be added as property to classes """

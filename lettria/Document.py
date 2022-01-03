@@ -12,11 +12,6 @@ class Document(TextChunk):
         self.max = len(self.sentences)
         self.data = self.sentences
         self._id = str(_id)
-        # print(document_data)
-        # print(document_data['sentences'][0]['emotion'])
-        # print(document_data['emotion'])
-        # print(document_data['sentiment'])
-        # print(document_data.keys())
 
     @property
     def id(self):

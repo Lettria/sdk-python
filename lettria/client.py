@@ -1,6 +1,8 @@
 import requests
 import random
 
+class RequestError(Exception): pass
+
 class Client:
     def __init__(self, key=None):
         if not key:
@@ -10,7 +12,8 @@ class Client:
         if key.startswith('LettriaProKey'):
             key = key[14:]
         self.key = key
-        self.headers = { 'Authorization': 'LettriaProKey ' + str(self.key), 'content-type': 'application/json' }
+        # self.headers = { 'Authorization': 'LettriaProKey ' + str(self.key), 'content-type': 'application/json' }
+        self.headers = {'Authorization':  'Basic WTJBS1VtY0FKVUxrS2N0YTpWaGZmNlU3RWZOektzRzZh',  }
         self.max_try = 2
 
     def print_response_error(self, response):
@@ -26,7 +29,7 @@ class Client:
         while i < self.max_try:
             try:
                 # response = requests.post('https://api.lettria.com/main', headers=self.headers, json={'text' : text}).json()
-                response = requests.post('https://api-main.service.lettria.com/', headers=self.headers, json={'text' : text}).json()
+                response = requests.post('https://api-main.service.lettria.com/', headers=self.headers, json={'projectId':'test', 'text' : text}).json()
                 if not response or (response and not isinstance(response, dict)):
                     raise Exception
                 result = response

@@ -1,32 +1,4 @@
-from .transform_morph import transform_data
 from .utils import StrProperty, ListProperty, DictProperty
-from .TextChunk import TextChunk
-
-class Subsentence(TextChunk):
-    __slots__ = ("data", "n", "max")
-
-    def __init__(self, data_sentence):
-        super(Subsentence, self).__init__()
-        self.data = data_sentence
-        self.max = len(self.data['synthesis'])
-
-    def __repr__(self):
-        return self.str
-
-    def __iter__(self):
-        self.n = 0
-        return self
-
-    def __next__(self):
-        if self.n < self.max:
-            self.n += 1
-            return Token(self.data.get('synthesis', [])[self.n - 1], self.n -1, self.data.get('source_pure', self.data.get('source', None)))
-        else:
-            raise StopIteration
-    
-    @ListProperty
-    def subsentences(self):
-        return [self]
 
 class Token:
     __slots__ = ("data", "idx", "pure_source")
@@ -66,17 +38,6 @@ class Token:
     def pos(self):
         return self.data.get('tag', None)
 
-    @StrProperty
-    def pos(self):
-        return self.data.get('tag', None)
-
-    @ListProperty
-    def pos_detail(self):
-        if self.data['nlp']:
-            return [l.get('tag', None) for l in self.data['nlp']]
-        else:
-            return [self.data.get('tag', None)]
-
     @DictProperty
     def ner(self):
         type_ = self.data.get('type', '')
@@ -100,18 +61,56 @@ class Token:
 
     @ListProperty
     def lemma_detail(self):
-        lemmas = []
-        if self.data.get('nlp', []):
-            for l in self.data.get('nlp', []):
-                if 'number' in l.get('lemmatizer', {}):
-                    lemmas.append(l.get('lemmatizer', {}).get('number', {}))
-                elif 'source' in l.get('lemmatizer', {}):
-                    lemmas.append(l.get('lemmatizer', {}).get('source', {}))
-                else:
-                    lemmas.append(l.get('source', ''))
-            return lemmas
+        if 'lemmatizer' in self.data:
+            if isinstance(self.data['lemmatizer'], list):
+                return self.data['lemmatizer']
+            elif isinstance(self.data['lemmatizer'], dict):
+                return [self.data['lemmatizer']]
         else:
-            return [self.data.get('lemma', None)]
+            return []
+
+    @DictProperty
+    def auxiliary(self):
+        return self.data.get('auxiliary', {})
+
+    @StrProperty
+    def gender(self):
+        l_d = self.lemma_detail
+        if len(l_d) != 1:
+            return None
+        else:
+            gdr = l_d[0].get('gender', {}).get('female', None)
+            return 'feminine' if gdr == True  else 'masculine' if gdr != None else None
+
+    @StrProperty
+    def plural(self):
+        l_d = self.lemma_detail
+        if len(l_d) != 1:
+            return None
+        else:
+            plr = l_d[0].get('gender', {}).get('plural', None)
+            return 'plural' if plr == True  else 'singular' if plr != None else None
+
+    @ListProperty
+    def infinitive(self):
+        lst_inf = [detail.get('infinit', None) for detail in self.lemma_detail if detail.get('infinit', None)]
+        return lst_inf 
+
+    @StrProperty
+    def mode(self):
+        lst_mode = []
+        for detail in self.lemma_detail:
+            if 'mode' in detail:
+                return detail['mode']
+        return None
+
+    @ListProperty
+    def conjugate(self):
+        lst = []
+        for detail in self.lemma_detail:
+            if 'conjugate' in detail or 'infinit' in detail:
+                lst += [{'infinit': detail.get('infinit', None), **d} for d in detail.get('conjugate', [])]
+        return lst
 
     @ListProperty
     def morphology(self):

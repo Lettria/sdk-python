@@ -1,7 +1,8 @@
 from .utils import flatten_lst, StrProperty, ListProperty, DictProperty, IntProperty
-from .TextChunk import TextChunk
 from .utils import GLOBAL, DOC, SENT, SUB, TOK
-from .subtypes import Token, Subsentence
+from .TextChunk import TextChunk
+from .Subsentence import Subsentence
+from .Token import Token
 
 def clear_data(data_json):
     def clean_recursif(node):
@@ -104,10 +105,6 @@ class Sentence(TextChunk):
     def subsentences(self):
         return [self._get_subsentence(_id, idx) for _id, idx in enumerate(self.data.get('subsentences', []))]
 
-    @ListProperty
-    def token(self):
-        return [s.get('source', None) for s in self.data.get('detail', [])]
-
     @StrProperty
     def str(self):
         return self.data.get('source', None)
@@ -117,36 +114,16 @@ class Sentence(TextChunk):
         return self.data.get('source_pure', self.data.get('source', None))
 
     @ListProperty
-    def lemma(self):
-        return [s.get('lemma', None) for s in self.data.get('detail', [])]
-
-    @ListProperty
-    def lemma_detail(self):
-        return flatten_lst([s.lemma_detail for s in self.tokens])
-
-    @ListProperty
     def synthesis(self):
         return self.data.get('detail', [])
 
     @ListProperty
-    def pos(self):
-        return [s.get('tag', None) for s in self.data['detail']]
+    def detail(self):
+        return self.data.get('detail', [])
 
-    @ListProperty
-    def pos_detail(self):
-        return flatten_lst([s.pos_detail for s in self.tokens])
-
-    @ListProperty
-    def dep(self):
-        return [s.get('dep', None) for s in self.data['detail']]
-
-    @DictProperty
-    def language(self):
-        return self.data.get('language_used', {}).get('sentence_level', {}).get('label', {})
-
-    @ListProperty
-    def meaning(self):
-        return [[(m.get('super', ''), m.get('sub', '')) for m in t.get('meaning', [])] for t in self.data['detail']]
+    # @DictProperty
+    # def language(self):
+    #     return self.data.get('language_used', {}).get('sentence_level', {}).get('label', {})
 
     @ListProperty
     def emotion(self):
@@ -166,16 +143,8 @@ class Sentence(TextChunk):
 
     @StrProperty
     def sentence_type(self):
-        return self.data.get('sentence_type', {}).get('predict', None)
+        return self.data.get('sentence_type', None)
 
     @ListProperty
-    def ner(self):
-        return [t.ner for t in self.tokens]
-
-    @ListProperty
-    def morphology(self):
-        return [t.morphology for t in self.tokens]
-
-    @ListProperty
-    def coreference(self):
-        return [t.coreference for t in self.tokens]
+    def token(self):
+        return [s.get('source', None) for s in self.data.get('detail', [])]

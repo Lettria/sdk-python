@@ -219,10 +219,10 @@ class TextChunk:
         class_name = self.__class__.__name__
         if class_name == 'Subsentence':
             granularity = 'subsentence'
-        def check_emotion(emotion_lst, filter):
+        def check_emotion(emotion_lst, _filter):
             emotions = [e[0] for e in emotion_lst]
             for e in emotions:
-                if e in filter:
+                if e in _filter:
                     return True
             return False
         _iter = self.subsentences if granularity in SUB else self.sentences
@@ -231,7 +231,7 @@ class TextChunk:
     def filter_type(self, sentence_type):
         """ Returns sentence objects with the specified type"""
         if isinstance(sentence_type, str):
-            sentence_type = [s_type]
+            sentence_type = [sentence_type]
         class_name = self.__class__.__name__
         if class_name == 'Subsentence':
             print("Sentence type is not available for subsentences.")
@@ -255,7 +255,7 @@ class TextChunk:
         if average:
             res = {t:{'values':0, 'occurrences':0} for t in tokens}
             for sentence in _iter:
-                val = sentence.sentiment_ml
+                val = sentence.sentiment_ml['total']
                 tmp_iter = sentence.lemma if lemma else sentence.token
                 for t, p in zip(tmp_iter, sentence.pos):
                     if not filter_pos or p in filter_pos:
@@ -265,7 +265,7 @@ class TextChunk:
         else:
             res = {t:[] for t in tokens}
             for sentence in _iter:
-                val = sentence.sentiment_ml
+                val = sentence.sentiment_ml['total']
                 tmp_iter = sentence.lemma if lemma else sentence.token
                 for t, p in zip(tmp_iter, sentence.pos):
                     if not filter_pos or p in filter_pos:
