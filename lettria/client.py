@@ -1,5 +1,6 @@
 import requests
 import random
+import json
 
 class RequestError(Exception): pass
 
@@ -12,8 +13,8 @@ class Client:
         if key.startswith('LettriaProKey'):
             key = key[14:]
         self.key = key
-        # self.headers = { 'Authorization': 'LettriaProKey ' + str(self.key), 'content-type': 'application/json' }
-        self.headers = {'Authorization':  'Basic WTJBS1VtY0FKVUxrS2N0YTpWaGZmNlU3RWZOektzRzZh',  }
+        self.headers = { 'Authorization': 'LettriaProKey ' + str(self.key), 'content-type': 'application/json' }
+        # self.headers = {'Authorization':  'Basic WTJBS1VtY0FKVUxrS2N0YTpWaGZmNlU3RWZOektzRzZh', 'content-type': 'application/json'}
         self.max_try = 2
 
     def print_response_error(self, response):
@@ -29,12 +30,14 @@ class Client:
         while i < self.max_try:
             try:
                 # response = requests.post('https://api.lettria.com/main', headers=self.headers, json={'text' : text}).json()
-                response = requests.post('https://api-main.service.lettria.com/', headers=self.headers, json={'projectId':'test', 'text' : text}).json()
+                response = requests.post('https://api.lettria.com/', headers=self.headers, json={'text' : text}).json()
+                print(json.dumps(response))
                 if not response or (response and not isinstance(response, dict)):
                     raise Exception
                 result = response
                 break
             except Exception as e:
+                print(e)
                 i += 1
         if result is None:
             print(f'Request failed after {self.max_try} tries.')
@@ -47,7 +50,7 @@ class Client:
         i = 0
         while i < self.max_try:
             try:
-                response = requests.post('https://api-main.service.lettria.com/', headers=self.headers, json={'documents' : batch_documents}).json()
+                response = requests.post('https://api.lettria.com/', headers=self.headers, json={'documents' : batch_documents}).json()
                 # response = requests.post('https://api.lettria.com/main_documents', headers=self.headers, json={'documents' : batch_documents}).json()
                 if not response or (response and not isinstance(response, list)):
                     raise Exception

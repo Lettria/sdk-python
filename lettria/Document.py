@@ -7,11 +7,34 @@ class Document(TextChunk):
     __slots__ = ("sentences", "document_data", "n", "max", "_id")
     def __init__(self, document_data, _id):
         super(Document, self).__init__()
-        self.sentences = [Sentence(s, i) for i, s in enumerate(document_data['sentences'])]
+        self.sentences = [Sentence(s, i, self) for i, s in enumerate(document_data['sentences'])]
         self.document_data = {k:v for k,v in document_data.items() if k != 'sentences'}
         self.max = len(self.sentences)
         self.data = self.sentences
         self._id = str(_id)
+
+
+        ## A SUPPRIMER
+        self.document_data['coreference'] = {
+            "spans": [
+                {"sentence_index": 0, "token_indexes": [0, 1], "cluster_index": 0},
+                {"sentence_index": 0, "token_indexes": [3, 4, 5, 6], "cluster_index": 0},
+                {"sentence_index": 1, "token_indexes": [0], "cluster_index": 1},
+                {"sentence_index": 3, "token_indexes": [0, 1, 2], "cluster_index": 2},
+                {"sentence_index": 3, "token_indexes": [3], "cluster_index": 1},
+                {"sentence_index": 3, "token_indexes": [6], "cluster_index": 1},
+            ],
+            "clusters": [
+                [0, 1],
+                [2, 4, 5],
+                [3]
+            ]
+        }
+
+        self.sentences[0].data['coreference'] = [0, 1]
+        self.sentences[1].data['coreference'] = [2]
+        self.sentences[2].data['coreference'] = []
+        self.sentences[3].data['coreference'] = [3, 4, 5]
 
     @property
     def id(self):
@@ -21,7 +44,9 @@ class Document(TextChunk):
         return str(self.sentences)
 
     def _get_data(self):
-        return [s.data for s in self.sentences]
+        tmp = self.document_data
+        tmp['sentences'] = [s.data for s in self.sentences]
+        return tmp
 
     def __iter__(self):
         self.n = 0

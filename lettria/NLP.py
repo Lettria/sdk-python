@@ -213,14 +213,14 @@ class NLP(TextChunk):
             if not batch_documents:
                 print("ERROR, documents input is empty.")
                 return 
-            results, document_ids = self.request_batch_documents(batch_documents, document_ids = document_ids, skip_document=skip_document)
+            results, document_ids = self.client.request_batch_documents(batch_documents, document_ids = document_ids, skip_document=skip_document)
             for idx, (input_document, result) in enumerate(zip(batch_documents, results)):
                 if idx_batch + idx < len(document_ids):
                     next_doc_id = document_ids[idx_batch + idx]
                 else:
                     next_doc_id = self._next_id
                     self._next_id += 1
-                if isinstance(result, list) and result:
+                if isinstance(result, dict) and result:
                     self.documents.append(Document(result, _id=next_doc_id))
                     if verbose:
                         print("Added document " + str(self.documents[-1].id) + '.')
@@ -332,8 +332,7 @@ class NLP(TextChunk):
                 raise Exception("Expected jsonl file extension.")
             print(f'Loaded {str(path)} successfully')
         except Exception as e:
-            print('Failure to load ' + str(path) + ': ')
-            print(e, '\n')
+            print('Failure to load ' + str(path) + ': ', e)
 
     def split_results(self, input_file, max_document_per_file, output_file=''):
         """ Splits existing json results into multiple files """

@@ -3,6 +3,8 @@ from .utils import GLOBAL, DOC, SENT, SUB, TOK
 from .TextChunk import TextChunk
 from .Subsentence import Subsentence
 from .Token import Token
+from .Span import Span
+from .Cluster import Cluster
 
 def clear_data(data_json):
     def clean_recursif(node):
@@ -35,15 +37,16 @@ def clear_data(data_json):
     return data_json
 
 class Sentence(TextChunk):
-    __slots__ = ("data", "n", "max", "_id")
+    __slots__ = ("data", "n", "max", "_id", "ref")
 
-    def __init__(self, data_sentence, idx=0):
+    def __init__(self, data_sentence, idx=0, ref_document=None):
         super(Sentence, self).__init__()
         # self.data = clear_data(data_sentence)
         self.data = data_sentence
         self.max = len(self.data.get('detail', []))
         # self._ner_fix()
         self._id = idx
+        self.ref_document = ref_document
 
     @property
     def id(self):
@@ -144,3 +147,17 @@ class Sentence(TextChunk):
     @ListProperty
     def token(self):
         return [s.get('source', None) for s in self.data.get('detail', [])]
+    
+    @ListProperty
+    def spans(self):
+        # print( self.data.get('coreference', []))
+        # print(self.ref_document.document_data.get('coreference').get('spans', []))
+        spans = [self.ref_document.document_data.get('coreference').get('spans', [])[idx] for idx in self.data.get('coreference', [])]
+        return [Span(sp, self.ref_document) for sp in spans]
+
+    @property
+    def clusters(self):
+        spans = [self.ref_document.document_data.get('coreference').get('spans', [])[idx] for idx in self.data.get('coreference', [])]
+        clusters_idx = list(set([span['cluster_index'] for span in spans]))
+        clusters = [(cl, self.ref_document.document_data.get('coreference').get('clusters', [])[cl]) for cl in clusters_idx]
+        return [Cluster(cluster_idx, spans_idx, self.ref_document) for cluster_idx, spans_idx in clusters]
