@@ -37,7 +37,7 @@ def clear_data(data_json):
     return data_json
 
 class Sentence(TextChunk):
-    __slots__ = ("data", "n", "max", "_id", "ref")
+    __slots__ = ("data", "n", "max", "_id", "ref_document")
 
     def __init__(self, data_sentence, idx=0, ref_document=None):
         super(Sentence, self).__init__()
@@ -79,7 +79,7 @@ class Sentence(TextChunk):
     def __next__(self):
         if self.n < self.max:
             self.n += 1
-            return Token(self.data.get('detail', [])[self.n - 1], self.n -1, self.data.get('source_pure', self.data.get('source', None)))
+            return Token(self.data.get('detail', [])[self.n - 1], self.n -1, self.data.get('source_pure', self.data.get('source', None)), self)
         else:
             raise StopIteration
 
@@ -102,7 +102,7 @@ class Sentence(TextChunk):
 
     @ListProperty
     def tokens(self):
-        return [Token(s, i, self.data.get('source_pure', self.data.get('source', None))) for i, s in enumerate(self.data.get('detail', []))]
+        return [Token(s, i, self.data.get('source_pure', self.data.get('source', None)), self) for i, s in enumerate(self.data.get('detail', []))]
 
     @ListProperty
     def subsentences(self):
@@ -150,12 +150,10 @@ class Sentence(TextChunk):
     
     @ListProperty
     def spans(self):
-        # print( self.data.get('coreference', []))
-        # print(self.ref_document.document_data.get('coreference').get('spans', []))
         spans = [self.ref_document.document_data.get('coreference').get('spans', [])[idx] for idx in self.data.get('coreference', [])]
         return [Span(sp, self.ref_document) for sp in spans]
 
-    @property
+    @ListProperty
     def clusters(self):
         spans = [self.ref_document.document_data.get('coreference').get('spans', [])[idx] for idx in self.data.get('coreference', [])]
         clusters_idx = list(set([span['cluster_index'] for span in spans]))

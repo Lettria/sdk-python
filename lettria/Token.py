@@ -1,12 +1,13 @@
 from .utils import StrProperty, ListProperty, DictProperty
 
 class Token:
-    __slots__ = ("data", "idx", "pure_source")
+    __slots__ = ("data", "idx", "pure_source", "ref_sentence")
 
-    def __init__(self, data, idx, pure_source):
+    def __init__(self, data, idx, pure_source, ref_sentence):
         self.data = data
         self.idx = idx
         self.pure_source = pure_source
+        self.ref_sentence = ref_sentence
 
     def __repr__(self):
         return self.str
@@ -49,11 +50,17 @@ class Token:
             tmp['value'] = value
         return tmp
 
-    @StrProperty
-    def coreference(self):
-        if 'coreference' in self.data and self.data['coreference']:
-            return self.data['coreference'][0].get('source', None)
-        return None
+    @ListProperty
+    def spans(self):
+        if self.data.get('coreference', []):
+            return [span for span in self.ref_sentence.spans if self.idx in span.tokens_idx]
+        return []
+
+    @ListProperty
+    def clusters(self):
+        if self.data.get('coreference', []):
+            return [cluster for cluster in self.ref_sentence.clusters if set(cluster.spans_idx) & set(self.data.get('coreference'))]
+        return []
 
     @StrProperty
     def lemma(self):

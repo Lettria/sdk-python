@@ -9,12 +9,43 @@ TOK = ['t', 'token', 'tok', 'tokens']
 POSITIVE = ['positive', 'positif', 'pos', '+']
 NEGATIVE = ['negative', 'negatif', 'neg', '-']
 NEUTRAL = ['neutral', 'neutre', 'neut']
-EMOTIONS = ['disgust', 'anger', 'fear', 'joy', 'love', 'sadness', 'surprise', 'neutral']
+EMOTIONS = ['admiration', 'amusement', 'anger', 'annoyance', 'caring', 'confusion', 'curiosity', 'desire',
+    'disappointment', 'disapproval', 'disgust', 'embarrassment', 'excitement', 'fear', 'gratitude',
+    'grief', 'happiness', 'love', 'nervousness', 'optimism', 'pride', 'realization', 'relief', 'remorse', 'sadness', 'surprise']
 SENTENCE_TYPES = ['command', 'assert', 'question_open', 'question_closed']
 
 class TextChunk:
     def __init__(self):
         self.class_name = self.__class__.__name__        
+
+    def replace_coreference(self, attribute = 'source', replace=['CLS']):
+        """ Replaces coreference mentions with the head of the cluster in the text """
+        if self.class_name == 'Document':
+            text = [[getattr(t, attribute) for t in s ] for s in self.sentences]
+            for s in text:
+                print(s)
+            print()
+            for cl in self.clusters:
+                head = cl.head
+                children = sorted(cl.children, key=lambda x: x.tokens_idx[-1], reverse=True)
+                for child in children:
+                    if set(replace) & set(child.get_attributes('pos')):
+                        text[child.sentence_idx] = text[child.sentence_idx][:child.tokens_idx[0]] \
+                        + text[head.sentence_idx][head.tokens_idx[0]:head.tokens_idx[-1] + 1] \
+                        + text[child.sentence_idx][child.tokens_idx[-1] + 1:]
+            # for t in self.tokens:
+            #     clusters = t.clusters
+            #     if len(clusters) == 1:
+            #         text += clusters[0].head.get_attributes('source')
+            #         # print(clusters[0].head)
+            #     else:
+            #         text += [t.str]
+            #         # print(t.str)
+            # print(text)
+            return text
+        elif self.class_name == 'Sentence':
+            pass
+        
 
     def match_pattern(self, patterns_json, level = None, print_tree=False, skip_errors=False):
         matches = defaultdict(list)

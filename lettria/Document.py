@@ -2,6 +2,8 @@ from .utils import flatten_lst, StrProperty, ListProperty, DictProperty, IntProp
 from .TextChunk import TextChunk
 from .utils import GLOBAL, DOC, SENT, SUB, TOK
 from .Sentence import Sentence
+from .Cluster import Cluster
+from .Span import Span
 
 class Document(TextChunk):
     __slots__ = ("sentences", "document_data", "n", "max", "_id")
@@ -22,12 +24,18 @@ class Document(TextChunk):
                 {"sentence_index": 1, "token_indexes": [0], "cluster_index": 1},
                 {"sentence_index": 3, "token_indexes": [0, 1, 2], "cluster_index": 2},
                 {"sentence_index": 3, "token_indexes": [3], "cluster_index": 1},
-                {"sentence_index": 3, "token_indexes": [6], "cluster_index": 1},
+                {"sentence_index": 3, "token_indexes": [6], "cluster_index": 3},
+                {"sentence_index": 2, "token_indexes": [0,1,2,3,4], "cluster_index": 3},
+                {"sentence_index": 2, "token_indexes": [6,7], "cluster_index": 3},
+                {"sentence_index": 3, "token_indexes": [11], "cluster_index": 1},
+                {"sentence_index": 3, "token_indexes": [14], "cluster_index": 3},
+
             ],
             "clusters": [
                 [0, 1],
-                [2, 4, 5],
-                [3]
+                [2, 4, 8],
+                [3],
+                [5, 6, 7, 9]
             ]
         }
 
@@ -35,6 +43,21 @@ class Document(TextChunk):
         self.sentences[1].data['coreference'] = [2]
         self.sentences[2].data['coreference'] = []
         self.sentences[3].data['coreference'] = [3, 4, 5]
+
+        self.sentences[0].data['detail'][0]['coreference'] = [0]
+        self.sentences[0].data['detail'][1]['coreference'] = [0]
+        self.sentences[0].data['detail'][3]['coreference'] = [1]
+        self.sentences[0].data['detail'][4]['coreference'] = [1]
+        self.sentences[0].data['detail'][5]['coreference'] = [1]
+        self.sentences[0].data['detail'][6]['coreference'] = [1]
+        
+        self.sentences[1].data['detail'][0]['coreference'] = [2]
+
+        self.sentences[3].data['detail'][0]['coreference'] = [3]
+        self.sentences[3].data['detail'][1]['coreference'] = [3]
+        self.sentences[3].data['detail'][2]['coreference'] = [3]
+        self.sentences[3].data['detail'][3]['coreference'] = [4]
+        self.sentences[3].data['detail'][6]['coreference'] = [5]
 
     @property
     def id(self):
@@ -71,6 +94,14 @@ class Document(TextChunk):
     def documents(self):
         return [self]
 
+    @StrProperty
+    def str_doc(self):
+        return self.document_data.get('source_pure', None)
+
+    @StrProperty
+    def original_text_doc(self):
+        return self.document_data.get('source_pure', None)
+
     @DictProperty
     def emotion_doc(self):
         return self.document_data.get('emotion', None)
@@ -94,3 +125,11 @@ class Document(TextChunk):
     @ListProperty
     def emoticon_doc(self):
         return self.document_data.get('emoticon_data', {})
+
+    @ListProperty
+    def spans(self):
+        return [Span(sp, self) for i, sp in enumerate(self.document_data.get('coreference').get('spans', []))]
+
+    @ListProperty
+    def clusters(self):
+        return [Cluster(i, spans_idx, self) for i, spans_idx in enumerate(self.document_data.get('coreference').get('clusters', []))]

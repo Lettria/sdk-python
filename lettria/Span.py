@@ -7,9 +7,16 @@ class Span():
         self.tokens_idx = span_data['token_indexes']
         self.cluster_idx = span_data['cluster_index']
         self.ref_document = ref_document
-    
+
+    @property    
+    def tokens(self):
+        return self.ref_document.sentences[self.sentence_idx].tokens[self.tokens_idx[0]: self.tokens_idx[-1] + 1]
+
     def __str__(self):
-        return ' '.join(self.ref_document.sentences[self.sentence_idx].token[self.tokens_idx[0]: self.tokens_idx[-1] + 1])
+        return ' '.join([s.str for s in self.tokens])
 
     def __repr__(self):
         return str(self)
+
+    def get_attributes(self, property):
+        return [getattr(s, property) for s in self.tokens]

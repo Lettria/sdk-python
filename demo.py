@@ -66,7 +66,7 @@ commentaires = [
 	'Mr. George Dupont est le boulanger du village.',
 	"J'ai rencontré Madame Dubois en allant chez le fleuriste.",
 	"La directrice de l'école est Mme Brigitte Fleur.",
-	"Le Dr. Blorot m'a demandé si j'avais des antécédents dans ma famille."
+	"Le Dr. Blorot m'a demandé si elle avait des antécédents dans ma famille car elle est malade."
 ]
 
 # nlp.add_document(' '.join(commentaires))
@@ -109,26 +109,34 @@ nlp.load_result('res_tmp.jsonl')
 
 # print([d.id for d in nlp])
 
-for s in nlp.sentences:
-	# for t in s:
-	# 	print(t)
-	print(f"s.str:		  {s.str}")
-	# print(f"s.spans:	  {s.span}")
-	# print(f"s.clusters:	  {s.cluster}")
-	# print(f"s.str_original: {s.original_text}")
-	# print(f"s.tokens: {' '.join(s.token_flat)}")
-	# print(f"s.sentiment: {s.sentiment}")
-	# print(f"s.sentiment_ml: {s.sentiment_ml}")
-	# print(f"s.emotion: {s.emotion}")
-	# print(f"s.emotion_ml: {s.emotion_ml}")
+# for s in nlp:
+# 	# for t in s:
+# 	# 	print(t)
+# 	print(f"s.str:		  {s.str_doc}")
+# 	# print(f"s.spans:	  {s.span}")
+# 	# print(f"s.clusters:	  {s.cluster}")
+# 	# print(f"s.str_original: {s.original_text}")
+# 	# print(f"s.tokens: {' '.join(s.token_flat)}")
+# 	# print(f"s.sentiment: {s.sentiment}")
+# 	# print(f"s.sentiment_ml: {s.sentiment_ml}")
+# 	# print(f"s.emotion: {s.emotion}")
+# 	# print(f"s.emotion_ml: {s.emotion_ml}")
+	
+# 	for t in s.tokens:
+# 		print(t, t.spans)
+# 		print(t, t.clusters)
 
-	print("\nClusters")
-	for cl in s.clusters:
-		print('==>', cl)
+# 	for cl in s.clusters:
+# 		print('cluster:', cl)
+# 		print("head:   ", cl.head)
+# 		# for sp in cl:
+# 		# 	print('=====>', sp)
+# 	print()
+# 	# print("\nSpans")
+# 	# for s in s.spans:
+# 	# 	print('==>', s, s.cluster_idx, s.sentence_idx)
 
-	print("\nSpans")
-	for s in s.spans:
-		print('==>', s, s.cluster_idx, s.sentence_idx)
+nlp.documents[0].replace_coreference(attribute='source', replace=['CLS'])
 
 exit()
 
