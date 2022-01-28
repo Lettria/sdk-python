@@ -5,11 +5,9 @@ def addLem(lem, lemToAdd):
         else :
             return lem + '|' + lemToAdd
 
-
-def transform_data(data):
+def transform_data(lemmatizer, source) -> str:
     res = []
-    if not isinstance(data, list):
-        data = [data]
+    data = [{'lemmatizer':lemmatizer, "source":source}]
     for d in data:
         lem = '_'
         w = []
@@ -19,32 +17,22 @@ def transform_data(data):
         elif type(d["lemmatizer"]) is dict:
             if "infinit" in d["lemmatizer"].keys():
                 w.append(d['lemmatizer']['infinit'])
-
             elif "lemma" in d["lemmatizer"].keys():
                 if d['lemmatizer']["lemma"] != "":
                     w.append(d['lemmatizer']['lemma'])
                 else:
                     w.append(d['source'])
-
             else:
                 w.append(d['source'])
-
             lemmatizer = d['lemmatizer']
-
-
         elif type(d['lemmatizer']) is list:
             if 'infinit' in d['lemmatizer'][0].keys():
                 w.append(d['lemmatizer'][0]['infinit'])
-
             elif 'infinit' in d['lemmatizer'][1].keys():
                 w.append(d['lemmatizer'][1]['infinit'])
-
             else:
                 w.append(d['source'])
-
             lemmatizer = d['lemmatizer'][0]
-
-
         else:
             w.append(d['source'])
 
@@ -57,7 +45,6 @@ def transform_data(data):
                 lem = addLem(lem, gender)
             except:
                 pass
-                # print("Update 20191105 - CCO add exception : No female is present in key gender for word '{}'. Key = {}".format(d["source"], lemmatizer))
 
             try:
                 if lemmatizer['gender']['plural']==True:
@@ -67,9 +54,7 @@ def transform_data(data):
                 lem = addLem(lem, number)
             except:
                 pass
-                # print("Update 20191105 - CCO add exception : No plural is present in key gender for word '{}'. Key = {}".format(d["source"], lemmatizer))
 
-            #Disjunct cases, not yes exhaustive. Should it be ?? Check in code how it is treated.
         if 'conjugate' in lemmatizer.keys() :
             if len(lemmatizer['conjugate']) == 1:
                 try:
@@ -87,13 +72,11 @@ def transform_data(data):
                     lem = addLem(lem, mood)
                 except:
                     pass
-                    # print("Update 20191105 - CCO add exception : No mood is present in key conjugate for word '{}'. Key = {}".format(d["source"], lemmatizer['conjugate']))
                 try:
                     person = "Person=" + str(lemmatizer['conjugate'][0]['pronom'])
                     lem = addLem(lem, person)
                 except:
                     pass
-                    # print("Update 20191105 - CCO add exception : No person is present in key conjugate for word '{}'. Key = {}".format(d["source"], lemmatizer['conjugate']))
 
                 try:
                     if int(lemmatizer['conjugate'][0]['pronom']) in [1, 2, 3]:
@@ -103,10 +86,6 @@ def transform_data(data):
                     lem = addLem(lem, number)
                 except:
                     pass
-                    # print("Update 20191105 - CCO add exception : No number is present in key conjugate for word '{}'. Key = {}".format(d["source"], lemmatizer['conjugate']))
-
-
-                # Analogically with conjugate, we might be supposed to disjunct cases
 
                 try:
                     temps = str(lemmatizer['conjugate'][0]['temps'])
@@ -121,7 +100,6 @@ def transform_data(data):
                     lem = addLem(lem, tense)
                 except:
                     pass
-                    # print("Update 20191105 - CCO add exception : No tense is present in key conjugate for word '{}'. Key = {}".format(d["source"], lemmatizer['conjugate']))
 
                 try:
                     if mood:
@@ -129,9 +107,6 @@ def transform_data(data):
                         lem = addLem(lem, verbform)
                 except:
                     pass
-                    # print("Update 20191105 - CCO add exception : No mood is present in key conjugate for word '{}'. Key = {}".format(d["source"], lemmatizer['conjugate']))
-
-
 
         if 'mode' in lemmatizer.keys() :
             mode = lemmatizer['mode']
@@ -144,9 +119,6 @@ def transform_data(data):
                     lem = addLem(lem, definite)
             except:
                 pass
-                # print("Update 20191105 - CCO add exception : No definite is present in key mode for word '{}'. Key = {}".format(d["source"], lemmatizer))
-
-
         elif 'lemma' in lemmatizer.keys():
             if lemmatizer['lemma'] in ['un', 'une']:
                 definite = 'Definite=Ind'
@@ -154,8 +126,6 @@ def transform_data(data):
                     lem = addLem(lem, definite)
                 except:
                     pass
-                    # print("Update 20191105 - CCO add exception : No definite is present in key definite for word '{}'. Key = {}".format(d["source"], lemmatizer))
-
 
         if 'tag' in d.keys():
             tag = d['tag']
@@ -173,21 +143,18 @@ def transform_data(data):
                             lem = addLem(lem, person)
                         except:
                             pass
-                            # print("Update 20191105 - CCO add exception : No person is present in key conjugate for word '{}'. Key = {}".format(d["source"], lemmatizer))
 
                         try:
                             number = "Number=Sing" if int(lemmatizer['pronom']) <= 3 else "Number=Plur"
                             lem = addLem(lem, number)
                         except:
                             pass
-                            # print("Update 20191105 - CCO add exception : No number is present in key conjugate for word '{}'. Key = {}".format(d["source"], lemmatizer))
 
                         prontype = 'PronType=Prs'
                     try:
                         lem = addLem(lem, prontype)
                     except:
                         pass
-                        # print("Update 20191105 - CCO add exception : No prontype is present in key conjugate for word '{}'. Key = {}".format(d["source"], lemmatizer))
                 elif 'category' in lemmatizer.keys():
                     if lemmatizer['category'] == 'negation':
                         prontype = 'PronType=Neg'
@@ -197,10 +164,8 @@ def transform_data(data):
                     lem = addLem(lem, "Tense=Past")
                 except:
                     pass
-                    # print("Update 20191112 - CCO add exception")
 
             if tag == "CLO":
-                print(lemmatizer)
                 if lemmatizer["lemma"] == "se":
                     lem = addLem(lem, "Reflex=Yes")
                     if d["source"] == "se":
@@ -272,6 +237,5 @@ def transform_data(data):
                     lem = addLem(lem, polarity)
                 except:
                     pass
-                    # print("Update 20191105 - CCO add exception : No polarity is present in key conjugate for word '{}'. Key = {}".format(d["source"], lemmatizer))
         res.append(lem)
-    return(res)
+    return res[0]

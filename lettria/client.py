@@ -31,7 +31,6 @@ class Client:
             try:
                 # response = requests.post('https://api.lettria.com/main', headers=self.headers, json={'text' : text}).json()
                 response = requests.post('https://api.lettria.com/', headers=self.headers, json={'text' : text}).json()
-                print(json.dumps(response))
                 if not response or (response and not isinstance(response, dict)):
                     raise Exception
                 result = response
@@ -65,7 +64,7 @@ class Client:
         return result
     
     def _check_result(self, result):
-        """ Check if synthesis key is empty """
+        """ Check if detail key is empty """
         bad_idx = []
         for i, r in enumerate(result):
             if not isinstance(r, dict) or not 'detail' in r:

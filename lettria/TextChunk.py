@@ -16,36 +16,8 @@ SENTENCE_TYPES = ['command', 'assert', 'question_open', 'question_closed']
 
 class TextChunk:
     def __init__(self):
+        """ Base class for NLP, Document, Sentence and Subsentence. """
         self.class_name = self.__class__.__name__        
-
-    def replace_coreference(self, attribute = 'source', replace=['CLS']):
-        """ Replaces coreference mentions with the head of the cluster in the text """
-        if self.class_name == 'Document':
-            text = [[getattr(t, attribute) for t in s ] for s in self.sentences]
-            for s in text:
-                print(s)
-            print()
-            for cl in self.clusters:
-                head = cl.head
-                children = sorted(cl.children, key=lambda x: x.tokens_idx[-1], reverse=True)
-                for child in children:
-                    if set(replace) & set(child.get_attributes('pos')):
-                        text[child.sentence_idx] = text[child.sentence_idx][:child.tokens_idx[0]] \
-                        + text[head.sentence_idx][head.tokens_idx[0]:head.tokens_idx[-1] + 1] \
-                        + text[child.sentence_idx][child.tokens_idx[-1] + 1:]
-            # for t in self.tokens:
-            #     clusters = t.clusters
-            #     if len(clusters) == 1:
-            #         text += clusters[0].head.get_attributes('source')
-            #         # print(clusters[0].head)
-            #     else:
-            #         text += [t.str]
-            #         # print(t.str)
-            # print(text)
-            return text
-        elif self.class_name == 'Sentence':
-            pass
-        
 
     def match_pattern(self, patterns_json, level = None, print_tree=False, skip_errors=False):
         matches = defaultdict(list)
@@ -83,13 +55,13 @@ class TextChunk:
                             res_pattern = check_pattern(sentence, patterns, print_tree)
                             if res_pattern != []:
                                 tmp[pattern_name] = tmp.get(pattern_name, []) + (res_pattern)
-                        if tmp:
-                            matches.append((element, tmp))
                     except Exception as e:
                         if skip_errors:
                             continue
                         else:
                             print("Pattern matching failed:", e)
+                if tmp:
+                    matches.append((element, tmp))
         elif level in SENT or SUB:
             _iter = self.subsentences if level in SUB else self.sentences
             for sentence in _iter:

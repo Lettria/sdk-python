@@ -125,12 +125,11 @@ class DepTree:
                 ret += tmp
         return ret     
 
-
     @classmethod
     def grow_tree(self, sentence_data):
         root = None
-        for i, item in enumerate(sentence_data['synthesis']):
+        for i, item in enumerate(sentence_data['detail']):
             if item['dep'] == 'root' or item['ref'] == -1:
-                root = DepTree(sentence_data['synthesis'], i, None, None)
+                root = DepTree(sentence_data['detail'], i, None, None)
                 break
         return root

@@ -100,6 +100,8 @@ def check_pattern_dependency(sentence_data, pattern, print_tree):
                 return e
         return None
     tree = DepTree.grow_tree(sentence_data.data)
+    if tree == None:
+        raise Exception("Invalid dependency tree. Dependency patterns are not available for subsentences.")
     tree.tokens = sentence_data.tokens
     if print_tree:
         tree.print_tree()
