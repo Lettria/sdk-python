@@ -33,17 +33,17 @@ class TextChunk:
             if level == None:
                 level = 'sentence'
             elif level in DOC:
-                print("level argument " + level + " is not available for documents.")
+                print("level argument '" + level + "' is not available for documents.")
                 return []
         elif self.class_name == 'Sentence':
             if level == None:
                 level = 'sentence'
             elif level in GLOBAL + DOC:
-                print("level argument " + level + " is not available for sentences.")
+                print("level argument '" + level + "' is not available for sentences.")
                 return []
         elif self.class_name == 'Subsentence':
             if level in GLOBAL + DOC + SENT:
-                print("level argument " + level + " is not available for subsentences.")
+                print("level argument '" + level + "' is not available for subsentences.")
                 return []
             level = 'subsentence'
         if level in DOC:
@@ -258,7 +258,8 @@ class TextChunk:
         if average:
             res = {t:{'values':0, 'occurrences':0} for t in tokens}
             for sentence in _iter:
-                val = sentence.sentiment_ml['total']
+                val = sentence.sentiment_ml.get('total', 0)
+                # val = sentence.sentiment_ml.get('total', 0)
                 tmp_iter = sentence.lemma if lemma else sentence.token
                 for t, p in zip(tmp_iter, sentence.pos):
                     if not filter_pos or p in filter_pos:
@@ -268,7 +269,7 @@ class TextChunk:
         else:
             res = {t:[] for t in tokens}
             for sentence in _iter:
-                val = sentence.sentiment_ml['total']
+                val = sentence.sentiment_ml.get('total', 0)
                 tmp_iter = sentence.lemma if lemma else sentence.token
                 for t, p in zip(tmp_iter, sentence.pos):
                     if not filter_pos or p in filter_pos:
@@ -360,7 +361,7 @@ class TextChunk:
             meanings = filter_meaning
         else:
             meanings = list(set([m[1] for m in self.meaning_flat if m[1]]))
-        _iter = self.subsen2tences if granularity == 'subsentence' else self.sentences
+        _iter = self.subsentences if granularity == 'subsentence' else self.sentences
         if average:
             res = {t:{} for t in meanings}
             for sentence in _iter:

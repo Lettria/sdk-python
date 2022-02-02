@@ -72,7 +72,7 @@ A 'document' is any bit of information that you wish to analyse individually, fo
 ```python
 import lettria
 
-api_key = ' VOTRE CLE API'
+api_key = ' YOU API KEY'
 nlp = lettria.NLP(api_key)
 
 documents = [
@@ -98,29 +98,6 @@ for document in nlp:
 for sentence in nlp.sentences:
 	print(sentence.pos, sentence.dep)
 ```
-### Common properties
-
-Properties are the way to access the relevant results for your data. For example the **pos** property gives you access to the POStag information.
-
-A lot of properties are accessibles from the different classes **NLP**, **Document**, **Sentence**, **Subsentence** and **Token** though some properties may not be accessible at subsentence or token level.
-
-Name|type|Description
----|---|---
-str|String|Returns sentence as string
-token|String|Returns token
-lemma|String|Returns lemma
-pos|String|Returns POS (Part-Of-Speech) tags
-dep|String|Returns dependency relations
-morphology|String|Returns morphological features
-language|String|Returns detected language
-meaning|List of Tuples|Returns meanings as tuples (SUPER, SUB)
-emotion|Tuple|Returns emotion as tuple (Type, score)
-sentiment|Dictionary|Returns sentiment with positive, negative and total values
-sentiment_ml|Dictionary|Returns sentiment of ml_model without further fine tuning
-sentiment_target|Tuple|Returns 'target' of words with strong sentimental meaning
-sentence_type|String|Returns type of sentence
-coreference|String|Returns reference of token if it exists
-synthesis|Dictionary|Returns synthesis object
 
 ## Documentation
 Our documentation is available online on our [website](https://doc.lettria.com) or [locally](./documentation/documentation_full.md). You can also find [tutorials](https://lettria.com/fr/dev/guides/getting-started) that will introduce you to our API and SDK and guide you to perform specific usecases.

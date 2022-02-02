@@ -36,6 +36,9 @@ class NLP(TextChunk):
         self.document_fields = []
         if 'token_flat' not in dir(NLP):
             self._generate_properties()
+        else:
+            self.sentence_fields = [p for p in dir(Sentence) if isinstance(getattr(Sentence,p),property) and not p.endswith('flat')]
+            self.document_fields = [p for p in dir(Document) if isinstance(getattr(Document,p),property)  and not p.endswith('flat')]
         self.fields = list(set(self.sentence_fields + self.document_fields))
 
         def doNothing(*args):
@@ -73,7 +76,7 @@ class NLP(TextChunk):
         #add wrapper methods for tokens to sentence and subsentence classes
         for field in self.token_fields:
             for _class in [Sentence, Subsentence]:
-                if field in ['source', 'str']:
+                if field in ['str']:
                     continue
                 if not hasattr(_class, field):
                     setattr(_class, field, ListProperty(self._make_lambda(field, token=True)))
@@ -311,11 +314,11 @@ class NLP(TextChunk):
         except Exception as e:
             print(e)
 
-    def load_result(self, *args):
+    def load_result(self, *args, **kwargs):
         """ Alias for load_results"""
-        self.load_results(*args)
+        self.load_results(*args, **kwargs)
 
-    def load_results(self, path = 'results_0', reset = False, chunksize = None):
+    def load_results(self, path = 'results_0', reset = False, chunksize = None, verbose=True):
         """ Loads result from a valid json file."""
         if path.endswith('.json') or path.endswith('.jsonl'):
             pass
@@ -330,7 +333,8 @@ class NLP(TextChunk):
                         self.add_document_data(line.get('data'), _id=line.get('document_id', None))
             else:
                 raise Exception("Expected jsonl file extension.")
-            print(f'Loaded {str(path)} successfully')
+            if verbose:
+                print(f'Loaded {str(path)} successfully')
         except Exception as e:
             print('Failure to load ' + str(path) + ': ', e)
 
