@@ -6,36 +6,6 @@ from .Token import Token
 from .Span import Span
 from .Cluster import Cluster
 
-def clear_data(data_json):
-    def clean_recursif(node):
-        if isinstance(node, list):
-            for e in node:
-                clean_recursif(e)  
-        elif isinstance(node, dict):
-            keys = list(node.keys())
-            for k in keys:
-                if k == 'detail':
-                    continue
-                if k == 'confidence' or node[k] in [[], {}, None]:
-                    node.pop(k)
-                elif isinstance(node[k], dict):
-                    clean_recursif(node[k])
-                    if not node[k]:
-                        node.pop(k)
-                elif isinstance(node[k], list):
-                    clean_recursif(node[k])
-                    if not node[k]:
-                        node.pop(k)
-        else:
-            return None
-
-    if not isinstance(data_json, dict): 
-        data_json = {}
-    data_json = {k:v for k,v in data_json.items() if v and k in ['source', 'language_used', 'source_pure', 'ml_sentiment', 'subsentences', 'sentiment', 'sentence_acts', 'ml_emotion', 'emotion', 'detail']}
-    data_json['detail'] = [{k:v for k,v in i.items() if v not in [[], {}, None]} for i in data_json.get('detail', [])]
-    clean_recursif(data_json)
-    return data_json
-
 class Sentence(TextChunk):
     __slots__ = ("data", "n", "max", "_id", "ref_document")
 
@@ -51,7 +21,7 @@ class Sentence(TextChunk):
         # self.data = clear_data(data_sentence)
         self.data = data_sentence
         self.max = len(self.data.get('detail', []))
-        # self._ner_fix()
+        self._ner_to_detail()
         self._id = idx
         self.ref_document = ref_document
 
@@ -63,22 +33,12 @@ class Sentence(TextChunk):
     def idx(self) -> int:
         return self.id
 
-    # To modify when desambiguisation is active and only one NER entity is returned for each token
-    def _ner_fix(self):
-        for i, d in enumerate(self.data.get('detail', [])):
-            ner = []
-            for m in d.get('meaning', []):
-                if 'super' in m and m['super']:
-                    if m['super'].lower() in ['location', 'person', 'organization']:
-                        if m['super'].lower() not in ner:
-                            ner.append(m['super'].lower())
-                    elif m['super'] == 'ENTITY':
-                        ner.append(m['sub'])
-                if 'sub' in m and m['sub']:
-                    if m['sub'] == 'number':
-                        ner.append(m['sub'])
-            if ner:
-                self.data['detail'][i]['type'] = ner
+    def _ner_to_detail(self):
+        """ Inject NER data into the detail key to be used by Token."""
+        for m in self.data.get('ml_ner', []):
+            if len(self.data.get('detail', [])) > m['index']:
+                self.data['detail'][m['index']]['value'] = m['value']
+                self.data['detail'][m['index']]['type'] = m['type']
 
     def __repr__(self):
         return self.str

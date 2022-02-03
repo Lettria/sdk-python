@@ -3,6 +3,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.0.0] - commit name : Various fixes - 2022-02-04
+### Changed
+- New document format ! Our API now features a brand new format that hold information for a whole document.
+- Document coreference resolution: Coreference spans and clusters are available on your whole document.
+- New document method: replace_coreference() will allow you to replace spans by the head reference of their cluster.
+- New global attributes: spans and clusters
+- New document attributes : str_doc, original_text_doc, emotion_doc, sentiment_doc, domain_doc, type_doc, original_text_doc, emoticon_doc
+- New tokens attributes : auxiliary, gender, plural, infinitive, mode, conjugate
+
+### Added:
+- to_annotation_format : Exports the data to the input format of our annotation plateform.
+- reformat_data: Reformat old data results to the new document format.
+
 ## [5.5.2] - commit name : Various fixes - 2021-09-21
 ### Fixed
 - subsentence str property is now working correctly.

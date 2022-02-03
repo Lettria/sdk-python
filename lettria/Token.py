@@ -51,12 +51,7 @@ class Token:
     def ner(self) -> dict:
         type_ = self.data.get('type', '')
         value = self.data.get('value', '')
-        tmp = {}
-        if type_:
-            tmp['type'] = type_
-        if value:
-            tmp['value'] = value
-        return tmp
+        return {'type': type_, 'value': value} if type_ else {}
 
     @ListProperty
     def spans(self) -> list:

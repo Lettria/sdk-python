@@ -365,6 +365,41 @@ class NLP(TextChunk):
         self.max = 0
         self._next_id = 0
     
+    def to_annotation_format(self, output_file, attribute=None, filter_list = [], verbose=True):
+        """ Writes data to a file in the annotation format for lettria's platform.
+
+        Args:
+            output_file (str): Name of the file to write to.
+            attribute (str, optional): Attribute to be used to preselect tokens to annotate. Defaults to None.
+            filter_list (list, optional): Filter used to compare to the chosen attribute. Defaults to [].
+            verbose (bool, optional): Turns off/on verbosity. Defaults to True.
+        """
+        if filter_list and attribute is None:
+            print("filter_list argument is not empty but no attribute has been chosen.")
+            return
+        if not output_file.endswith('.json'):
+            output_file = output_file + '.json'
+        if not self.data:
+            print("No data to save.")
+            return
+        try:
+            data = []
+            for doc in self.documents:
+                tmp = {'items':[], 'annotate':[]}
+                token_count = 0
+                for s in doc:
+                    tmp['items'] += [t.str for t in s.tokens] + ['\n']
+                    if attribute is not None:
+                        tmp['annotate'] += [i + token_count for i, t in enumerate(s.tokens) if getattr(t, attribute) in filter_list]
+                    token_count += len([t.str for t in s.tokens] + ['\n'])
+                data.append(tmp)
+            with open(output_file, 'w') as fw:
+                json.dump(data, fw)
+            if verbose:
+                print(f'Annotations saved to {output_file}')
+        except Exception as e:
+            print(e)
+    
     def reformat_data(self, filepath, output_file):
         """ Takes the path of a results file with the old sentence format 
             and writes it to a new file with the new document format"""

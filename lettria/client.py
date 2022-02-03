@@ -14,7 +14,6 @@ class Client:
             key = key[14:]
         self.key = key
         self.headers = { 'Authorization': 'LettriaProKey ' + str(self.key), 'content-type': 'application/json' }
-        # self.headers = {'Authorization':  'Basic WTJBS1VtY0FKVUxrS2N0YTpWaGZmNlU3RWZOektzRzZh', 'content-type': 'application/json'}
         self.max_try = 2
 
     def print_response_error(self, response):
@@ -29,7 +28,6 @@ class Client:
         i = 0
         while i < self.max_try:
             try:
-                # response = requests.post('https://api.lettria.com/main', headers=self.headers, json={'text' : text}).json()
                 response = requests.post('https://api.lettria.com/', headers=self.headers, json={'text' : text}).json()
                 if not response or (response and not isinstance(response, dict)):
                     raise Exception
@@ -50,7 +48,6 @@ class Client:
         while i < self.max_try:
             try:
                 response = requests.post('https://api.lettria.com/', headers=self.headers, json={'documents' : batch_documents}).json()
-                # response = requests.post('https://api.lettria.com/main_documents', headers=self.headers, json={'documents' : batch_documents}).json()
                 if not response or (response and not isinstance(response, list)):
                     raise Exception
                 result = response
