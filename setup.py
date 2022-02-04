@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="lettria",
-    version="5.0.6",
+    version="6.0.0",
     packages=find_packages(),
     description="Lettria official SDK for python",
     long_description="Lettria official SDK for python",
