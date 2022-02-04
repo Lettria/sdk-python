@@ -1,5 +1,6 @@
-from .NLP import NLP
 import jsonlines as jsonl
+
+from .NLP import NLP
 
 class JSONLReader:
     def __init__(self, path, chunksize = 1):

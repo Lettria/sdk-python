@@ -1,18 +1,8 @@
 from collections import defaultdict
-from .patterns.patterns_token import check_pattern
 
-GLOBAL = ['g', 'global', 'glob']
-DOC = ['d', 'doc', 'document', 'documents']
-SENT = ['s', 'sentence', 'sent', 'sentences']
-SUB = ['sub', 'subsentence', 'subsentences']
-TOK = ['t', 'token', 'tok', 'tokens']
-POSITIVE = ['positive', 'positif', 'pos', '+']
-NEGATIVE = ['negative', 'negatif', 'neg', '-']
-NEUTRAL = ['neutral', 'neutre', 'neut']
-EMOTIONS = ['admiration', 'amusement', 'anger', 'annoyance', 'caring', 'confusion', 'curiosity', 'desire',
-    'disappointment', 'disapproval', 'disgust', 'embarrassment', 'excitement', 'fear', 'gratitude',
-    'grief', 'happiness', 'love', 'nervousness', 'optimism', 'pride', 'realization', 'relief', 'remorse', 'sadness', 'surprise']
-SENTENCE_TYPES = ['command', 'assert', 'question_open', 'question_closed']
+from .patterns.patterns_token import check_pattern
+from .utils import GLOBAL, DOC, SENT, SUB, TOK
+from .utils import POSITIVE, NEGATIVE, NEUTRAL, EMOTIONS, SENTENCE_TYPES
 
 class TextChunk:
     def __init__(self):
@@ -20,6 +10,17 @@ class TextChunk:
         self.class_name = self.__class__.__name__        
 
     def match_pattern(self, patterns_json, level = None, print_tree=False, skip_errors=False):
+        """Will perform pattern matching on the data contained in the object.
+
+        Args:
+            patterns_json (dict): dict of key:pattern where pattern is a list of pattern elements.
+            level (str, optional): Level on which to perform the matching, Document, Sentence... Defaults to None.
+            print_tree (bool, optional): Prints dependency tree. Defaults to False.
+            skip_errors (bool, optional): Whether to skip or raise errors. Defaults to False.
+
+        Returns:
+            list: list of matched patterns, list of tuples (object, dict of matched patterns).
+        """
         matches = defaultdict(list)
 
         matches = []
@@ -81,7 +82,11 @@ class TextChunk:
         return matches
 
     def vocabulary(self, filter_pos = None, lemma=False):
-        """ Generates vocabulary list of words"""
+        """ Generates vocabulary list of words
+        Args:
+            filter_pos (list, optional): If provided it will only include words in given list of postags. Defaults to None.
+            lemma (bool, optional): Whether to use lemma instead of base words. Defaults to False.
+        """
         vocabulary = []
         tokens = self.token_flat if not lemma else self.lemma_flat
         pos = self.pos_flat
@@ -104,7 +109,11 @@ class TextChunk:
         return entities
 
     def word_count(self, filter_pos = None, lemma=False):
-        """ Generates word count, document or global level """
+        """ Generates count list of words
+        Args:
+            filter_pos (list): If provided it will only include words in given list of postags. Defaults to None.
+            lemma (bool, optional): Whether to use lemma instead of base words. Defaults to False.
+        """
         word_count = []
         tokens = self.token_flat if not lemma else self.lemma_flat
         pos = self.pos_flat
@@ -115,19 +124,27 @@ class TextChunk:
         return word_count
 
     def word_frequency(self, filter_pos = None, lemma=False):
-        """ Generates frequency list of words """
+        """ Generates frequency list of words
+        Args:
+            filter_pos (list): If provided it will only include words in given list of postags. Defaults to None.
+            lemma (bool, optional): Whether to use lemma instead of base words. Defaults to False.
+        """
         vocab = self.word_count(filter_pos=filter_pos, lemma=lemma)
         total = sum(self.word_count().values())
         return {k:round(v/(total + 1e-10), 10) for k,v in vocab.items()}
 
     def statistics(self):
+        """Returns statistics about the data contained in the object"""
         return {'documents': len(self.documents) if self.class_name in ['NLP'] else int(self.class_name == 'Document'),
         'sentences': len(self.sentences) if self.class_name in ['NLP', 'Document'] else int(self.class_name == 'Sentence'),
         'subsentences': len(self.subsentences) if self.class_name in ['NLP', 'Document', 'Sentence'] else int(self.class_name == 'Subsentence'),
         'tokens': len(self.tokens)}
     
     def get_emotion(self, granularity = 'sentence'):
-        """ Returns emotion results at the specified hierarchical level """
+        """ Returns emotion results at the specified hierarchical level
+        Args:
+            granularity (str, optional): Whether to use emotion by sentence or subsentence. Defaults to None.
+        """
         if granularity not in SENT + SUB:
             print("granularity argument should be 'sentence' or 'subsentence'")
             return None
@@ -151,7 +168,10 @@ class TextChunk:
         return emotions
 
     def get_sentiment(self, granularity='sentence'):
-        """ Returns sentiment results at the specified hierarchical level """
+        """ Returns sentiment results at the specified hierarchical level 
+        Args:
+            granularity (str, optional): Whether to use sentiment by sentence or subsentence. Defaults to None.
+        """
         class_name = self.__class__.__name__
         if granularity not in SENT + SUB:
             print("granularity argument should be 'sentence' or 'subsentence'")
@@ -180,7 +200,11 @@ class TextChunk:
         return sentiments
     
     def filter_polarity(self, polarity, granularity='sentence'):
-        """ Returns sentence or subsentence objects with the specified sentiment polarity"""
+        """ Returns sentence or subsentence objects with the specified sentiment polarity
+        Args:
+            polarity (list or str): polarity to include.
+            granularity (str, optional): Whether to use sentiment by sentence or subsentence. Defaults to None.
+        """
         if isinstance(polarity, str):
             polarity = [polarity]
         for p in polarity:
@@ -209,7 +233,11 @@ class TextChunk:
         return [s for s in _iter if check_polarity(s.sentiment.get('total', 0), polarity)]
 
     def filter_emotion(self, emotions, granularity='sentence'):
-        """ Returns sentence or subsentence objects with the specified emotion """
+        """ Returns sentence or subsentence objects with the specified emotion
+        Args:
+            emotions (list or str): types of emotions to include.
+            granularity (str, optional): Whether to use emotion by sentence or subsentence. Defaults to None.
+        """
         if isinstance(emotions, str):
             emotions = [emotions]
         for p in emotions:
@@ -232,7 +260,10 @@ class TextChunk:
         return [s for s in _iter if check_emotion(s.emotion, emotions)]
 
     def filter_type(self, sentence_type):
-        """ Returns sentence objects with the specified type"""
+        """ Returns sentence objects with the specified type
+        Args:
+            sentence_type (list or str): types of sentence to include.
+        """
         if isinstance(sentence_type, str):
             sentence_type = [sentence_type]
         class_name = self.__class__.__name__
@@ -246,7 +277,14 @@ class TextChunk:
         return [s for s in self.sentences if s.sentence_type in sentence_type]
 
     def word_sentiment(self, granularity = 'sentence', lemma = False, filter_pos = None, average=True):
-        """ Returns sentiment associated with word"""
+        """ Returns sentiment associated with word.
+        Args:
+            granularity (str, optional): Whether to use sentiment by sentence or subsentence. Defaults to None.
+            lemma (bool, optional): Whether to use lemma instead of base words. Defaults to False.
+            filter_pos (list, optional): If provided it will only include words in given list of postags. Defaults to None.
+            average (bool, optional): Whether to return average or a list of values. Defaults to True.
+        """
+        
         if granularity not in SENT + SUB:
             print("granularity argument should be 'sentence' or 'subsentence'")
             return None
@@ -278,7 +316,13 @@ class TextChunk:
         return res
 
     def word_emotion(self, granularity = 'sentence', lemma = False, filter_pos = None, average=True):
-        """ Returns emotion associated with word"""
+        """ Returns emotion associated with word.
+        Args:
+            granularity (str, optional): Whether to use emotion by sentence or subsentence. Defaults to None.
+            lemma (bool, optional): Whether to use lemma instead of base words. Defaults to False.
+            filter_pos (list, optional): If provided it will only include words in given list of postags. Defaults to None.
+            average (bool, optional): Whether to return average or a list of values. Defaults to True.
+        """
         if granularity not in SENT + SUB:
             print("granularity argument should be 'sentence' or 'subsentence'")
             return None
@@ -313,7 +357,12 @@ class TextChunk:
         return res
 
     def meaning_sentiment(self, granularity='sentence', filter_meaning=None, average=True):
-        """ Returns sentiment associated with meaning"""
+        """ Returns sentiment associated with meaning.
+        Args:
+            granularity (str, optional): Whether to use sentiment by sentence or subsentence. Defaults to None.
+            filter_meaning (list, optional): If provided it will only include meanings in given list. Defaults to None.
+            average (bool, optional): Whether to return average or a list of values. Defaults to True.
+        """
         if isinstance(filter_meaning, str):
             filter_meaning = [filter_meaning]
         if granularity not in SENT + SUB:
@@ -348,7 +397,12 @@ class TextChunk:
         return res
 
     def meaning_emotion(self, granularity='sentence', filter_meaning=None, average=True):
-        """ Returns emotion associated with meaning"""
+        """ Returns emotion associated with meaning.
+        Args:
+            granularity (str, optional): Whether to use emotion by sentence or subsentence. Defaults to None.
+            filter_meaning (list, optional): If provided it will only include meanings in given list. Defaults to None.
+            average (bool, optional): Whether to return average or a list of values. Defaults to True.
+        """
         if isinstance(filter_meaning, str):
             filter_meaning = [filter_meaning]
         if granularity not in SENT + SUB:

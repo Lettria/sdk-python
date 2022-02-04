@@ -16,12 +16,17 @@ from .Token import Token
 class PipelineError(Exception): pass
 
 class NLP(TextChunk):
-    """ Class for data analysis of API return.
-        Takes a Client class as input which is used to make api requests.
+
+    def __init__(self, api_key = None, client = None, verbose=True):
+        """Class for data analysis of API return.
         Provides both high and low level methods to access data via specific class
         for each key in the api result or methods designed for specific use cases.
+
+        Args:
+            api_key (str, optional): api_key used for authentification to lettria's API. Defaults to None.
+            client (Client, optional): Client class used to make api requests.. Defaults to None.
+            verbose (bool, optional): Turns on/off verbosity. Defaults to True.
         """
-    def __init__(self, api_key = None, client = None, data = None, no_print=False):
         super(NLP, self).__init__()
         self.client = None
         if client or api_key:
@@ -44,7 +49,7 @@ class NLP(TextChunk):
         def doNothing(*args):
             pass
         global print
-        if no_print:
+        if not verbose:
             print = doNothing
 
     @ListProperty
@@ -402,7 +407,12 @@ class NLP(TextChunk):
     
     def reformat_data(self, filepath, output_file):
         """ Takes the path of a results file with the old sentence format 
-            and writes it to a new file with the new document format"""
+            and writes it to a new file with the new document format
+            
+            Args:
+                filepath (str): Name of the file to read data from.
+                output_file (str): Name of the file to write to.
+            """
         data = []
         idx = 0
         if filepath.endswith('jsonl'):
