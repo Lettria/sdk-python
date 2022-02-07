@@ -72,6 +72,10 @@ class Sentence(TextChunk):
             data['sentiment'] = self.data['sentiment'].get('subsentences', [])[_id]
         if len(self.data.get('emotion', {}).get('subsentences', [])) > _id:
             data['emotion'] = self.data['emotion'].get('subsentences', [])[_id]
+        if len(self.data.get('ml_sentiment', {}).get('subsentence', [])) > _id:
+            data['ml_sentiment'] = {'sentence': self.data['ml_sentiment']['sentence'], 'subsentence': {'value': self.data['ml_sentiment']['subsentence'][_id]}}
+        if len(self.data.get('ml_emotion', {}).get('subsentence', [])) > _id:
+            data['ml_emotion'] = {'sentence': self.data['ml_emotion']['sentence'], 'subsentence': self.data['ml_emotion']['subsentence'][_id]}
         return Subsentence(data)
 
     @ListProperty
@@ -104,7 +108,11 @@ class Sentence(TextChunk):
 
     @DictProperty
     def emotion_ml(self) -> list:
-        return self.emotion
+        if self.__class__.__name__ == 'Sentence':
+            return [(dic['type'], round(dic['value'],4)) for dic in self.data.get('ml_emotion', {}).get('sentence', {}) if dic['value'] != 0]
+        elif self.__class__.__name__ == 'Subsentence':
+            return [(dic['type'], round(dic['value'],4)) for dic in self.data.get('ml_emotion', {}).get('subsentence', {}) if dic['value'] != 0]
+            
 
     @DictProperty
     def sentiment(self) -> dict:
@@ -112,7 +120,10 @@ class Sentence(TextChunk):
 
     @DictProperty
     def sentiment_ml(self) -> dict:
-        return self.sentiment
+        if self.__class__.__name__ == 'Sentence':
+            return {'total': self.data.get('ml_sentiment', {}).get('sentence', {}).get('value', 0)}
+        elif self.__class__.__name__ == 'Subsentence':
+            return {'total': self.data.get('ml_sentiment', {}).get('subsentence', {}).get('value', 0)}
 
     @StrProperty
     def sentence_type(self) -> str:

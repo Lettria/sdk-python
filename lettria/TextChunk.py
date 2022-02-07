@@ -297,7 +297,6 @@ class TextChunk:
             res = {t:{'values':0, 'occurrences':0} for t in tokens}
             for sentence in _iter:
                 val = sentence.sentiment_ml.get('total', 0)
-                # val = sentence.sentiment_ml.get('total', 0)
                 tmp_iter = sentence.lemma if lemma else sentence.token
                 for t, p in zip(tmp_iter, sentence.pos):
                     if not filter_pos or p in filter_pos:
