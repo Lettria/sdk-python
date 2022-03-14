@@ -201,7 +201,7 @@ class NLP(TextChunk):
             Args:
                 skip_document: If False document is added even if empty or request failed.
                 batch_size: Number of documents to request at once.
-                id: List of Ids given to documents, by default sequential integer """
+                document_ids: List of Ids given to documents, by default sequential integer """
         if not isinstance(documents, list):
             print("ERROR, 'add_documents' method expects a list of string as first argument.")
             return

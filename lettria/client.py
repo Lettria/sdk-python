@@ -78,15 +78,6 @@ class Client:
         except RequestError:
             if skip_document:
                 return None
-        # if isinstance(results, dict):
-        #     bad_idx = self._check_result(results)
-        #     if bad_idx:
-        #         if skip_document:
-        #                 print("WARNING: Skipping document, error in sentences processing.")
-        #                 return None
-        #         elif verbose:
-        #             for i in bad_idx:
-        #                 print("Error processing sentence", i)
         return results
 
     def request_batch_documents(self, batch_documents, document_ids, skip_document = False):
@@ -99,9 +90,4 @@ class Client:
                     results.pop(idx)
                     if document_ids:
                         document_ids.pop(idx)
-                # elif self._check_result(results[idx]):
-                #     print("WARNING: Skipping document, error in sentences processing.")
-                #     results.pop(idx)
-                #     if document_ids:
-                #         document_ids.pop(idx)
         return results, document_ids

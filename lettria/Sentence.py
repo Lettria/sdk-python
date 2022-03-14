@@ -18,7 +18,6 @@ class Sentence(TextChunk):
             ref_document (Document, optional): Reference to the document. Defaults to None.
         """
         super(Sentence, self).__init__()
-        # self.data = clear_data(data_sentence)
         self.data = data_sentence
         self.max = len(self.data.get('detail', []))
         self._ner_to_detail()
