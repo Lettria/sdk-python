@@ -3,6 +3,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.0.1] - commit name : Various fixes - 2022-03-14
+### Added:
+- labels_to_annotation : Exports labels to the approriate format to use on lettria's platform.
+
 ## [6.0.0] - commit name : Various fixes - 2022-02-04
 ### Changed
 - New document format ! Our API now features a brand new format that hold information for a whole document.
