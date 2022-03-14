@@ -370,6 +370,17 @@ class NLP(TextChunk):
         self.max = 0
         self._next_id = 0
     
+    def labels_to_annotation(self, labels_list, description_list = None, parent_list = None, output_file=''):
+        if not description_list:
+            description_list = ['' for k in labels_list]
+        if not parent_list:
+            parent_list = [None for k in labels_list]
+        labels_json = [{'label': label, 'description':desc, 'parent':parent} for label, desc, parent in zip(labels_list, description_list, parent_list)]
+        if output_file:
+            with open(output_file, 'w') as fw:
+                json.dump(labels_json, fw)
+        return labels_json
+        
     def to_annotation_format(self, output_file, attribute=None, filter_list = [], verbose=True):
         """ Writes data to a file in the annotation format for lettria's platform.
 

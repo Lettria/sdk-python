@@ -101,11 +101,11 @@ class TextChunk:
         entities = {}
         for t, e in zip(self.token_flat, self.ner_flat):
             if e.get('type', None):
-                for _type in e['type']:
-                    if _type in entities:
-                        entities[_type].append(t)
-                    else:
-                        entities[_type] = [t]
+                _type = e['type']
+                if _type in entities:
+                    entities[_type].append(t)
+                else:
+                    entities[_type] = [t]
         return entities
 
     def word_count(self, filter_pos = None, lemma=False):
