@@ -34,10 +34,12 @@ class Sentence(TextChunk):
 
     def _ner_to_detail(self):
         """ Inject NER data into the detail key to be used by Token."""
-        for m in self.data.get('ml_ner', []):
-            if len(self.data.get('detail', [])) > m['index']:
-                self.data['detail'][m['index']]['value'] = m['value']
-                self.data['detail'][m['index']]['type'] = m['type']
+        ner_data = self.data.get('ml_ner', [])
+        if isinstance(ner_data, list):
+            for m in ner_data:
+                if len(self.data.get('detail', [])) > m['index']:
+                    self.data['detail'][m['index']]['value'] = m['value']
+                    self.data['detail'][m['index']]['type'] = m['type']
 
     def __repr__(self):
         return self.str

@@ -449,7 +449,7 @@ class NLP(TextChunk):
                 new_sentence['source'] = s.get('source', None)
                 new_sentence['source_pure'] = s.get('source_pure', None)
                 new_sentence['sentence_indexes'] = s.get('sentence_source_indexes', None)
-                new_sentence['subsentences'] = s.get('proposition', None)
+                new_sentence['subsentences'] = s.get('subsentences', None)
                 new_sentence['emotion'] = s.get('emotion', None)
                 new_sentence['sentiment'] = s.get('sentiment', None)
                 new_sentence['sentence_type'] = s.get('sentence_acts', {}).get('predict', None)
