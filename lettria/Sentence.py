@@ -37,7 +37,7 @@ class Sentence(TextChunk):
         for m in self.data.get('ml_ner', []):
             if len(self.data.get('detail', [])) > m['index']:
                 self.data['detail'][m['index']]['value'] = m['value']
-                self.data['detail'][m['index']]['type'] = m['type']
+                self.data['detail'][m['index']]['entity'] = m['entity']
 
     def __repr__(self):
         return self.str

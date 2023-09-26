@@ -100,8 +100,8 @@ class TextChunk:
         """ Returns dictionary of ner entities"""
         entities = {}
         for t, e in zip(self.token_flat, self.ner_flat):
-            if e.get('type', None):
-                _type = e['type']
+            if e.get('entity', None):
+                _type = e['entity']
                 if _type in entities:
                     entities[_type].append(t)
                 else:

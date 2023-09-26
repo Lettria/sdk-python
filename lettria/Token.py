@@ -49,9 +49,9 @@ class Token:
 
     @DictProperty
     def ner(self) -> dict:
-        type_ = self.data.get('type', '')
+        type_ = self.data.get('entity', '')
         value = self.data.get('value', '')
-        return {'type': type_, 'value': value} if type_ else {}
+        return {'entity': type_, 'value': value} if type_ else {}
 
     @ListProperty
     def spans(self) -> list:
