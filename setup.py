@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="lettria",
-    version="6.0.0",
+    version="6.0.2",
     packages=find_packages(),
     description="Lettria official SDK for python",
     long_description="Lettria official SDK for python",
@@ -12,9 +12,6 @@ setup(
     author_email="maxence@lettria.com",
     url="https://github.com/Lettria/sdk-python",
     license="MIT",
-    install_requires=[
-      "requests>=2.10",
-      "jsonlines"
-    ],
-    keywords="lettria french nlp taln ner nlu chatbot bigdata text analysis sentiment emotion"
+    install_requires=["requests>=2.10", "jsonlines"],
+    keywords="lettria french nlp taln ner nlu chatbot bigdata text analysis sentiment emotion",
 )
